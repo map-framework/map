@@ -4,7 +4,7 @@ namespace store\data;
 /**
  * @TODO write unit-tests
  */
-class AbstractData {
+abstract class AbstractData {
 	
 	private $data = '';
 	
