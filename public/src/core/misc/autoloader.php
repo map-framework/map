@@ -4,9 +4,9 @@
  * simple autoloader
  * 
  * @param string $namespace
- * @throws RuntimeException if class not found
+ * @return bool
  */
-function __autoload($namespace) {
+function afterAutoload($namespace) {
 	$directoryList = ['src/',	'../private'];
 	$fileExtension = '.class.php';
 
@@ -16,8 +16,11 @@ function __autoload($namespace) {
 		$path = $directory.implode('/', $itemList).'.class.php';
 		if (file_exists($path)) {
 			return include_once $path;
+			return true;
 		}
 	}
-	
-	throw new RuntimeException('Class `'.$namespace.'` not found.');
+	return false;
 }
+
+# register spl autoloader
+spl_autoload_register('afterAutoload', true);
