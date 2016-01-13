@@ -5,7 +5,7 @@ namespace store\data;
  * simple File-Class
  * @TODO write unit-tests
  */
-class File extends store\data\AbstractData {
+class File extends \store\data\AbstractData {
 	
 	/**
 	 * @return bool
