@@ -4,15 +4,28 @@ use store\data\File;
 
 final class FileTest extends PHPUnit_Framework_TestCase {
 	
-	const FILE_EXISTS			= 'web.ini';
-	const FILE_NOT_EXISTS	= 'notExists.ini';
+	const FILE			= 'web.ini';
+	const DIRECTORY	= 'src';
+	const NOTHING		= 'notExists.ini';
 	
-	public function testExists_true() {
-		$this->assertTrue((new File(self::FILE_EXISTS))->exists());
+	public function testExists_exists() {
+		$this->assertTrue((new File(self::FILE))->exists());
 	}
 	
-	public function testExists_false() {
-		$this->assertFalse((new File(self::FILE_NOT_EXISTS))->exists());
+	public function testExists_notExists() {
+		$this->assertFalse((new File(self::NOTHING))->exists());
+	}
+	
+	public function testIsFile_file() {
+		$this->assertTrue((new File(self::FILE))->isFile());
+	}
+	
+	public function testIsFile_directory() {
+		$this->assertFalse((new File(self::DIRECTORY))->isFile());
+	}
+	
+	public function testIsFile_nothing() {
+		$this->assertFalse((new File(self::NOTHING))->isFile());
 	}
 	
 }
