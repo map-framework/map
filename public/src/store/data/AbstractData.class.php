@@ -6,7 +6,7 @@ namespace store\data;
  */
 abstract class AbstractData {
 	
-	private $data = '';
+	protected $data = '';
 	
 	/**
 	 * @param mixed $data
@@ -20,7 +20,7 @@ abstract class AbstractData {
 	 * @throws RuntimeException
 	 * @return AbstractData
 	 */
-	final protected function set($data) {
+	protected function set($data) {
 		if (!is_string($data)) {
 			throw new RuntimeException();
 		}
@@ -40,6 +40,15 @@ abstract class AbstractData {
 	 */
 	public function __toString() {
 		return $this->get();
+	}
+	
+	/**
+	 * @param string $pattern
+	 * @param string $subject
+	 * @return bool
+	 */
+	final protected static function match($pattern, $subject) {
+		return (bool) preg_match('/'.$pattern.'/', $subject);
 	}
 	
 }
