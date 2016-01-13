@@ -1,6 +1,9 @@
 <?php
 namespace store;
 
+use \RuntimeException;
+use store\data\File;
+
 /**
  * @TODO write unit-tests
  */
@@ -14,6 +17,7 @@ class Bucket {
 	/**
 	 * @param string $group
 	 * @param string $key
+	 * @return bool
 	 */
 	final public function exists($group, $key) {
 		return isset($this->data[$group][$key]);
@@ -23,6 +27,7 @@ class Bucket {
 	 * @param string $group
 	 * @param string $key
 	 * @param string $default
+	 * @return mixed
 	 */
 	final public function get($group, $key, $default = null) {
 		if ($this->exists($group, $key)) {
@@ -34,8 +39,9 @@ class Bucket {
 	/**
 	 * @param string $group
 	 * @param string $key
-	 * @param string $value
+	 * @param mixed $value
 	 * @throws RuntimeException if group or key invalid
+	 * @return Bucket
 	 */
 	final public function set($group, $key, $value) {
 		if (!preg_match(PATTERN_GROUP, $group)) {
@@ -45,6 +51,34 @@ class Bucket {
 			throw new RuntimeException('Invalid key `'.$key.'`.');
 		}
 		$this->data[$group][$key] = $value;
+		return $this;
+	}
+	
+	/**
+	 * @param File $iniFile
+	 * @throws RuntimeException if file not exists
+	 * @throws RuntimeException if file is invalid
+	 * @return Bucket
+	 */
+	final public function apply(File $iniFile) {
+		if ($iniFile === null || !$iniFile->isFile()) {
+			throw new RuntimeException('File not exists `'.$iniFile.'`.');
+		}
+		foreach (parse_ini_file($iniFile, true, INI_SCANNER_TYPED) as $group => $keyList) {
+			if (!is_array($keyList)) {
+				# ignore keys without group
+				continue;
+			}
+			foreach ($keyList as $key => $value) {
+				try {
+					$this->set($group, $key, $value);
+				}
+				catch (RuntimeExcepion $e) {
+					throw new RuntimeException('File `'.$iniFile.'` is invalid. Caught Exception: '.$e->getMessage());
+				}
+			}
+		}
+		return $this;
 	}
 	
 }
