@@ -7,13 +7,27 @@
  * @return bool
  */
 function afterAutoload($namespace) {
-	$directoryList = ['src/',	'../private'];
-	$fileExtension = '.class.php';
+	# change directory if not usual installed
+	$directoryList = array(
+		'public/src/',
+		'private/'
+	);
+
+	# makes possible to start unit tests from rootDir
+	if (substr(getcwd(), strlen(getcwd()) - 6) === 'public') {
+		$prefix = '../';
+	}
+	else {
+		$prefix = '';
+	}
+	
+	$suffix = '.class.php';
 
 	$itemList = explode('\\', $namespace);
 	
 	foreach ($directoryList as $directory) {
-		$path = $directory.implode('/', $itemList).'.class.php';
+
+		$path = $prefix.$directory.implode('/', $itemList).$suffix;
 		if (file_exists($path)) {
 			return include_once $path;
 			return true;
