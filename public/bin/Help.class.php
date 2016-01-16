@@ -54,14 +54,14 @@ final class Help extends AbstractCommand {
 	 * @return Help
 	 */
 	private function printCommand(AbstractCommand $command) {
-		$this->subHeadline(ucfirst($command->getName()));
+		$this->subHeadline('Command: '.ucfirst($command->getName()));
 
 		$syntax 			= get_class($command).'::SYNTAX';
 		$description 	= get_class($command).'::DESCRIPTION';
 
 		# print syntax
 		if (defined($syntax)) {
-			$this->bold($this->getName().' '.constant($syntax));
+			$this->bold($command->getName().' '.constant($syntax));
 		}
 		else {
 			$this->italic('syntax unknown');
