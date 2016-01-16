@@ -1,6 +1,6 @@
 <?php
 
-use \store\data\File;
+use store\data\File;
 
 final class FileTest extends PHPUnit_Framework_TestCase {
 	

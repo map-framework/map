@@ -1,5 +1,5 @@
 <?php
-namespace src\store\data;
+namespace store\data;
 
 /**
  * @TODO write unit-tests

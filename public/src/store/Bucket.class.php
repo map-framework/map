@@ -1,7 +1,7 @@
 <?php
-namespace src\store;
+namespace store;
 
-use \RuntimeException;
+use RuntimeException;
 use store\data\File;
 
 /**

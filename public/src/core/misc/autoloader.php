@@ -2,23 +2,24 @@
 
 /**
  * simple autoloader
- * 
  * @param  string $namespace
  * @return bool
  */
 function afterAutoload($namespace) {
 	# change directory if not usual installed
 	$directoryList = array(
-		'public/',
-		'private/'
+		'public/src/',
+		'private/src/'
 	);
 
-	# makes possible to start unit tests from rootDir
-	if (substr(getcwd(), strlen(getcwd()) - 6) === 'public') {
-		$prefix = '../';
+	# binary folders on command line
+	if (PHP_SAPI === 'cli') {
+		$directoryList[] = 'public/bin/';
+		$directoryList[] = 'private/bin/';
+		$prefix = '';
 	}
 	else {
-		$prefix = '';
+		$prefix = '../';
 	}
 	
 	$suffix = '.class.php';
@@ -27,7 +28,7 @@ function afterAutoload($namespace) {
 	foreach ($directoryList as $directory) {
 		$path = $prefix.$directory.implode('/', $itemList).$suffix;
 		if (file_exists($path)) {
-			return include_once $path;
+			include_once $path;
 			return true;
 		}
 	}
