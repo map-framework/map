@@ -1,5 +1,5 @@
 <?php
-namespace store\data;
+namespace src\store\data;
 
 /**
  * simple File-Class
@@ -57,27 +57,32 @@ class File extends \store\data\AbstractData {
 	}
 
 	/**
-	 * @param octal $read
-	 * @param octal $write
-	 * @param octal $execute
+	 * @param  octal $read
+	 * @param  octal $write
+	 * @param  octal $execute
+	 * @throws Exception if invalid read mode
+	 * @throws Exception if invalid write mode
+	 * @throws Exception if invalid execute mode
 	 * @return bool
 	 */
 	final public function changeMode($read, $write, $execute) {
 		if (!is_int($read) || $read < 0 || $read > 7) {
-			throw new RuntimeExcepton('Invalid Read-Mode `'.$read.'`.');
+			throw new Exception('Invalid Read-Mode `'.$read.'`.', 1);
 		}
 		if (!is_int($write) || $write < 0 || $write > 7) {
-			throw new RuntimeException('Invalid Write-Mode `'.$write.'`.');
+			throw new Exception('Invalid Write-Mode `'.$write.'`.', 2);
 		}
 		if (!is_int($execute) || $execute < 0 || $execute > 7) {
-			throw new RuntimeException('Invalid Execute-Mode `'.$execute.'`.');
+			throw new Exception('Invalid Execute-Mode `'.$execute.'`.', 3);
 		}
 		return chmod($this->get(), $read.$write.$execute);
 	}
 	
 	/**
+	 * @throws Exception if file not exists
+	 * @throws Exception if file is not readable
+	 * @throws Exception if failed to get content
 	 * @return string
-	 * @throws RuntimeException
 	 */
 	final public function getContents() {
 		$content = file_get_contents($this->get());
@@ -85,14 +90,22 @@ class File extends \store\data\AbstractData {
 			return $content;
 		}
 		if (!$this->exists()) {
-			throw new RuntimeException('File `'.$this.'` not exists.');
+			throw new Exception('File `'.$this.'` not exists.', 1);
 		}
 		elseif (!$this->readable()) {
-			throw new RuntimeException('File `'.$this.'` is not readable.');
+			throw new Exception('File `'.$this.'` is not readable.', 2);
 		}
 		else {
-			throw new RuntimeException('Failed to get content of file `'.$this->get().'`.');
+			throw new Exception('Failed to get content of file `'.$this->get().'`.', 3);
 		}
+	}
+
+	/**
+	 * scan directory
+	 * @return array
+	 */
+	final public function scan() {
+
 	}
 	
 }
