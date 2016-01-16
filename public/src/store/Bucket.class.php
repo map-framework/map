@@ -1,5 +1,5 @@
 <?php
-namespace store;
+namespace src\store;
 
 use \RuntimeException;
 use store\data\File;
