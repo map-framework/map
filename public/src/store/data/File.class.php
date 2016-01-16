@@ -1,7 +1,9 @@
 <?php
-namespace src\store\data;
+namespace store\data;
 
-use src\store\data\AbstractData;
+use Exception;
+use RuntimeException;
+use store\data\AbstractData;
 
 /**
  * simple File-Class
@@ -128,18 +130,16 @@ class File extends AbstractData {
 	 * @return File[]
 	 */
 	final public function scan($type = null) {
+		if (!$this->exists($this->get())) {
+			throw new Exception('Directory `'.$this->get().'` not exists.', 1);
+		}
+		elseif (!$this->isDir($this->get())) {
+			throw new Exception('Directory `'.$this->get().'` is not a directory.', 2);
+		}
+
 		$fileList = scandir($this->get());
-		
 		if ($fileList === false) {
-			if (!$this->exists($this->get())) {
-				throw new Exception('Directory `'.$this->get().'` not exists.', 1);
-			}
-			elseif (!$this->isDir($this->get())) {
-				throw new Exception('Directory `'.$this->get().'` is not a directory.', 2);
-			}
-			else {
-				throw new Exception('Failed to scan directory `'.$this->get().'`.', 3);
-			}
+			throw new Exception('Failed to scan directory `'.$this->get().'`.', 3);
 		}
 
 		# check type
@@ -153,7 +153,7 @@ class File extends AbstractData {
 			$fileList[$fileKey] = (new File($this->get()))
 				->attach($file);
 
-			# type-filter if type not null
+			# filter by type if filter-type is not null
 			if ($type !== null && !$fileList[$fileKey]->$checkMethod()) {
 				unset($fileList[$fileKey]);
 			}
