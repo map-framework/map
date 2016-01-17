@@ -15,6 +15,10 @@ class File extends AbstractData {
 	const TYPE_DIR				= 'dir';
 	const TYPE_LINK				= 'link';
 
+	const MAKE_DIR_MODE		= 0777;
+	const MAKE_FILE_MODE	= 0777;
+	const MAKE_LINK_MODE	= 0777;
+
 	/**
 	 * @return bool
 	 */
@@ -77,6 +81,7 @@ class File extends AbstractData {
 	}
 
 	/**
+	 * change file mode
 	 * @param  octal $read
 	 * @param  octal $write
 	 * @param  octal $execute
@@ -99,6 +104,22 @@ class File extends AbstractData {
 	}
 	
 	/**
+	 * make directory
+	 * @return bool
+	 */
+	final public function makeDir() {
+		return mkdir($this->get(), self::MAKE_DIR_MODE, true);
+	}
+
+	/**
+	 * make empty file
+	 * @return bool
+	 */
+	final public function makeFile() {
+		return (bool) file_put_contents($this->get(), '', self::MAKE_FILE_MODE);
+	}
+	
+	/**
 	 * @throws Exception if file not exists
 	 * @throws Exception if file is not readable
 	 * @throws Exception if failed to get content
@@ -116,30 +137,44 @@ class File extends AbstractData {
 			throw new Exception('File `'.$this.'` is not readable.', 2);
 		}
 		else {
-			throw new Exception('Failed to get content of file `'.$this->get().'`.', 3);
+			throw new Exception('Failed to get content of file `'.$this.'`.', 3);
 		}
 	}
 
 	/**
-	 * scan directory
+	 * create & write content into file
+	 * @param  $content
+	 * @param  $append = true
+	 * @throws Exception if failed to put content
+	 * @return File
+	 */ 
+	final public function putContents($content, $append = true) {
+		if (!file_put_contents($this->get(), $content, $append ? FILE_APPEND : 0)) {
+			throw new Exception('failed to put content in file `'.$this.'`');
+		}
+		return $this;
+	}
+
+	/**
+	 * scan dir
 	 * @param  string $type allow only one File::TYPE_*
-	 * @throws Exception if directory not exists
-	 * @throws Exception if is not a directory
-	 * @throws Exception if failed to scan directory 
+	 * @throws Exception if dir not exists
+	 * @throws Exception if is not a dir
+	 * @throws Exception if failed to scan dir 
 	 * @throws RuntimeException if file type not exists
 	 * @return File[]
 	 */
 	final public function scan($type = null) {
 		if (!$this->exists($this->get())) {
-			throw new Exception('Directory `'.$this->get().'` not exists.', 1);
+			throw new Exception('dir `'.$this.'` not exists', 1);
 		}
 		elseif (!$this->isDir($this->get())) {
-			throw new Exception('Directory `'.$this->get().'` is not a directory.', 2);
+			throw new Exception('file `'.$this.'` is not a dir', 2);
 		}
 
 		$fileList = scandir($this->get());
 		if ($fileList === false) {
-			throw new Exception('Failed to scan directory `'.$this->get().'`.', 3);
+			throw new Exception('dir to scan dir `'.$this.'`', 3);
 		}
 
 		# check type
