@@ -16,23 +16,27 @@ function afterAutoload($namespace) {
 	if (PHP_SAPI === 'cli') {
 		$directoryList[] = 'public/bin/';
 		$directoryList[] = 'private/bin/';
-		$prefix = '';
-	}
-	else {
-		$prefix = '../';
 	}
 	
 	$suffix = '.class.php';
 	$itemList = explode('\\', $namespace);
 	
 	foreach ($directoryList as $directory) {
-		$path = $prefix.$directory.implode('/', $itemList).$suffix;
+		$path = constant('ROOT_DIR').$directory.implode('/', $itemList).$suffix;
 		if (file_exists($path)) {
 			include_once $path;
 			return true;
 		}
 	}
 	return false;
+}
+
+# set root dir
+if (PHP_SAPI === 'cli') {
+	define('ROOT_DIR', '');
+}
+else {
+	define('ROOT_DIR', '../');
 }
 
 # register spl autoloader
