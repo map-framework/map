@@ -28,23 +28,23 @@ final class FileTest extends PHPUnit_Framework_TestCase {
 		}
 	}
 	
-	public function testExists_exists() {
+	public function exists_file_true() {
 		$this->assertTrue((new File(self::FILE))->exists());
 	}
 	
-	public function testExists_notExists() {
+	public function exists_nothing_false() {
 		$this->assertFalse((new File(self::NOTHING))->exists());
 	}
 	
-	public function testIsFile_file() {
+	public function isFile_file_true() {
 		$this->assertTrue((new File(self::FILE))->isFile());
 	}
 	
-	public function testIsFile_directory() {
+	public function isFile_dir_false() {
 		$this->assertFalse((new File(self::DIRECTORY))->isFile());
 	}
 	
-	public function testIsFile_nothing() {
+	public function isFile_nothing_false() {
 		$this->assertFalse((new File(self::NOTHING))->isFile());
 	}
 	
