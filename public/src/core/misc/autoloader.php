@@ -5,7 +5,7 @@
  * @param  string $namespace
  * @return bool
  */
-function afterAutoload($namespace) {
+function mapAutoload($namespace) {
 	# change directory if not usual installed
 	$directoryList = array(
 		'public/src/',
@@ -40,4 +40,4 @@ else {
 }
 
 # register spl autoloader
-spl_autoload_register('afterAutoload', true);
+spl_autoload_register('mapAutoload', true);
