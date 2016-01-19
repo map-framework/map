@@ -31,7 +31,7 @@ abstract class AbstractData {
 	/**
 	 * @return string
 	 */
-	final public function get() {
+	public function get() {
 		return $this->data;
 	}
 	
