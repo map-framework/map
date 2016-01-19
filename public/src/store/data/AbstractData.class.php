@@ -31,7 +31,7 @@ abstract class AbstractData {
 	/**
 	 * @return string
 	 */
-	final protected function get() {
+	final public function get() {
 		return $this->data;
 	}
 	
@@ -48,6 +48,9 @@ abstract class AbstractData {
 	 * @return bool
 	 */
 	final protected static function match($pattern, $subject) {
+		if (!is_string($subject)) {
+			return false;
+		}
 		return (bool) preg_match('/'.$pattern.'/', $subject);
 	}
 	
