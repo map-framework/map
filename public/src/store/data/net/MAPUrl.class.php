@@ -83,11 +83,16 @@ class MAPUrl extends Url {
 
 	/**
 	 * @param  $inputList string[]
+	 * @throws Exception if inputList isn't an array
 	 * @throws Exception if input invalid
 	 * @return MAPUrl
 	 */
 	public function setInputList($inputList) {
 		$this->inputList = array();
+
+		if (!is_array($inputList)) {
+			throw new Exception('inputList isn\'t an array');
+		}
 
 		foreach ($inputList as $input) {
 			$this->addInput($input);
