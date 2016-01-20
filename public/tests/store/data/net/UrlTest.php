@@ -113,60 +113,36 @@ class UrlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(self::URL_NONE, (new Url(self::URL_NONE))->get());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetScheme_none() {
-		(new Url())->setScheme(self::URL_NONE_SCHEME);
+		$this->assertEquals(self::URL_NONE_SCHEME, (new Url())->setScheme(self::URL_NONE_SCHEME)->getScheme());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetUser_none() {
-		(new Url())->setUser(self::URL_NONE_USER);
+		$this->assertEquals(self::URL_NONE_USER, (new Url())->setUser(self::URL_NONE_USER)->getUser());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetPass_none() {
-		(new Url())->setPass(self::URL_NONE_PASS);
+		$this->assertEquals(self::URL_NONE_PASS, (new Url())->setPass(self::URL_NONE_PASS)->getPass());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetHost_none() {
-		(new Url())->setHost(self::URL_NONE_HOST);
+		$this->assertEquals(self::URL_NONE_HOST, (new Url())->setHost(self::URL_NONE_HOST)->getHost());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetPort_none() {
-		(new Url())->setPort(self::URL_NONE_PORT);
+		$this->assertEquals(self::URL_NONE_PORT, (new Url())->setPort(self::URL_NONE_PORT)->getPort());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetPath_none() {
-		(new Url())->setPath(self::URL_NONE_PATH);
+		$this->assertEquals(self::URL_NONE_PATH, (new Url())->setPath(self::URL_NONE_PATH)->getPath());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetQuery_none() {
-		(new Url())->setQuery(self::URL_NONE_QUERY);
+		$this->assertEquals(self::URL_NONE_QUERY, (new Url())->setQuery(self::URL_NONE_QUERY)->getQuery());
 	}
 	
-	/**
-   * @expectedException Exception
-   */
 	public function testSetFragment_none() {
-		(new Url())->setFragment(self::URL_NONE_FRAGMENT);
+		$this->assertEquals(self::URL_NONE_FRAGMENT, (new Url())->setFragment(self::URL_NONE_FRAGMENT)->getFragment());
 	}
 
 }

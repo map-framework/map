@@ -3,9 +3,6 @@ namespace store\data\net;
 
 use Exception;
 
-/**
- * @todo test me!
- */
 class MAPUrl extends Url {
 
 	const PATTERN_MODE	= '^[0-9A-Za-z_\-+]{1,32}$';
@@ -25,7 +22,7 @@ class MAPUrl extends Url {
 	 * @return MAPUrl
 	 */
 	public function setMode($mode) {
-		if (!self::match(self::PATTERN_MODE, $mode)) {
+		if ($mode !== null && !self::match(self::PATTERN_MODE, $mode)) {
 			throw new Exception('mode `'.$mode.'` is invalid');
 		}
 		$this->mode = $mode;
@@ -46,7 +43,7 @@ class MAPUrl extends Url {
 	 * @return MAPUrl
 	 */
 	public function setArea($area) {
-		if (!self::match(self::PATTERN_AREA, $area)) {
+		if ($area !== null && !self::match(self::PATTERN_AREA, $area)) {
 			throw new Exception('area `'.$area.'` is invalid');
 		}
 		$this->area = $area;
@@ -67,7 +64,7 @@ class MAPUrl extends Url {
 	 * @return MAPUrl
 	 */
 	public function setPage($page) {
-		if (!self::match(self::PATTERN_PAGE, $page)) {
+		if ($page !== null && !self::match(self::PATTERN_PAGE, $page)) {
 			throw new Exception('page `'.$page.'` is invalid');
 		}
 		$this->page = $page;

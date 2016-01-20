@@ -16,6 +16,8 @@ class MAPUrlTest extends PHPUnit_Framework_TestCase {
 	const URL_NONE_PAGE		= null;
 	const URL_NONE_INPUTS	= array();
 
+	# constant: URL_FULLL
+
 	public function testGetMode_full() {
 		$this->assertEquals(self::URL_FULL_MODE, (new MAPUrl(self::URL_FULL))->getMode());
 	}
@@ -45,29 +47,22 @@ class MAPUrlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(self::URL_FULL, $url->get());
 	}
 
-	/**
-   * @expectedException Exception
-   */
+	# constant: URL_NONE
+
 	public function testSetMode_none() {
-		(new MAPUrl())->setMode(self::URL_NONE_MODE);
+		$this->assertEquals(self::URL_NONE_MODE, (new MAPUrl())->setMode(self::URL_NONE_MODE)->getMode());
 	}
 
-	/**
-   * @expectedException Exception
-   */
 	public function testSetArea_none() {
-		(new MAPUrl())->setArea(self::URL_NONE_AREA);
+		$this->assertEquals(self::URL_NONE_AREA, (new MAPUrl())->setArea(self::URL_NONE_AREA)->getArea());
 	}
 
-	/**
-   * @expectedException Exception
-   */
 	public function testSetPage_none() {
-		(new MAPUrl())->setPage(self::URL_NONE_PAGE);
+		$this->assertEquals(self::URL_NONE_PAGE, (new MAPUrl())->setPage(self::URL_NONE_PAGE)->getPage());
 	}
 
 	public function testSetInputList_none() {
-		(new MAPUrl())->setInputList(self::URL_NONE_INPUTS);
+		$this->assertEquals(self::URL_NONE_INPUTS, (new MAPUrl())->setInputList(self::URL_NONE_INPUTS)->getInputList());
 	}
 
 	public function testGetMode_none() {

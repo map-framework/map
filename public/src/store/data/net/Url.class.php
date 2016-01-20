@@ -107,7 +107,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setScheme($scheme) {
-		if (!self::match(self::PATTERN_SCHEME, $scheme)) {
+		if ($scheme !== null && !self::match(self::PATTERN_SCHEME, $scheme)) {
 			throw new Exception('scheme `'.$scheme.'` is invalid');
 		}
 		$this->scheme = $scheme;
@@ -127,7 +127,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setUser($user) {
-		if (!self::match(self::PATTERN_USER, $user)) {
+		if ($user !== null && !self::match(self::PATTERN_USER, $user)) {
 			throw new Exception('user `'.$user.'` is invalid');
 		}
 		$this->user = $user;
@@ -147,7 +147,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setPass($pass) {
-		if (!self::match(self::PATTERN_PASS, $pass)) {
+		if ($pass !== null && !self::match(self::PATTERN_PASS, $pass)) {
 			throw new Exception('pass `'.$pass.'` is invalid');
 		}
 		$this->pass = $pass;
@@ -167,7 +167,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setHost($host) {
-		if (!self::match(self::PATTERN_HOST, $host)) {
+		if ($host !== null && !self::match(self::PATTERN_HOST, $host)) {
 			throw new Exception('host `'.$host.'` is invalid');
 		}
 		$this->host = $host;
@@ -187,7 +187,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setPort($port) {
-		if (!is_int($port) || $port < 0 || $port > 65535) {
+		if ($port !== null && !is_int($port) || $port < 0 || $port > 65535) {
 			throw new Exception('port `'.$port.'` is invalid');
 		}
 		$this->port = $port;
@@ -207,7 +207,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setPath($path) {
-		if (!self::match(self::PATTERN_PATH, $path)) {
+		if ($path !== null && !self::match(self::PATTERN_PATH, $path)) {
 			throw new Exception('path `'.$path.'` is invalid');
 		}
 		$this->path = $path;
@@ -227,7 +227,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setQuery($query) {
-		if (!self::match(self::PATTERN_QUERY, $query)) {
+		if ($query !== null && !self::match(self::PATTERN_QUERY, $query)) {
 			throw new Exception('query `'.$query.'` is invalid');
 		}
 		$this->query = $query;
@@ -247,7 +247,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	public function setFragment($fragment) {
-		if (!self::match(self::PATTERN_FRAGMENT, $fragment)) {
+		if ($fragment !== null && !self::match(self::PATTERN_FRAGMENT, $fragment)) {
 			throw new Exception('fragment `'.$fragment.'` is invalid');
 		}
 		$this->fragment = $fragment;
