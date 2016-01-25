@@ -19,6 +19,10 @@ class File extends AbstractData {
 	const MAKE_FILE_MODE	= 0777;
 	const MAKE_LINK_MODE	= 0777;
 
+	public function set($file) {
+		parent::set(constant('ROOT_DIR').$file);
+	}
+
 	/**
 	 * @return bool
 	 */

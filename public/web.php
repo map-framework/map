@@ -6,8 +6,8 @@ use store\data\File;
 final class Web {
 	
 	const AUTOLOADER 			= 'src/core/misc/autoloader.php';
-	const CONFIG_PUBLIC		= 'web.ini';
-	const CONFIG_PRIVATE	= '../private/web.ini';
+	const CONFIG_PUBLIC		= 'public/web.ini';
+	const CONFIG_PRIVATE	= 'private/web.ini';
 	
 	public static $config;
 	
