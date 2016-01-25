@@ -21,6 +21,7 @@ class MAPUrl extends Url {
 	/**
 	 * @param string $url
 	 * @param Bucket $validate
+	 * @todo  TEST ME!
 	 */
 	public function __construct($url, Bucket $validate = null) {
 		$this->bucket = $validate;
@@ -32,6 +33,7 @@ class MAPUrl extends Url {
 	 * @param  string $mode
 	 * @throws Exception if mode invalid
 	 * @return bool
+	 * @todo   TEST ME!
 	 */
 	public function setMode($mode) {
 		if ($mode !== null && !$this->isMode($mode)) {
@@ -45,6 +47,7 @@ class MAPUrl extends Url {
 	 * @param  string $mode
 	 * @throws Exception if mode invalid
 	 * @return bool
+	 * @todo   TEST ME!
 	 */
 	public function isMode($mode) {
 		if (!self::match(self::PATTERN_MODE, $mode)) {
@@ -62,7 +65,7 @@ class MAPUrl extends Url {
 
 	/**
 	 * @return string
-	 * @todo   rewrite
+	 * @todo   TEST ME!
 	 */
 	public function getMode() {
 		if ($this->mode !== null || $this->bucket === null) {
@@ -75,23 +78,46 @@ class MAPUrl extends Url {
 	 * set area
 	 * @param  string $area
 	 * @throws Exception if area invalid
-	 * @return MAPUrl
-	 * @todo   rewrite
+	 * @return false
+	 * @todo   TEST ME!
 	 */
 	public function setArea($area) {
-		if ($area !== null && !self::match(self::PATTERN_AREA, $area)) {
-			throw new Exception('area `'.$area.'` is invalid');
+		if ($area !== null && !$this->isArea($area)) {
+			return false;
 		}
 		$this->area = $area;
-		return $this;
+		return true;
+	}
+
+	/**
+	 * @param  string $area
+	 * @throws Exception if area invalid
+	 * @return bool
+	 * @todo   TEST ME!
+	 */
+	public function isArea($area) {
+		if (!self::match(self::PATTERN_AREA, $area)) {
+			throw new Exception('area `'.$area.'` is invalid');
+		}
+
+		# no validation
+		if ($this->bucket === null) {
+			return true;
+		}
+
+		$areaDir = new File('private/src/area/'.$area.'/');
+		return $areaDir->isDir();
 	}
 
 	/**
 	 * @return string
-	 * @todo   rewrite
+	 * @todo   TEST ME!
 	 */
 	public function getArea() {
-		return $this->area;
+		if ($this->area !== null || $this->bucket === null) {
+			return $this->area;
+		}
+		return $this->bucket->get('default', 'area');
 	}
 
 	/**
