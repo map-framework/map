@@ -2,6 +2,7 @@
 namespace store\data\net;
 
 use Exception;
+use store\Bucket;
 
 class MAPUrl extends Url {
 
@@ -15,25 +16,59 @@ class MAPUrl extends Url {
 	private $page 			= null;
 	private $inputList 	= array();
 
+	private $bucket 		= null;
+
+	/**
+	 * @param string $url
+	 * @param Bucket $validate
+	 */
+	public function __construct($url, Bucket $validate = null) {
+		$this->bucket = $validate;
+		parent::__construct($url);
+	}
+
 	/**
 	 * set mode
 	 * @param  string $mode
 	 * @throws Exception if mode invalid
-	 * @return MAPUrl
+	 * @return bool
 	 */
 	public function setMode($mode) {
-		if ($mode !== null && !self::match(self::PATTERN_MODE, $mode)) {
-			throw new Exception('mode `'.$mode.'` is invalid');
+		if ($mode !== null && !$this->isMode($mode)) {
+			return false;
 		}
 		$this->mode = $mode;
-		return $this;
+		return true;
+	}
+
+	/**
+	 * @param  string $mode
+	 * @throws Exception if mode invalid
+	 * @return bool
+	 */
+	public function isMode($mode) {
+		if (!self::match(self::PATTERN_MODE, $mode)) {
+			throw new Exception('mode `'.$mode.'` is invalid');
+		}
+
+		# no validation
+		if ($this->bucket === null) {
+			return true;
+		}
+
+		$modeData = $this->bucket->get('mode', $mode);
+		return isset($modeData, $modeData['type'], $modeData['handler']);
 	}
 
 	/**
 	 * @return string
+	 * @todo   rewrite
 	 */
 	public function getMode() {
-		return $this->mode;
+		if ($this->mode !== null || $this->bucket === null) {
+			return $this->mode;
+		}
+		return $this->bucket->get('default', 'mode');
 	}
 
 	/**
@@ -41,6 +76,7 @@ class MAPUrl extends Url {
 	 * @param  string $area
 	 * @throws Exception if area invalid
 	 * @return MAPUrl
+	 * @todo   rewrite
 	 */
 	public function setArea($area) {
 		if ($area !== null && !self::match(self::PATTERN_AREA, $area)) {
@@ -52,6 +88,7 @@ class MAPUrl extends Url {
 
 	/**
 	 * @return string
+	 * @todo   rewrite
 	 */
 	public function getArea() {
 		return $this->area;
@@ -62,6 +99,7 @@ class MAPUrl extends Url {
 	 * @param  string $page
 	 * @throws Exception if page invalid
 	 * @return MAPUrl
+	 * @todo   rewrite
 	 */
 	public function setPage($page) {
 		if ($page !== null && !self::match(self::PATTERN_PAGE, $page)) {
@@ -73,6 +111,7 @@ class MAPUrl extends Url {
 
 	/**
 	 * @return string
+	 * @todo   rewrite
 	 */
 	public function getPage() {
 		return $this->page;
@@ -83,6 +122,7 @@ class MAPUrl extends Url {
 	 * @throws Exception if inputList isn't an array
 	 * @throws Exception if input invalid
 	 * @return MAPUrl
+	 * @todo   rewrite
 	 */
 	public function setInputList($inputList) {
 		$this->inputList = array();
@@ -101,6 +141,7 @@ class MAPUrl extends Url {
 	 * @param  $input string
 	 * @throws Exception if input invalid
 	 * @return MAPUrl
+	 * @todo   rewrite
 	 */
 	public function addInput($input) {
 		if (!self::match(self::PATTERN_INPUT, $input)) {
@@ -112,6 +153,7 @@ class MAPUrl extends Url {
 
 	/**
 	 * @return string[]
+	 * @todo   rewrite
 	 */
 	public function getInputList() {
 		return $this->inputList;
@@ -120,6 +162,7 @@ class MAPUrl extends Url {
 	/**
 	 * @see    Url::setPath()
 	 * @throws Exceptions if anything is invalid
+	 * @todo   rewrite
 	 */
 	public function setPath($path) {
 		$itemList = explode('/', $path);
@@ -153,6 +196,7 @@ class MAPUrl extends Url {
 
 	/**
 	 * @see Url::getPath()
+	 * @todo   rewrite
 	 */
 	public function getPath() {
 		$itemList = array();
