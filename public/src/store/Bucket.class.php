@@ -15,8 +15,8 @@ class Bucket {
 	private $data = array();
 	
 	/**
-	 * @param string $group
-	 * @param string $key
+	 * @param  string $group
+	 * @param  string $key
 	 * @return bool
 	 */
 	final public function exists($group, $key) {
@@ -24,9 +24,9 @@ class Bucket {
 	}
 	
 	/**
-	 * @param string $group
-	 * @param string $key
-	 * @param string $default
+	 * @param  string $group
+	 * @param  string $key
+	 * @param  string $default
 	 * @return mixed
 	 */
 	final public function get($group, $key, $default = null) {
@@ -37,17 +37,17 @@ class Bucket {
 	}
 
 	/**
-	 * @param string $group
-	 * @param string $key
-	 * @param mixed $value
+	 * @param  string $group
+	 * @param  string $key
+	 * @param  mixed $value
 	 * @throws RuntimeException if group or key invalid
 	 * @return Bucket
 	 */
 	final public function set($group, $key, $value) {
-		if (!preg_match(PATTERN_GROUP, $group)) {
+		if (!preg_match(self::PATTERN_GROUP, $group)) {
 			throw new RuntimeException('Invalid group `'.$group.'`.');
 		}
-		if (!preg_match(PATTERN_KEY, $key)) {
+		if (!preg_match(self::PATTERN_KEY, $key)) {
 			throw new RuntimeException('Invalid key `'.$key.'`.');
 		}
 		$this->data[$group][$key] = $value;
@@ -55,7 +55,7 @@ class Bucket {
 	}
 	
 	/**
-	 * @param File $iniFile
+	 * @param  File $iniFile
 	 * @throws RuntimeException if file not exists
 	 * @throws RuntimeException if file is invalid
 	 * @return Bucket
