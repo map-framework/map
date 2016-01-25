@@ -4,7 +4,7 @@ use store\data\File;
 
 final class FileTest extends PHPUnit_Framework_TestCase {
 	
-	const FILE 			= 'file.test';
+	const FILE 				= 'file.test';
 	const DIRECTORY 	= 'dir.test';
 	const NOTHING 		= 'nothing.test';
 
