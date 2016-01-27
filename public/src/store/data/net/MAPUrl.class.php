@@ -4,9 +4,6 @@ namespace store\data\net;
 use store\Bucket;
 use store\data\File;
 
-/**
- * @todo write unit-tests
- */
 class MAPUrl extends Url {
 
 	const PATTERN_MODE	= '^[0-9A-Za-z_\-+]{1,32}$';
@@ -19,15 +16,14 @@ class MAPUrl extends Url {
 	private $page 			= null;
 	private $inputList 	= array();
 
-	private $bucket 		= null;
+	private $config 		= null;
 
 	/**
 	 * @param string $url
-	 * @param Bucket $validate
-	 * @todo  TEST ME!
+	 * @param Bucket $config validate
 	 */
-	public function __construct($url = null, Bucket $validate = null) {
-		$this->bucket = $validate;
+	public function __construct($url = null, Bucket $config = null) {
+		$this->config = $config;
 		parent::__construct($url);
 	}
 
@@ -39,10 +35,10 @@ class MAPUrl extends Url {
 		if (!self::match(self::PATTERN_MODE, $mode)) {
 			return false;
 		}
-		if ($this->bucket === null) {
+		if ($this->config === null) {
 			return true;
 		}
-		$modeData = $this->bucket->get('mode', $mode);
+		$modeData = $this->config->get('mode', $mode);
 		return isset($modeData, $modeData['type'], $modeData['handler']);
 	}
 
@@ -54,7 +50,7 @@ class MAPUrl extends Url {
 		if (!self::match(self::PATTERN_AREA, $area)) {
 			return false;
 		}
-		if ($this->bucket === null) {
+		if ($this->config === null) {
 			return true;
 		}
 		$areaDir = new File('private/src/area/'.$area.'/');
@@ -119,9 +115,6 @@ class MAPUrl extends Url {
 	 */
 	public function setInputList($inputList) {
 		$this->inputList = array();
-		if (!is_array($inputList)) {
-			return false;
-		}
 		foreach ($inputList as $input) {
 			$this->addInput($input);
 		}
@@ -131,7 +124,6 @@ class MAPUrl extends Url {
 	/**
 	 * @param  $input string
 	 * @return bool
-	 * @todo   rewrite
 	 */
 	public function addInput($input) {
 		if (!$this->isInput($input)) {
@@ -145,30 +137,30 @@ class MAPUrl extends Url {
 	 * @return string
 	 */
 	public function getMode() {
-		if ($this->mode !== null || $this->bucket === null) {
+		if ($this->mode !== null || $this->config === null) {
 			return $this->mode;
 		}
-		return $this->bucket->get('default', 'mode');
+		return $this->config->get('default', 'mode');
 	}
 
 	/**
 	 * @return string
 	 */
 	public function getArea() {
-		if ($this->area !== null || $this->bucket === null) {
+		if ($this->area !== null || $this->config === null) {
 			return $this->area;
 		}
-		return $this->bucket->get('default', 'area');
+		return $this->config->get('default', 'area');
 	}
 
 	/**
 	 * @return string
 	 */
 	public function getPage() {
-		if ($this->page !== null || $this->bucket === null) {
+		if ($this->page !== null || $this->config === null) {
 			return $this->page;
 		}
-		return $this->bucket->get('default', 'page');
+		return $this->config->get('default', 'page');
 	}
 
 	/**
@@ -180,6 +172,8 @@ class MAPUrl extends Url {
 
 	/**
 	 * @see    Url::setPath()
+	 * @param  string $path
+	 * @return MAPUrl
 	 */
 	public function setPath($path) {
 		$itemList = explode('/', $path);
