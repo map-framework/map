@@ -7,3 +7,6 @@ log/
 
 # phpStorm
 .idea
+
+# phpUnit
+phpunit.phar
