@@ -3,7 +3,7 @@
 
 class Console {
 
-	const AUTOLOADER 			= 'public/src/core/misc/autoloader.php';
+	const AUTOLOAD 			  = 'public/src/misc/autoload.php';
 	const COMMAND_PATTERN = '/^[a-z0-9-_+]+$/';
 	const COMMAND_DEFAULT	= 'help';
 
@@ -15,7 +15,7 @@ class Console {
 	 * @param string[] $argumentList
 	 */
 	public function __construct($argumentList) {
-		include_once self::AUTOLOADER;
+		include_once self::AUTOLOAD;
 
 		foreach ($argumentList as $argument) {
 			$this->handleArgument(escapeshellcmd($argument));
@@ -53,13 +53,12 @@ class Console {
 		# check command
 		try {
 			$commandObject = self::getCommand($this->command);
+			$commandObject->handle($this->optionList);
 		}
 		catch (Exception $e) {
 			$this->error($e->getMessage(), true);
 		}
 
-		# call command
-		$commandObject->handle($this->optionList);
 	}
 
 	/**

@@ -5,17 +5,17 @@ use store\data\File;
 
 final class Web {
 	
-	const AUTOLOADER 			= 'src/core/misc/autoloader.php';
+	const AUTOLOAD 			  = 'src/misc/autoload.php';
 	const CONFIG_PUBLIC		= 'public/web.ini';
 	const CONFIG_PRIVATE	= 'private/web.ini';
 	
-	public static $config;
+	public $config;
 	
 	/**
-	 * load autoloader and config files
+	 * include autoload- and config-files
 	 */
 	public function __construct() {
-		include_once self::AUTOLOADER;
+		include_once self::AUTOLOAD;
 		
 		$this->config = new Bucket();
 		# apply public config file
