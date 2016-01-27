@@ -1,6 +1,8 @@
 <?php
 namespace store\data;
 
+use RuntimeException;
+
 /**
  * @TODO write unit-tests
  */

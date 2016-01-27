@@ -3,24 +3,26 @@ namespace store\data;
 
 use Exception;
 use RuntimeException;
-use store\data\AbstractData;
 
-/**
- * simple File-Class
- * @TODO write unit-tests
- */
 class File extends AbstractData {
-	
-	const TYPE_FILE				= 'file';
-	const TYPE_DIR				= 'dir';
-	const TYPE_LINK				= 'link';
+
+	const TYPE_FILE       = 'file';
+	const TYPE_DIR        = 'dir';
+	const TYPE_LINK       = 'link';
 
 	const MAKE_DIR_MODE		= 0777;
 	const MAKE_FILE_MODE	= 0777;
 	const MAKE_LINK_MODE	= 0777;
 
+	/**
+	 * @param string $file
+	 * @return File
+	 */
 	public function set($file) {
-		parent::set(constant('ROOT_DIR').$file);
+		if (substr($file, -1) === '/') {
+			$file = substr($file, 0, -1);
+		}
+		return parent::set(constant('ROOT_DIR').$file);
 	}
 
 	/**
@@ -61,15 +63,15 @@ class File extends AbstractData {
 	/**
 	 * @return bool
 	 */
-	final public function isWriteable() {
+	final public function isWritable() {
 		return is_writeable($this->get());
 	}
 	
 	/**
 	 * @return bool
 	 */
-	final public function isExecuteable() {
-		return is_executeable($this->get());
+	final public function isExecutable() {
+		return is_executable($this->get());
 	}
 
 	/**
@@ -77,50 +79,63 @@ class File extends AbstractData {
 	 * @return File
 	 */
 	final public function attach($path) {
-		$glue = '';
-		if (substr($this->get(), -1) !== '/' && substr($path, 0, 1) !== '/') {
-			$glue = '/';
+		if (substr($path, 0, 1) === '/') {
+			$path = substr($path, 1);
 		}
-		return $this->set($this->get().$glue.$path);
+		return $this->set($this->get().'/'.$path);
 	}
 
 	/**
-	 * change file mode
-	 * @param  octal $read
-	 * @param  octal $write
-	 * @param  octal $execute
-	 * @throws Exception if invalid read mode
-	 * @throws Exception if invalid write mode
-	 * @throws Exception if invalid execute mode
-	 * @return bool
+	 * @param  int $user
+	 * @param  int $group
+	 * @param  int $other
+	 * @throws RuntimeException if invalid user mode
+	 * @throws RuntimeException if invalid group mode
+	 * @throws RuntimeException if invalid other mode
+	 * @throws Exception if changing mode failed
+	 * @return File
 	 */
-	final public function changeMode($read, $write, $execute) {
-		if (!is_int($read) || $read < 0 || $read > 7) {
-			throw new Exception('Invalid Read-Mode `'.$read.'`.', 1);
+	final public function changeMode($user, $group, $other) {
+		if (!is_int($user) || $user < 0 || $user > 7) {
+			throw new RuntimeException('Invalid User-Mode `'.$user.'`.', 1);
 		}
-		elseif (!is_int($write) || $write < 0 || $write > 7) {
-			throw new Exception('Invalid Write-Mode `'.$write.'`.', 2);
+		elseif (!is_int($group) || $group < 0 || $group > 7) {
+			throw new RuntimeException('Invalid Group-Mode `'.$group.'`.', 2);
 		}
-		elseif (!is_int($execute) || $execute < 0 || $execute > 7) {
-			throw new Exception('Invalid Execute-Mode `'.$execute.'`.', 3);
+		elseif (!is_int($other) || $other < 0 || $other > 7) {
+			throw new RuntimeException('Invalid Other-Mode `'.$other.'`.', 3);
 		}
-		return chmod($this->get(), $read.$write.$execute);
+		elseif (!$this->exists()) {
+			throw new Exception('File or Dir `'.$this.'` not exists.', 1);
+		}
+		elseif (chmod($this->get(), $user.$group.$other) === false) {
+			throw new Exception('Failed to change mode to `'.$user.$group.$other.'` in file `'.$this.'`.', 2);
+		}
+		else {
+			return $this;
+		}
 	}
-	
+
 	/**
-	 * make directory
-	 * @return bool
+	 * @throws Exception
+	 * @return File
 	 */
 	final public function makeDir() {
-		return mkdir($this->get(), self::MAKE_DIR_MODE, true);
+		if (!mkdir($this->get(), self::MAKE_DIR_MODE, true)) {
+			throw new Exception('Failed to make dir `'.$this.'`', 1);
+		}
+		return $this;
 	}
 
 	/**
-	 * make empty file
-	 * @return bool
+	 * @throws Exception
+	 * @return File
 	 */
 	final public function makeFile() {
-		return (bool) file_put_contents($this->get(), '', self::MAKE_FILE_MODE);
+		if (file_put_contents($this->get(), '', self::MAKE_FILE_MODE) === false) {
+			throw new Exception('Failed to make file `'.$this.'`', 1);
+		}
+		return $this;
 	}
 	
 	/**
@@ -137,7 +152,7 @@ class File extends AbstractData {
 		elseif (!$this->exists()) {
 			throw new Exception('File `'.$this.'` not exists.', 1);
 		}
-		elseif (!$this->readable()) {
+		elseif (!$this->isReadable()) {
 			throw new Exception('File `'.$this.'` is not readable.', 2);
 		}
 		else {
@@ -146,7 +161,7 @@ class File extends AbstractData {
 	}
 
 	/**
-	 * create & write content into file
+	 * create file, if not exists
 	 * @param  $content
 	 * @param  $append = true
 	 * @throws Exception if failed to put content
@@ -160,7 +175,6 @@ class File extends AbstractData {
 	}
 
 	/**
-	 * scan dir
 	 * @param  string $type allow only one File::TYPE_*
 	 * @throws Exception if dir not exists
 	 * @throws Exception if is not a dir
@@ -169,28 +183,27 @@ class File extends AbstractData {
 	 * @return File[]
 	 */
 	final public function scan($type = null) {
-		if (!$this->exists($this->get())) {
+		if (!$this->exists()) {
 			throw new Exception('dir `'.$this.'` not exists', 1);
 		}
-		elseif (!$this->isDir($this->get())) {
+		elseif (!$this->isDir()) {
 			throw new Exception('file `'.$this.'` is not a dir', 2);
 		}
 
 		$fileList = scandir($this->get());
 		if ($fileList === false) {
-			throw new Exception('dir to scan dir `'.$this.'`', 3);
+			throw new Exception('failed to scan dir `'.$this.'`', 3);
 		}
 
 		# check type
 		$checkMethod = 'is'.ucfirst($type);
 		if ($type !== null && !method_exists($this, 'is'.ucfirst($type))) {
-			throw new RuntimeException('File type `'.$type.'` not exists.', 4);
+			throw new RuntimeException('file type `'.$type.'` not exists.', 4);
 		}
 		
 		foreach ($fileList as $fileKey => $file) {
 			# new file path = old + new
-			$fileList[$fileKey] = (new File($this->get()))
-				->attach($file);
+			$fileList[$fileKey] = (new File($this->get()))->attach($file);
 
 			# filter by type if filter-type is not null
 			if ($type !== null && !$fileList[$fileKey]->$checkMethod()) {

@@ -56,9 +56,7 @@ class Logger {
 		# create dir
 		$logFile = new File(self::LOG_DIR.$now->format('Y-M'));
 		if (!$logFile->isDir()) {
-			if (!$logFile->makeDir()) {
-				throw new RuntimeException('failed to create log-dir `'.$logFile.'`');
-			}
+			$logFile->makeDir();
 		}
 
 		# check file
