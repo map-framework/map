@@ -1,11 +1,6 @@
 <?php
 namespace store\data;
 
-use RuntimeException;
-
-/**
- * @TODO write unit-tests
- */
 abstract class AbstractData {
 	
 	protected $data = '';
@@ -19,13 +14,9 @@ abstract class AbstractData {
 	
 	/**
 	 * @param string $data
-	 * @throws RuntimeException
 	 * @return AbstractData
 	 */
 	protected function set($data) {
-		if (!is_string($data)) {
-			throw new RuntimeException();
-		}
 		$this->data = $data;
 		return $this;
 	}
