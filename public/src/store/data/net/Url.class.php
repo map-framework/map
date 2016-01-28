@@ -63,21 +63,22 @@ class Url extends AbstractData {
 		if ($this->getScheme() !== null) {
 			$url = $this->getScheme().'://';
 		}
+		elseif ($this->getHost() !== null) {
+			$url = '//';
+		}
 		else {
 			$url = '';
 		}
 
-		# user & pass
-		if ($this->getUser() !== null) {
-			$url .= $this->getUser();
-			if ($this->getPass() !== null) {
-				$url .= ':'.$this->getPass();
-			}
-			$url .= '@';
-		}
-
-		# host & port
+		# user & pass & host & port
 		if ($this->getHost() !== null) {
+			if ($this->getUser() !== null) {
+				$url .= $this->getUser();
+				if ($this->getPass() !== null) {
+					$url .= ':'.$this->getPass();
+				}
+				$url .= '@';
+			}
 			$url .= $this->getHost();
 			if ($this->getPort() !== null) {
 				$url .= ':'.$this->getPort();
