@@ -56,29 +56,42 @@ class Bucket {
 	
 	/**
 	 * @param  File $iniFile
-	 * @throws RuntimeException if file not exists
-	 * @throws RuntimeException if file is invalid
+	 * @throws RuntimeException if file not exist
 	 * @return Bucket
 	 */
-	final public function apply(File $iniFile) {
+	final public function applyIni(File $iniFile) {
 		if ($iniFile === null || !$iniFile->isFile()) {
-			throw new RuntimeException('File not exists `'.$iniFile.'`.');
+			throw new RuntimeException('file not exists `'.$iniFile.'`');
 		}
-		foreach (parse_ini_file($iniFile, true, INI_SCANNER_TYPED) as $group => $keyList) {
+		return $this->applyArray(parse_ini_file($iniFile, true, INI_SCANNER_TYPED));
+	}
+
+	/**
+	 * @param  array $data
+	 * @throws RuntimeException if data invalid
+	 * @return Bucket
+	 */
+	final public function applyArray($data)	{
+		if (!is_array($data)) {
+			throw new RuntimeException('data is invalid');
+		}
+		foreach ($data as $group => $keyList) {
 			if (!is_array($keyList)) {
 				# ignore keys without group
 				continue;
 			}
 			foreach ($keyList as $key => $value) {
-				try {
-					$this->set($group, $key, $value);
-				}
-				catch (RuntimeExcepion $e) {
-					throw new RuntimeException('File `'.$iniFile.'` is invalid. Caught Exception: '.$e->getMessage());
-				}
+				$this->set($group, $key, $value);
 			}
 		}
 		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	final public function toArray() {
+		return $this->data;
 	}
 	
 }
