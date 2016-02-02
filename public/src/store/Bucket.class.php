@@ -13,7 +13,19 @@ class Bucket {
 	const PATTERN_KEY = '/^[A-Za-z0-9_-]{3,32}$/';
 	
 	private $data = array();
-	
+
+	/**
+	 * @param null|File|array $applyData
+	 */
+	public function __construct($applyData = null) {
+		if ($applyData instanceof File) {
+			$this->applyIni($applyData);
+		}
+		elseif (is_array($applyData)) {
+			$this->applyArray($applyData);
+		}
+	}
+
 	/**
 	 * @param  string $group
 	 * @param  string $key
