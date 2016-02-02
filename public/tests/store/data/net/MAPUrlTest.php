@@ -83,7 +83,7 @@ class MAPUrlTest extends PHPUnit_Framework_TestCase {
 	 * @return Bucket
 	 */
 	private function getConfig() {
-		return (new Bucket())->apply(new File('public/web.ini'));
+		return (new Bucket())->applyIni(new File('public/web.ini'));
 	}
 
 }

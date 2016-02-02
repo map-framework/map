@@ -21,9 +21,9 @@ final class Web {
 		
 		$this->config = new Bucket();
 		# apply public config file
-		$this->config->apply(new File(self::CONFIG_PUBLIC));
+		$this->config->applyIni(new File(self::CONFIG_PUBLIC));
 		# apply private config file
-		$this->config->apply(new File(self::CONFIG_PRIVATE));
+		$this->config->applyIni(new File(self::CONFIG_PRIVATE));
 	}
 
 	/**
@@ -50,10 +50,11 @@ final class Web {
 			throw new Exception('mode `'.$request->getMode().'` handler `'.$mode['handler'].'` not exists');
 		}
 
-		$handler = new $mode['handler'];
+		$handler = new $mode['handler']($this->config);
 		if (!($handler instanceof AbstractModeHandler)) {
 			throw new Exception('mode `'.$request->getMode().'` handler `'.$mode['handler'].'` is not instance of `handler\mode\AbstractModeHandler`');
 		}
+
 	}
 	
 }
