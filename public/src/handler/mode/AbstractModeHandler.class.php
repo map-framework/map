@@ -2,40 +2,34 @@
 namespace handler\mode;
 
 use handler\AbstractHandler;
+use store\data\net\MAPUrl;
 use store\data\net\Url;
 
 abstract class AbstractModeHandler extends AbstractHandler {
 
-	const PATTERN_X_CONFIG = '/^x-[a-zA-Z0-9\-_#]+$/';
+	/**
+	 * @param  MAPUrl $request
+	 * @param  array $settings
+	 * @return bool
+	 */
+	abstract public function handle(MAPUrl $request, $settings);
 
 	/**
-	 * @var string MIME-Type
+	 * @param  string $mimeType
+	 * @return AbstractModeHandler
 	 */
-	private $type = null;
-
-	/**
-	 * @var string[] X-Config
-	 */
-	private $xConfig = array();
-
-	/**
-	 * @param $type string
-	 * @param $xConfig string[]
-	 */
-	final public function __construct($type, $xConfig) {
-		$this->type = $type;
-
-		foreach ($xConfig as $key => $value) {
-			if (preg_match(self::PATTERN_X_CONFIG, $key)) {
-				$this->xConfig[substr($key, 2)] = $value;
-			}
-		}
+	final protected function setMimeType($mimeType) {
+		header('Content-Type: '.$mimeType);
+		return $this;
 	}
 
 	/**
-	 * @param  Url $data
-	 * @return bool
+	 * @param  Url $address
+	 * @return AbstractModeHandler
 	 */
-	abstract public function handle(Url $data);
+	final protected function setLocation(Url $address) {
+		header('Location: '.$address);
+		return $this;
+	}
 
 }

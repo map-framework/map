@@ -1,8 +1,8 @@
 <?php
 namespace parent;
 
+use exception\request\AcceptedException;
 use exception\request\RejectedException;
-use RuntimeException;
 
 abstract class AbstractPage {
 
@@ -57,21 +57,25 @@ abstract class AbstractPage {
 	abstract public function access();
 
 	/**
-	 * call each request
+	 * Call if nothing submitted.
 	 * @return void
 	 */
 	abstract public function setUp();
 
 	/**
-	 * @param  string[] $formData
-	 * @throws RuntimeException if formData isn't an array
-	 * @throws RejectedException if formData invalid
+	 * Call if submitted.
+	 * @throws RejectedException
+	 * @throws AcceptedException
+	 * @return bool
+	 */
+	abstract public function check();
+
+
+	/**
+	 * @param  array $formData
+	 * @throws RejectedException if invalid
 	 */
 	public function __construct($formData) {
-		if (!is_array($formData)) {
-			throw new RuntimeException('expect an array in formData');
-		}
-
 		foreach ($this->expect as $formItemName => $pattern) {
 			if (!isset($this->formData[$formItemName]) || !preg_match('/^'.$pattern.'$/', $this->formData[$formItemName])) {
 				throw new RejectedException();
@@ -91,8 +95,7 @@ abstract class AbstractPage {
 	}
 
 	/**
-	 * add item to response parameter list
-	 * @param $param
+	 * @param  mixed $param
 	 * @return AbstractPage
 	 */
 	final protected function addParam($param) {
@@ -101,8 +104,7 @@ abstract class AbstractPage {
 	}
 
 	/**
-	 * get response parameter list
-	 * @return string[]
+	 * @return array
 	 */
 	final public function getParamList() {
 		return $this->paramList;
