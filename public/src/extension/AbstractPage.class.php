@@ -64,8 +64,6 @@ abstract class AbstractPage {
 
 	/**
 	 * call if submitted
-	 * @throws RejectedException
-	 * @throws AcceptedException
 	 * @return bool
 	 */
 	abstract public function check();
@@ -89,15 +87,15 @@ abstract class AbstractPage {
 	}
 
 	/**
-	 * @throws RejectedException
-	 * @return void
+	 * @return bool
 	 */
 	public function checkExpectation() {
 		foreach ($this->expect as $formItemName => $pattern) {
 			if (!isset($this->request[$formItemName]) || !preg_match('/^'.$pattern.'$/', $this->request[$formItemName])) {
-				throw new RejectedException();
+				return false;
 			}
 		}
+		return true;
 	}
 
 }
