@@ -1,5 +1,6 @@
 <?php
 
+use core\Logger;
 use handler\mode\AbstractModeHandler;
 use store\Bucket;
 use store\data\File;
@@ -14,7 +15,7 @@ final class Web {
 	private $config;
 	
 	/**
-	 * include autoload- and config-files
+	 * include autoload- & config-files and start session
 	 */
 	public function __construct() {
 		include_once self::AUTOLOAD;
@@ -24,6 +25,11 @@ final class Web {
 		$this->config->applyIni(new File(self::CONFIG_PUBLIC));
 		# apply private config file
 		$this->config->applyIni(new File(self::CONFIG_PRIVATE));
+
+		if (!session_start()) {
+			Logger::error('failed to start session');
+			exit();
+		}
 	}
 
 	/**
