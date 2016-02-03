@@ -57,13 +57,13 @@ abstract class AbstractPage {
 	abstract public function access();
 
 	/**
-	 * Call if nothing submitted.
+	 * call if nothing submitted
 	 * @return void
 	 */
 	abstract public function setUp();
 
 	/**
-	 * Call if submitted.
+	 * call if submitted
 	 * @throws RejectedException
 	 * @throws AcceptedException
 	 * @return bool
