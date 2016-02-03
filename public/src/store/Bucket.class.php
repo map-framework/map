@@ -1,6 +1,7 @@
 <?php
 namespace store;
 
+use DOMDocument;
 use RuntimeException;
 use store\data\File;
 
@@ -104,6 +105,24 @@ class Bucket {
 	 */
 	final public function toArray() {
 		return $this->data;
+	}
+
+	/**
+	 * @param  string $root
+	 * @return string
+	 */
+	final public function toXML($root = 'root') {
+		$document = new DOMDocument();
+
+		$eRoot = $document->appendChild($document->createElement($root));
+		foreach ($this->toArray() as $group => $keyList) {
+
+			$eGroup = $eRoot->appendChild($document->createElement($group));
+			foreach ($keyList as $key => $value) {
+				$eGroup->appendChild($document->createElement($key, $value));
+			}
+		}
+		return $document->saveXML();
 	}
 	
 }
