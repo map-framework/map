@@ -22,7 +22,15 @@ class File extends AbstractData {
 		if (substr($file, -1) === '/') {
 			$file = substr($file, 0, -1);
 		}
-		return parent::set(constant('ROOT_DIR').$file);
+
+		$length = strlen(constant('ROOT_DIR'));
+		if ($length) {
+			if (substr($file, 0, $length) !== constant('ROOT_DIR')) {
+				$file = constant('ROOT_DIR').$file;
+			}
+		}
+
+		return parent::set($file);
 	}
 
 	/**
