@@ -40,21 +40,22 @@ final class Web {
 		}
 
 		$request = new MAPUrl($scheme.'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], $this->config);
-		$mode = $this->config->get('mode', $request->getMode());
+		$modeSettings = $this->config->get('mode', $request->getMode());
 
-		if ($mode === null) {
-			throw new Exception('mode `'.$request->getMode().'` not exists');
+		if ($modeSettings === null) {
+			throw new RuntimeException('mode `'.$request->getMode().'` not applied');
 		}
 
-		if (!class_exists($mode['handler'])) {
-			throw new Exception('mode `'.$request->getMode().'` handler `'.$mode['handler'].'` not exists');
+		if (!class_exists($modeSettings['handler'])) {
+			throw new RuntimeException('mode `'.$request->getMode().'` handler `'.$modeSettings['handler'].'` not applied');
 		}
 
-		$handler = new $mode['handler']($this->config);
+		$handler = new $modeSettings['handler']($this->config);
 		if (!($handler instanceof AbstractModeHandler)) {
-			throw new Exception('mode `'.$request->getMode().'` handler `'.$mode['handler'].'` is not instance of `handler\mode\AbstractModeHandler`');
+			throw new RuntimeException('mode `'.$request->getMode().'` handler `'.$modeSettings['handler'].'` is not instance of `handler\mode\AbstractModeHandler`');
 		}
 
+		$handler->handle($request, $modeSettings);
 	}
 	
 }
