@@ -10,8 +10,8 @@ use store\data\File;
  */
 class Bucket {
 	
-	const PATTERN_GROUP = '/^[A-Za-z0-9_-]{3,32}$/';
-	const PATTERN_KEY = '/^[A-Za-z0-9_-]{3,32}$/';
+	const PATTERN_GROUP = '/^[A-Za-z0-9_-]{1,32}$/';
+	const PATTERN_KEY = '/^[A-Za-z0-9_-]{1,32}$/';
 	
 	private $data = array();
 
@@ -109,9 +109,9 @@ class Bucket {
 
 	/**
 	 * @param  string $root
-	 * @return string
+	 * @return DOMDocument
 	 */
-	final public function toXML($root = 'root') {
+	final public function toDOMDocument($root = 'root') {
 		$document = new DOMDocument();
 
 		$eRoot = $document->appendChild($document->createElement($root));
@@ -122,7 +122,7 @@ class Bucket {
 				$eGroup->appendChild($document->createElement($key, $value));
 			}
 		}
-		return $document->saveXML();
+		return $document;
 	}
 	
 }

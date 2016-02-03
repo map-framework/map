@@ -1,92 +1,150 @@
 <?php
 namespace handler\mode;
 
-use exception\request\AcceptedException;
-use exception\request\RejectedException;
+use DOMDocument;
 use RuntimeException;
-use parent\AbstractPage;
+use extension\AbstractPage;
 use store\Bucket;
 use store\data\File;
 use store\data\net\MAPUrl;
 use store\data\net\Url;
+use XMLWriter;
+use XSLTProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
 
 	/**
 	 * @var MAPUrl
 	 */
-	private $request;
+	protected $request;
+	protected $modeSettings;
 
 	/**
 	 * @see    AbstractModeHandler::handle()
 	 * @param  MAPUrl $request
-	 * @param  array $settings
+	 * @param  array $modeSettings
 	 * @return bool
 	 */
-	public function handle(MAPUrl $request, $settings)	{
-		$this->request = $request;
+	public function handle(MAPUrl $request, $modeSettings)	{
+		$this->request      = $request;
+		$this->modeSettings = $modeSettings;
 
-		$page           = strtolower($request->getPage());
-		$pageClassName  = ucfirst($page).'Page';
-		$pageNamespace  = 'area\\'.$request->getArea().'\logic\site\\'.$pageClassName;
-		$pageXSLFile    = new File('private/area/'.$request->getArea().'/app/view/site/'.$page.'.xsl');
+		$pageClassName   = ucfirst($request->getPage()).'Page';
+		$pageNameSpace   = 'area\\'.$request->getArea().'\logic\site\\'.$pageClassName;
 
-		if (!class_exists($pageNamespace) || !$pageXSLFile->isFile()) {
-			return $this->error($settings, 404, 'Not Found');
+		$pageXSLFile     = new File('private/src/area/'.$request->getArea().'/app/view/site/'.$request->getPage().'.xsl');
+
+		if (!class_exists($pageNameSpace) || !$pageXSLFile->isFile()) {
+			return $this->error(404, 'Not Found');
 		}
 
-		$formStatus = $this->analyzeStatus();
-
-		if ($formStatus === AbstractPage::STATUS_RESTORED) {
-			$formData = (new Bucket($_SESSION))->get('form', $request->getArea().'#'.$request->getPage())['data'];
-		}
-		elseif ($formStatus === null) {
-			$formData = $_POST;
+		$status = $this->analyzeStatus();
+		if (is_array($_POST) && $status === null) {
+			$request = $_POST;
 		}
 		else {
-			$formData = array();
+			$request = array();
 		}
 
-		try {
-			$pageObject = new $pageNamespace($formData);
-			if (!($pageObject instanceof AbstractPage)) {
-				throw new RuntimeException('class `'.$pageNamespace.'` isn\'t instance of `parent\AbstractPage`');
-			}
+		$page = new $pageNameSpace($request);
+		if (!($page instanceof AbstractPage)) {
+			throw new RuntimeException('class `'.$pageNameSpace.'` isn\'t instance of `'.AbstractPage::class.'`');
+		}
 
-			if (!$pageObject->access()) {
-				return $this->error($settings, 403, 'Forbidden');
-			}
+		if (!$page->access()) {
+			$this->error(403, 'Forbidden');
+		}
 
-			if ($formStatus !== null) {
-				$pageObject->setUp();
+		if ($status !== null) {
+
+			if ($status === AbstractPage::STATUS_RESTORED) {
+				foreach ($this->getStoredFormData() as $name => $value) {
+					$page->response->set('formData', $name, $value);
+				}
+			}
+			$page->setUp();
+		}
+		else {
+
+			if ($page->checkExpectation() === true && $page->check() === true) {
+				$status = AbstractPage::STATUS_ACCEPTED;
+				$this->closeStoredForm($request['formId']);
 			}
 			else {
-				if ($pageObject->check() === true) {
-					$formStatus = AbstractPage::STATUS_ACCEPTED;
-				}
-				else {
-					$formStatus = AbstractPage::STATUS_REJECTED;
-				}
+				$status = AbstractPage::STATUS_REJECTED;
+				$this->setStoredForm($request);
 			}
 		}
-		catch (AcceptedException $e) {
-			$formStatus = AbstractPage::STATUS_ACCEPTED;
-		}
-		catch (RejectedException $e) {
-			$formStatus = AbstractPage::STATUS_REJECTED;
-		}
 
-		if ($formStatus === AbstractPage::STATUS_ACCEPTED) {
-			$this->closeStoredForm($formData['formId']);
-		}
-		elseif ($formStatus === AbstractPage::STATUS_REJECTED) {
-			$this->setStoredForm($formData);
-		}
+		$page->response->set('formStatus', 'id', $status);
 
-		# @todo load XSLT
-		# @todo write tests
+		$xslt = new XSLTProcessor();
 
+		# import page
+		$xsl = new DOMDocument();
+		$xsl->load($pageXSLFile);
+		$xslt->importStylesheet(clone $xsl);
+
+		# import layout
+		$xsl = new DOMDocument();
+		$xsl->load($this->getLayout());
+		$xslt->importStylesheet(clone $xsl);
+
+		echo $xslt->transformToXml($page->response->toDOMDocument('response'));
 		return true;
+	}
+
+	/**
+	 * @param  string $name
+	 * @param  array $items
+	 * @param  XMLWriter $writer
+	 * @return string|null
+	 */
+	final protected function arrayToXML($name, $items, XMLWriter $writer = null) {
+		if ($writer === null) {
+			$writer = new XMLWriter();
+			$writer->openMemory();
+		}
+
+		$writer->startElement($name);
+
+		foreach ($items as $key => $value) {
+			if (is_array($value)) {
+				$this->arrayToXML($key, $value, $writer);
+			}
+			elseif (is_int($key) && is_string($value)) {
+				$writer->writeElement($value);
+			}
+			else {
+				$writer->writeElement($key, $value);
+			}
+		}
+
+		$writer->endElement();
+
+		if (func_num_args() === 2) {
+			return $writer->outputMemory();
+		}
+		return null;
+	}
+
+	/**
+	 * @throws RuntimeException if not found
+	 * @return File
+	 */
+	final protected function getLayout() {
+		$layoutCommon    = (new File('private/src/common/'))->attach($this->modeSettings['layout']);
+		$layoutArea      = (new File('private/src/area/'.$this->request->getArea()))->attach($this->modeSettings['layout']);
+
+		if ($layoutArea->isFile()) {
+			return $layoutArea;
+		}
+		elseif ($layoutCommon->isFile()) {
+			return $layoutCommon;
+		}
+		else {
+			throw new RuntimeException('layout `'.$this->modeSettings['layout'].'` not found');
+		}
 	}
 
 	/**
@@ -107,14 +165,13 @@ class SiteModeHandler extends AbstractModeHandler {
 	}
 
 	/**
-	 * @param  array $settings
 	 * @param  int $code
 	 * @param  string $message
 	 * @return false
 	 */
-	protected function error($settings, $code, $message) {
-		if (isset($settings, $settings['error'.$code])) {
-			$errorSettings = $settings['error'.$code];
+	protected function error($code, $message) {
+		if (isset($this->modeSettings['error'.$code])) {
+			$errorSettings = $this->modeSettings['error'.$code];
 
 			# pipe to url
 			if (isset($errorSettings['pipe'])) {
