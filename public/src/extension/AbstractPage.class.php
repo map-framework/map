@@ -1,8 +1,9 @@
 <?php
-namespace parent;
+namespace extension;
 
 use exception\request\AcceptedException;
 use exception\request\RejectedException;
+use store\Bucket;
 
 abstract class AbstractPage {
 
@@ -37,18 +38,17 @@ abstract class AbstractPage {
 	/**
 	 * @var string[]
 	 */
-	protected $formData   = array();
-
-	/**
-	 * @var string[]
-	 */
 	private $expect       = array();
 
 	/**
-	 * response parameter list
-	 * @var string[]
+	 * @var array
 	 */
-	private $paramList    = array();
+	protected $request    = array();
+
+	/**
+	 * @var Bucket
+	 */
+	public $response      = null;
 
 	/**
 	 * check if user is entitled
@@ -70,19 +70,13 @@ abstract class AbstractPage {
 	 */
 	abstract public function check();
 
-
 	/**
-	 * @param  array $formData
-	 * @throws RejectedException if invalid
+	 * @param array $request
 	 */
-	public function __construct($formData) {
-		foreach ($this->expect as $formItemName => $pattern) {
-			if (!isset($this->formData[$formItemName]) || !preg_match('/^'.$pattern.'$/', $this->formData[$formItemName])) {
-				throw new RejectedException();
-			}
-		}
-
-		$this->formData = $formData;
+	public function __construct($request) {
+		$this->addExpect('formId');
+		$this->request  = $request;
+		$this->response = new Bucket();
 	}
 
 	/**
@@ -95,19 +89,15 @@ abstract class AbstractPage {
 	}
 
 	/**
-	 * @param  mixed $param
-	 * @return AbstractPage
+	 * @throws RejectedException
+	 * @return void
 	 */
-	final protected function addParam($param) {
-		$this->paramList[] = $param;
-		return $this;
-	}
-
-	/**
-	 * @return array
-	 */
-	final public function getParamList() {
-		return $this->paramList;
+	public function checkExpectation() {
+		foreach ($this->expect as $formItemName => $pattern) {
+			if (!isset($this->request[$formItemName]) || !preg_match('/^'.$pattern.'$/', $this->request[$formItemName])) {
+				throw new RejectedException();
+			}
+		}
 	}
 
 }
