@@ -23,7 +23,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @see    AbstractModeHandler::handle()
 	 * @param  MAPUrl $request
 	 * @param  array $modeSettings
-	 * @return bool
+	 * @return SiteModeHandler
 	 */
 	public function handle(MAPUrl $request, $modeSettings)	{
 		$this->request      = $request;
@@ -77,21 +77,27 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		$page->response->set('formStatus', 'id', $status);
+		return $this->printResult($pageXSLFile, $page->response);
+	}
 
+	/**
+	 * @param  File $pageXSLFile
+	 * @param  Bucket $response
+	 * @return SiteModeHandler
+	 */
+	protected function printResult(File $pageXSLFile, Bucket $response) {
 		$xslt = new XSLTProcessor();
 
-		# import page
-		$xsl = new DOMDocument();
-		$xsl->load($pageXSLFile);
-		$xslt->importStylesheet(clone $xsl);
+		$xslPage = new DOMDocument();
+		$xslPage->load($pageXSLFile);
+		$xslt->importStylesheet($xslPage);
 
-		# import layout
-		$xsl = new DOMDocument();
-		$xsl->load($this->getLayout());
-		$xslt->importStylesheet(clone $xsl);
+		$xslLayout = new DOMDocument();
+		$xslLayout->load($this->getLayout());
+		$xslt->importStylesheet($xslLayout);
 
-		echo $xslt->transformToXml($page->response->toDOMDocument('response'));
-		return true;
+		echo $xslt->transformToXml($response->toDOMDocument('response'));
+		return $this;
 	}
 
 	/**
@@ -100,7 +106,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @param  XMLWriter $writer
 	 * @return string|null
 	 */
-	final protected function arrayToXML($name, $items, XMLWriter $writer = null) {
+	protected function arrayToXML($name, $items, XMLWriter $writer = null) {
 		if ($writer === null) {
 			$writer = new XMLWriter();
 			$writer->openMemory();
@@ -132,7 +138,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @throws RuntimeException if not found
 	 * @return File
 	 */
-	final protected function getLayout() {
+	protected function getLayout() {
 		$layoutCommon    = (new File('private/src/common/'))->attach($this->modeSettings['layout']);
 		$layoutArea      = (new File('private/src/area/'.$this->request->getArea()))->attach($this->modeSettings['layout']);
 
@@ -151,7 +157,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * get form status INIT, RESTORED, REPEATED or null (ACCEPTED or REJECTED)
 	 * @return null|string
 	 */
-	final protected function analyzeStatus() {
+	protected function analyzeStatus() {
 		if (!count($_POST)) {
 			if ($this->getStoredFormData() !== null) {
 				return AbstractPage::STATUS_RESTORED;
@@ -190,7 +196,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	/**
 	 * @return array|null
 	 */
-	final protected function getStoredFormData() {
+	protected function getStoredFormData() {
 		$session = new Bucket($_SESSION);
 		$form = $session->get('form', $this->request->getArea().'#'.$this->request->getPage());
 		if ($form === null) {
@@ -205,7 +211,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @param  string $formId
 	 * @return bool
 	 */
-	final protected function isStoredFormClose($formId) {
+	protected function isStoredFormClose($formId) {
 		$form = $this->getStoredFormData();
 		if ($form === null || $form['data']['formId'] !== $formId) {
 			return false;
@@ -218,7 +224,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @param  bool $close
 	 * @return SiteModeHandler
 	 */
-	final protected function setStoredForm($formData, $close = false) {
+	protected function setStoredForm($formData, $close = false) {
 		$session = new Bucket($_SESSION);
 		$form = array(
 				'data'  => $formData,
@@ -233,7 +239,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @param  string $formId
 	 * @return SiteModeHandler
 	 */
-	final protected function closeStoredForm($formId) {
+	protected function closeStoredForm($formId) {
 		$formData = $this->getStoredFormData();
 		if ($formData !== null) {
 			if ($formData['formId'] === $formId) {

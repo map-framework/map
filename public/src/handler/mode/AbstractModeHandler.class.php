@@ -10,7 +10,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @param  MAPUrl $request
 	 * @param  array $modeSettings
-	 * @return bool
+	 * @return AbstractModeHandler
 	 */
 	abstract public function handle(MAPUrl $request, $modeSettings);
 
