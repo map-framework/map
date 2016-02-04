@@ -86,7 +86,30 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return SiteModeHandler
 	 */
 	protected function printResult(File $pageXSLFile, Bucket $response) {
+		$pathPrefixList = array(
+			'private/src/common/text/',
+			'private/src/area/'.$this->request->getArea().'/text/'
+		);
+
+		$texts = new Bucket();
+
+		foreach ($pathPrefixList as $pathPrefix) {
+			foreach ($this->config->get('display', 'texts') as $fileName) {
+				$file = (new File($pathPrefix))
+						->attach($this->config->get('display', 'language'))
+						->attach($fileName);
+
+				if ($file->isFile()) {
+					$texts->applyIni($file);
+				}
+			}
+		}
+
+		include_once new File('public/src/misc/functions.php');
+		define('TEXTS', serialize($texts));
+
 		$xslt = new XSLTProcessor();
+		$xslt->registerPHPFunctions();
 
 		$xslPage = new DOMDocument();
 		$xslPage->load($pageXSLFile);
