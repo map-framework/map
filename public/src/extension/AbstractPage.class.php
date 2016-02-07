@@ -1,16 +1,15 @@
 <?php
 namespace extension;
 
-use exception\request\AcceptedException;
-use exception\request\RejectedException;
-use store\Bucket;
+use xml\Node;
+use xml\Tree;
 
 abstract class AbstractPage {
 
 	/**
 	 * initialized question
 	 */
-	const STATUS_INIT     = 'INIT';
+	const STATUS_INIT = 'INIT';
 
 	/**
 	 * restored / reloaded question
@@ -38,17 +37,22 @@ abstract class AbstractPage {
 	/**
 	 * @var string[]
 	 */
-	private $expect       = array();
+	private $expect = array();
 
 	/**
 	 * @var array
 	 */
-	protected $request    = array();
+	protected $request = array();
 
 	/**
-	 * @var Bucket
+	 * @var Tree
 	 */
-	public $response      = null;
+	public $response = null;
+
+	/**
+	 * @var Node
+	 */
+	public $formData = null;
 
 	/**
 	 * check if user is entitled
@@ -73,14 +77,28 @@ abstract class AbstractPage {
 	 */
 	public function __construct($request) {
 		$this->addExpect('formId');
-		$this->request  = $request;
-		$this->response = new Bucket();
+		$this->request = $request;
+
+		$this->response = new Tree('document');
+		$this->formData = $this->response->getRootNode()->addChild(new Node('form'));
+	}
+
+	/**
+	 * @param  string $name
+	 * @param  string $value
+	 * @return AbstractPage this
+	 */
+	final public function setFormData($name, $value) {
+		$this->formData
+				->addChild(new Node($name))
+				->setContent($value);
+		return $this;
 	}
 
 	/**
 	 * @param  string $formItemName
 	 * @param  string $pattern
-	 * @return AbstractPage
+	 * @return AbstractPage this
 	 */
 	final protected function addExpect($formItemName, $pattern = '.*') {
 		$this->expect[$formItemName] = $pattern;

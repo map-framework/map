@@ -10,13 +10,13 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @param  MAPUrl $request
 	 * @param  array $modeSettings
-	 * @return AbstractModeHandler
+	 * @return AbstractModeHandler this
 	 */
 	abstract public function handle(MAPUrl $request, $modeSettings);
 
 	/**
 	 * @param  string $mimeType
-	 * @return AbstractModeHandler
+	 * @return AbstractModeHandler this
 	 */
 	final protected function setMimeType($mimeType) {
 		header('Content-Type: '.$mimeType);
@@ -25,7 +25,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 	/**
 	 * @param  Url $address
-	 * @return AbstractModeHandler
+	 * @return AbstractModeHandler this
 	 */
 	final protected function setLocation(Url $address) {
 		header('Location: '.$address);
