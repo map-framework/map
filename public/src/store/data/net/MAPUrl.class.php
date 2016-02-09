@@ -39,7 +39,7 @@ class MAPUrl extends Url {
 			return true;
 		}
 		$modeData = $this->config->get('mode', $mode);
-		return isset($modeData, $modeData['type'], $modeData['handler']);
+		return isset($modeData, $modeData['handler']);
 	}
 
 	/**

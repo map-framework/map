@@ -13,22 +13,12 @@ use xml\XSLProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
 
-	const
-			ERROR_403 = 'Forbidden',
-			ERROR_404 = 'Not Found';
-
-	const
-			PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
+	const	PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
 
 	/**
 	 * @var MAPUrl
 	 */
 	protected $request = null;
-
-	/**
-	 * @var array { string => mixed }
-	 */
-	protected $modeSettings = array();
 
 	/**
 	 * @var Bucket
@@ -39,14 +29,14 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * load stored forms
 	 * @see   AbstractModeHandler::__construct()
 	 * @param Bucket $config
+	 * @param array $settings { string => mixed }
 	 */
-	public function __construct(Bucket $config) {
+	public function __construct(Bucket $config, $settings) {
+		parent::__construct($config, $settings);
 		if (!isset($_SESSION['form'])) {
 			$_SESSION['form'] = array();
 		}
 		$this->storedForms = new Bucket($_SESSION['form']);
-
-		parent::__construct($config);
 	}
 
 	/**
@@ -59,13 +49,11 @@ class SiteModeHandler extends AbstractModeHandler {
 	/**
 	 * @see    AbstractModeHandler::handle
 	 * @param  MAPUrl $request
-	 * @param  array $modeSettings
 	 * @throws RuntimeException
 	 * @return AbstractModeHandler this
 	 */
-	public function handle(MAPUrl $request, $modeSettings) {
+	public function handle(MAPUrl $request) {
 		$this->request = $request;
-		$this->modeSettings = $modeSettings;
 
 		$className = ucfirst($request->getPage()).'Page';
 
@@ -244,28 +232,6 @@ class SiteModeHandler extends AbstractModeHandler {
 	 */
 	final protected function isFormId($formId) {
 		return (bool)preg_match('/'.self::PATTERN_FORM_ID.'/', $formId);
-	}
-
-	/**
-	 * @param  int $code
-	 * @param  string $message
-	 * @return SiteModeHandler this
-	 */
-	protected function error($code, $message) {
-		if (isset($this->modeSettings['error'.$code])) {
-			$errSettings = $this->modeSettings['error'.$code];
-
-			# pipe to url
-			if (isset($errSettings['pipe'])) {
-				$this->setLocation(new Url($errSettings['pipe']));
-				return $this;
-			}
-		}
-
-		# default error-output
-		$this->setMimeType('text/plain');
-		echo '['.$code.'] '.$message;
-		return $this;
 	}
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-use core\Logger;
+use store\Logger;
 use handler\mode\AbstractModeHandler;
 use store\Bucket;
 use store\data\File;
@@ -61,12 +61,12 @@ final class Web {
 			throw new RuntimeException('mode `'.$request->getMode().'` handler `'.$modeSettings['handler'].'` not applied');
 		}
 
-		$handler = new $modeSettings['handler']($this->config);
+		$handler = new $modeSettings['handler']($this->config, $modeSettings);
 		if (!($handler instanceof AbstractModeHandler)) {
 			throw new RuntimeException('mode `'.$request->getMode().'` handler `'.$modeSettings['handler'].'` is not instance of `handler\mode\AbstractModeHandler`');
 		}
 
-		$handler->handle($request, $modeSettings);
+		$handler->handle($request);
 	}
 	
 }
