@@ -70,7 +70,7 @@ class Bucket {
 	 * @return mixed
 	 */
 	final public function get($group, $key, $default = null) {
-		if ($this->isNull($group, $key)) {
+		if (isset($this->data[$group][$key])) {
 			return $this->data[$group][$key];
 		}
 		return $default;
