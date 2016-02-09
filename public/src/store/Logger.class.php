@@ -1,5 +1,5 @@
 <?php
-namespace core;
+namespace store;
 
 use store\data\File;
 use DateTime;
