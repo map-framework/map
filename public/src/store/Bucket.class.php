@@ -1,9 +1,9 @@
 <?php
 namespace store;
 
-use DOMDocument;
 use RuntimeException;
 use store\data\File;
+use xml\Node;
 
 /**
  * @TODO write unit-tests
@@ -61,6 +61,35 @@ class Bucket {
 	 */
 	final public function isInt($group, $key) {
 		return is_int($this->get($group, $key));
+	}
+
+	/**
+	 * @param  string $group
+	 * @param  string $key
+	 * @return bool
+	 */
+	final public function isBool($group, $key) {
+		return is_bool($this->get($group, $key));
+	}
+
+	/**
+	 * is exactly true
+	 * @param  $group
+	 * @param  $key
+	 * @return bool
+	 */
+	final public function isTrue($group, $key) {
+		return $this->get($group, $key) === true;
+	}
+
+	/**
+	 * is exactly false
+	 * @param  $group
+	 * @param  $key
+	 * @return bool
+	 */
+	final public function isFalse($group, $key) {
+		return $this->get($group, $key) === false;
 	}
 	
 	/**
@@ -135,21 +164,20 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $root
-	 * @return DOMDocument
+	 * @param  string $nodeName
+	 * @return Node
 	 */
-	final public function toDOMDocument($root = 'root') {
-		$document = new DOMDocument();
-
-		$eRoot = $document->appendChild($document->createElement($root));
+	final public function toNode($nodeName) {
+		$node = new Node($nodeName);
 		foreach ($this->toArray() as $group => $keyList) {
-
-			$eGroup = $eRoot->appendChild($document->createElement($group));
+			$groupNode = $node->addChild(new Node($group));
 			foreach ($keyList as $key => $value) {
-				$eGroup->appendChild($document->createElement($key, $value));
+				$groupNode
+						->addChild(new Node($key))
+						->setContent($value);
 			}
 		}
-		return $document;
+		return $node;
 	}
 	
 }
