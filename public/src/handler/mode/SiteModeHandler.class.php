@@ -31,22 +31,27 @@ class SiteModeHandler extends AbstractModeHandler {
 	/**
 	 * @var Bucket
 	 */
-	protected $session = null;
+	protected $storedForms = null;
 
 	/**
+	 * load stored forms
 	 * @see   AbstractModeHandler::__construct()
 	 * @param Bucket $config
 	 */
 	public function __construct(Bucket $config) {
-		$this->session = new Bucket($_SESSION);
+		if (!isset($_SESSION['form'])) {
+			$_SESSION['form'] = array();
+		}
+		$this->storedForms = new Bucket($_SESSION['form']);
+
 		parent::__construct($config);
 	}
 
 	/**
-	 * save session
+	 * save stored forms in session
 	 */
 	public function __destruct() {
-		$_SESSION = $this->session->toArray();
+		$_SESSION['form'] = $this->storedForms->toArray();
 	}
 
 	/**
@@ -163,7 +168,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return null|array { string => string }
 	 */
 	protected function getStoredFormData() {
-		$form = $this->session->get('form', $this->getPageId());
+		$form = $this->storedForms->get($this->request->getArea(), $this->request->getPage());
 		if ($form === null) {
 			return $form;
 		}
@@ -180,7 +185,7 @@ class SiteModeHandler extends AbstractModeHandler {
 				'data' => $data,
 				'close' => $close
 		);
-		$this->session->set('form', $this->getPageId(), $form);
+		$this->storedForms->set($this->request->getArea(), $this->request->getPage(), $form);
 		return $this;
 	}
 
@@ -204,14 +209,7 @@ class SiteModeHandler extends AbstractModeHandler {
 		if ($form === null || !$this->isFormId($formId) || $form['formId'] !== $formId) {
 			return false;
 		}
-		return $this->session->get('form', $this->getPageId())['close'];
-	}
-
-	/**
-	 * @return string
-	 */
-	final protected function getPageId() {
-		return $this->request->getArea().'#'.$this->request->getPage();
+		return $this->storedForms->get($this->request->getArea(), $this->request->getPage())['close'];
 	}
 
 	/**
