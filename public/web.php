@@ -15,21 +15,26 @@ final class Web {
 	private $config;
 	
 	/**
-	 * include autoload- & config-files and start session
+	 * initialize application and load configs
 	 */
 	public function __construct() {
 		include_once self::AUTOLOAD;
-		
-		$this->config = new Bucket();
-		# apply public config file
-		$this->config->applyIni(new File(self::CONFIG_PUBLIC));
-		# apply private config file
-		$this->config->applyIni(new File(self::CONFIG_PRIVATE));
 
 		if (!session_start()) {
 			Logger::error('failed to start session');
 			exit();
 		}
+
+		$this->config = new Bucket();
+		# apply public config
+		$this->config->applyIni(new File(self::CONFIG_PUBLIC));
+		# apply private config
+		$this->config->applyIni(new File(self::CONFIG_PRIVATE));
+		# apply session config
+		if (!isset($_SESSION['config'])) {
+			$_SESSION['config'] = array();
+		}
+		$this->config->applyArray($_SESSION['config']);
 	}
 
 	/**
