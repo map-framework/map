@@ -1,12 +1,14 @@
 <?php
 namespace handler\mode;
 
+use store\Logger;
 use extension\AbstractPage;
 use RuntimeException;
 use store\Bucket;
 use store\data\File;
 use store\data\net\MAPUrl;
 use store\data\net\Url;
+use xml\Node;
 use xml\XSLProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
@@ -111,12 +113,13 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		$page->formData->setAttribute('status', $formStatus);
+		$page->response->getRootNode()->addChild($this->getTextNode());
+
 		echo (new XSLProcessor())
 				->addStyleSheetFile($styleSheet)
 				->addStyleSheetFile($this->getLayout())
 				->setDocumentDoc($page->response->toDomDoc())
 				->transform();
-
 		return $this;
 	}
 
@@ -162,6 +165,51 @@ class SiteModeHandler extends AbstractModeHandler {
 			}
 		}
 		throw new RuntimeException('layout `'.$layout.'` not found');
+	}
+
+	/**
+	 * @param  string $nodeName
+	 * @return Node
+	 */
+	protected function getTextNode($nodeName = 'text') {
+		$texts = new Bucket();
+
+		# is enabled
+		if ($this->config->isTrue('multiLang', 'enabled')) {
+			# get text file paths
+			if ($this->config->isArray('multiLang', 'texts')) {
+				$textFileList = $this->config->get('multiLang', 'texts');
+			}
+			else {
+				$textFileList = array();
+				Logger::warning('expect `array { string }` in config: `display` -> `texts`');
+			}
+
+			# is autoPageTexts enabled
+			if ($this->config->isTrue('multiLang', 'autoPageTexts')) {
+				$textFileList[] = $this->request->getPage().'.ini';
+			}
+
+			# apply text files
+			foreach ($textFileList as $textFile) {
+				$path = '/text/'.$this->config->get('display', 'language').'/';
+				$areaFile = (new File('private/src/area/'.$this->request->getArea().$path))->attach($textFile);
+				$commonFile = (new File('private/src/common'.$path))->attach($textFile);
+
+				if ($areaFile->isFile()) {
+					$texts->applyIni($areaFile);
+				}
+				elseif ($commonFile->isFile()) {
+					$texts->applyIni($commonFile);
+				}
+				else {
+					Logger::warning('text file `'.$textFile.'` not found');
+				}
+			}
+		}
+
+		# create node
+		return $texts->toNode($nodeName)->setAttribute('language', $this->config->get('display', 'language'));
 	}
 
 	/**
