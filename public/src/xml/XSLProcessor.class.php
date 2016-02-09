@@ -14,9 +14,9 @@ class XSLProcessor {
 	protected $params = array();
 
 	/**
-	 * @var array { DOMDocument }
+	 * @var DOMDocument
 	 */
-	protected $styleSheets = array();
+	protected $styleSheet = null;
 
 	/**
 	 * @var DOMDocument
@@ -37,8 +37,8 @@ class XSLProcessor {
 	 * @param  DOMDocument $styleSheet
 	 * @return XSLProcessor this
 	 */
-	final public function addStyleSheetDoc(DOMDocument $styleSheet) {
-		$this->styleSheets[] = $styleSheet;
+	final public function setStyleSheetDoc(DOMDocument $styleSheet) {
+		$this->styleSheet = $styleSheet;
 		return $this;
 	}
 
@@ -47,13 +47,13 @@ class XSLProcessor {
 	 * @throws Exception
 	 * @return XSLProcessor this
 	 */
-	final public function addStyleSheetFile(File $styleSheetFile) {
+	final public function setStyleSheetFile(File $styleSheetFile) {
 		if (!$styleSheetFile->isFile()) {
 			throw new Exception('file `'.$styleSheetFile.'` not found');
 		}
 		$styleSheet = new DOMDocument();
 		$styleSheet->load($styleSheetFile);
-		$this->styleSheets[] = $styleSheet;
+		$this->styleSheet = $styleSheet;
 		return $this;
 	}
 
@@ -87,10 +87,7 @@ class XSLProcessor {
 	 */
 	public function transform() {
 		$processor = new XSLTProcessor();
-
-		foreach ($this->styleSheets as $styleSheet) {
-			$processor->importStylesheet($styleSheet);
-		}
+		$processor->importStylesheet($this->styleSheet);
 		foreach ($this->params as $name => $value) {
 			$processor->setParameter('', $name, $value);
 		}

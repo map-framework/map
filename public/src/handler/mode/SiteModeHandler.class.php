@@ -116,8 +116,7 @@ class SiteModeHandler extends AbstractModeHandler {
 		$page->response->getRootNode()->addChild($this->getTextNode());
 
 		echo (new XSLProcessor())
-				->addStyleSheetFile($styleSheet)
-				->addStyleSheetFile($this->getLayout())
+				->setStyleSheetFile($styleSheet)
 				->setDocumentDoc($page->response->toDomDoc())
 				->transform();
 		return $this;
@@ -144,27 +143,6 @@ class SiteModeHandler extends AbstractModeHandler {
 			return AbstractPage::STATUS_REPEATED;
 		}
 		return null;
-	}
-
-	/**
-	 * @throws RuntimeException
-	 * @return File
-	 */
-	protected function getLayout() {
-		$layout = null;
-		if (isset($this->modeSettings['layout']) && is_string($this->modeSettings['layout'])) {
-			$layout = $this->modeSettings['layout'];
-			$layoutCommon = (new File('private/src/common/'))->attach($layout);
-			$layoutArea = (new File('private/src/area/'.$this->request->getArea()))->attach($layout);
-
-			if ($layoutArea->isFile()) {
-				return $layoutArea;
-			}
-			elseif ($layoutCommon->isFile()) {
-				return $layoutCommon;
-			}
-		}
-		throw new RuntimeException('layout `'.$layout.'` not found');
 	}
 
 	/**
