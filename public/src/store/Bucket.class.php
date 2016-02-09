@@ -32,8 +32,35 @@ class Bucket {
 	 * @param  string $key
 	 * @return bool
 	 */
-	final public function exists($group, $key) {
-		return isset($this->data[$group][$key]);
+	final public function isNull($group, $key) {
+		return is_null($this->get($group, $key));
+	}
+
+	/**
+	 * @param  string $group
+	 * @param  string $key
+	 * @return bool
+	 */
+	final public function isArray($group, $key) {
+		return is_array($this->get($group, $key));
+	}
+
+	/**
+	 * @param  string $group
+	 * @param  string $key
+	 * @return bool
+	 */
+	final public function isString($group, $key) {
+		return is_string($this->get($group, $key));
+	}
+
+	/**
+	 * @param  string $group
+	 * @param  string $key
+	 * @return bool
+	 */
+	final public function isInt($group, $key) {
+		return is_int($this->get($group, $key));
 	}
 	
 	/**
@@ -43,7 +70,7 @@ class Bucket {
 	 * @return mixed
 	 */
 	final public function get($group, $key, $default = null) {
-		if ($this->exists($group, $key)) {
+		if ($this->isNull($group, $key)) {
 			return $this->data[$group][$key];
 		}
 		return $default;
