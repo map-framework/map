@@ -143,19 +143,20 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return File
 	 */
 	protected function getLayout() {
-		$layout = $this->modeSettings['layout'];
-		$layoutCommon = (new File('private/src/common/'))->attach($layout);
-		$layoutArea = (new File('private/src/area/'.$this->request->getArea()))->attach($layout);
+		$layout = null;
+		if (isset($this->modeSettings['layout']) && is_string($this->modeSettings['layout'])) {
+			$layout = $this->modeSettings['layout'];
+			$layoutCommon = (new File('private/src/common/'))->attach($layout);
+			$layoutArea = (new File('private/src/area/'.$this->request->getArea()))->attach($layout);
 
-		if ($layoutArea->isFile()) {
-			return $layoutArea;
+			if ($layoutArea->isFile()) {
+				return $layoutArea;
+			}
+			elseif ($layoutCommon->isFile()) {
+				return $layoutCommon;
+			}
 		}
-		elseif ($layoutCommon->isFile()) {
-			return $layoutCommon;
-		}
-		else {
-			throw new RuntimeException('layout `'.$this->modeSettings['layout'].'` not found');
-		}
+		throw new RuntimeException('layout `'.$layout.'` not found');
 	}
 
 	/**
