@@ -10,22 +10,53 @@ use Exception;
  */
 class Url extends AbstractData {
 
-	const PATTERN_SCHEME		= '^[0-9a-zA-Z+-.]+$';
-	const PATTERN_USER			= '^[0-9a-zA-Z-_.~%]+$';
-	const PATTERN_PASS			= '^[0-9a-zA-Z-_.~%]+$';
-	const PATTERN_HOST			= '^[0-9a-zA-Z-.]+$';
-	const PATTERN_PATH			= '^[0-9a-zA-Z-_.!~*():@&=+$,%\/;]*$';
-	const PATTERN_QUERY			= '^[0-9a-zA-Z-_.!~*();\/:@&=+$,]+$';
-	const PATTERN_FRAGMENT	= '^[0-9a-zA-Z-_.~%]+$';
+	const PATTERN_SCHEME   = '^[0-9a-zA-Z+-.]+$';
+	const PATTERN_USER     = '^[0-9a-zA-Z-_.~%]+$';
+	const PATTERN_PASS     = '^[0-9a-zA-Z-_.~%]+$';
+	const PATTERN_HOST     = '^[0-9a-zA-Z-.]+$';
+	const PATTERN_PATH     = '^[0-9a-zA-Z-_.!~*():@&=+$,%\/;]*$';
+	const PATTERN_QUERY    = '^[0-9a-zA-Z-_.!~*();\/:@&=+$,]+$';
+	const PATTERN_FRAGMENT = '^[0-9a-zA-Z-_.~%]+$';
 
-	private $scheme 				= null;
-	private $user						= null;
-	private $pass						= null;
-	private $host						= null;
-	private $port 					= null;
-	private $path						= null;
-	private $query					= null;
-	private $fragment				= null;
+	/**
+	 * @var string|null
+	 */
+	private $scheme = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $user = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $pass = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $host = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $port = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $path = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $query = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $fragment = null;
 
 	/**
 	 * @param $url string

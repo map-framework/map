@@ -15,6 +15,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 	/**
 	 * mode settings
+	 *
 	 * @var array { string => mixed }
 	 */
 	protected $settings = array();
@@ -28,7 +29,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @throws RuntimeException
 	 * @param  Bucket $config
-	 * @param  array $settings  { string => mixed }
+	 * @param  array  $settings { string => mixed }
 	 */
 	public function __construct(Bucket $config, $settings) {
 		if (!isset($settings['type'])) {
@@ -60,6 +61,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 	/**
 	 * get file in app folder
+	 *
 	 * @param  MAPUrl $request
 	 * @throws RuntimeException
 	 * @return null|File
@@ -88,7 +90,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	}
 
 	/**
-	 * @param  int $code
+	 * @param  int    $code
 	 * @param  string $message
 	 * @return SiteModeHandler this
 	 */

@@ -6,22 +6,22 @@ use store\data\File;
 
 class MAPUrlTest extends PHPUnit_Framework_TestCase {
 
-	const URL_VALID				    = '/seven/eight/nine/ten/eleven';
-	const URL_VALID_MODE		  = 'seven';
-	const URL_VALID_AREA		  = 'eight';
-	const URL_VALID_PAGE		  = 'nine';
-	const URL_VALID_INPUTS	  = ['ten', 'eleven'];
+	const URL_VALID        = '/seven/eight/nine/ten/eleven';
+	const URL_VALID_MODE   = 'seven';
+	const URL_VALID_AREA   = 'eight';
+	const URL_VALID_PAGE   = 'nine';
+	const URL_VALID_INPUTS = ['ten', 'eleven'];
 
-	const URL_INVALID				  = '/4848ß/`hello/world´/föö/bär';
-	const URL_INVALID_MODE		= '4848ß';
-	const URL_INVALID_AREA		= '`hello´';
-	const URL_INVALID_PAGE		= 'world´';
-	const URL_INVALID_INPUTS  = array('more€s', 'invalid$');
+	const URL_INVALID        = '/4848ß/`hello/world´/föö/bär';
+	const URL_INVALID_MODE   = '4848ß';
+	const URL_INVALID_AREA   = '`hello´';
+	const URL_INVALID_PAGE   = 'world´';
+	const URL_INVALID_INPUTS = array('more€s', 'invalid$');
 
-	const URL_DEFAULT_MODE		= 'site';
-	const URL_DEFAULT_AREA		= 'base';
-	const URL_DEFAULT_PAGE		= 'home';
-	const URL_DEFAULT_INPUTS	= [];
+	const URL_DEFAULT_MODE   = 'site';
+	const URL_DEFAULT_AREA   = 'base';
+	const URL_DEFAULT_PAGE   = 'home';
+	const URL_DEFAULT_INPUTS = [];
 
 	public function testSetAndGetPath_valid() {
 		$this->assertEquals(self::URL_VALID, (string) new MAPUrl(self::URL_VALID));

@@ -6,13 +6,13 @@ use RuntimeException;
 
 class File extends AbstractData {
 
-	const TYPE_FILE       = 'file';
-	const TYPE_DIR        = 'dir';
-	const TYPE_LINK       = 'link';
+	const TYPE_FILE = 'file';
+	const TYPE_DIR  = 'dir';
+	const TYPE_LINK = 'link';
 
-	const MAKE_DIR_MODE		= 0777;
-	const MAKE_FILE_MODE	= 0777;
-	const MAKE_LINK_MODE	= 0777;
+	const MAKE_DIR_MODE  = 0777;
+	const MAKE_FILE_MODE = 0777;
+	const MAKE_LINK_MODE = 0777;
 
 	/**
 	 * @param string $file
@@ -74,7 +74,7 @@ class File extends AbstractData {
 	final public function isWritable() {
 		return is_writeable($this->get());
 	}
-	
+
 	/**
 	 * @return bool
 	 */
@@ -145,7 +145,7 @@ class File extends AbstractData {
 		}
 		return $this;
 	}
-	
+
 	/**
 	 * @throws Exception if file not exists
 	 * @throws Exception if file is not readable
@@ -170,11 +170,12 @@ class File extends AbstractData {
 
 	/**
 	 * create file, if not exists
+	 *
 	 * @param  $content
 	 * @param  $append = true
 	 * @throws Exception if failed to put content
 	 * @return File
-	 */ 
+	 */
 	final public function putContents($content, $append = true) {
 		if (!file_put_contents($this->get(), $content, $append ? FILE_APPEND : 0)) {
 			throw new Exception('failed to put content in file `'.$this.'`');
@@ -186,7 +187,7 @@ class File extends AbstractData {
 	 * @param  string $type allow only one File::TYPE_*
 	 * @throws Exception if dir not exists
 	 * @throws Exception if is not a dir
-	 * @throws Exception if failed to scan dir 
+	 * @throws Exception if failed to scan dir
 	 * @throws RuntimeException if file type not exists
 	 * @return File[]
 	 */
@@ -208,7 +209,7 @@ class File extends AbstractData {
 		if ($type !== null && !method_exists($this, 'is'.ucfirst($type))) {
 			throw new RuntimeException('file type `'.$type.'` not exists.', 4);
 		}
-		
+
 		foreach ($fileList as $fileKey => $file) {
 			# new file path = old + new
 			$fileList[$fileKey] = (new File($this->get()))->attach($file);
@@ -220,5 +221,5 @@ class File extends AbstractData {
 		}
 		return $fileList;
 	}
-	
+
 }

@@ -18,18 +18,21 @@ abstract class AbstractPage {
 
 	/**
 	 * negative reply
+	 *
 	 * @see exception\request\AcceptedException
 	 */
 	const STATUS_REJECTED = 'REJECTED';
 
 	/**
 	 * positive reply
+	 *
 	 * @see exception\request\AcceptedException
 	 */
 	const STATUS_ACCEPTED = 'ACCEPTED';
 
 	/**
 	 * neutral reply
+	 *
 	 * @see exception\request\AcceptedException
 	 */
 	const STATUS_REPEATED = 'REPEATED';
@@ -56,18 +59,21 @@ abstract class AbstractPage {
 
 	/**
 	 * check if user is entitled
+	 *
 	 * @return bool
 	 */
 	abstract public function access();
 
 	/**
 	 * call if nothing submitted
+	 *
 	 * @return void
 	 */
 	abstract public function setUp();
 
 	/**
 	 * call if submitted
+	 *
 	 * @return bool
 	 */
 	abstract public function check();

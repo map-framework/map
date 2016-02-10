@@ -82,6 +82,7 @@ class XSLProcessor {
 
 	/**
 	 * run the xsl transformation
+	 *
 	 * @throws Exception
 	 * @return string
 	 */

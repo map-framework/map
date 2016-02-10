@@ -2,16 +2,16 @@
 namespace store\data;
 
 abstract class AbstractData {
-	
+
 	protected $data = '';
-	
+
 	/**
 	 * @param mixed $data
 	 */
 	public function __construct($data) {
 		$this->set($data);
 	}
-	
+
 	/**
 	 * @param string $data
 	 * @return AbstractData
@@ -20,21 +20,21 @@ abstract class AbstractData {
 		$this->data = $data;
 		return $this;
 	}
-	
+
 	/**
 	 * @return string
 	 */
 	public function get() {
 		return $this->data;
 	}
-	
+
 	/**
 	 * @return string
 	 */
 	public function __toString() {
 		return $this->get();
 	}
-	
+
 	/**
 	 * @param string $pattern
 	 * @param string $subject
@@ -46,5 +46,5 @@ abstract class AbstractData {
 		}
 		return (bool) preg_match('/'.$pattern.'/', $subject);
 	}
-	
+
 }

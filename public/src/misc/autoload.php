@@ -1,15 +1,16 @@
 <?php
 
 /**
- * simple autoloader
+ * simple autoload function
+ *
  * @param  string $namespace
  * @return bool
  */
 function mapAutoload($namespace) {
 	# change directory if not usual installed
 	$directoryList = array(
-		'public/src/',
-		'private/src/'
+			'public/src/',
+			'private/src/'
 	);
 
 	# binary folders on command line
@@ -17,10 +18,10 @@ function mapAutoload($namespace) {
 		$directoryList[] = 'public/bin/';
 		$directoryList[] = 'private/bin/';
 	}
-	
-	$suffix = '.class.php';
+
+	$suffix   = '.class.php';
 	$itemList = explode('\\', $namespace);
-	
+
 	foreach ($directoryList as $directory) {
 		$path = constant('ROOT_DIR').$directory.implode('/', $itemList).$suffix;
 		if (file_exists($path)) {

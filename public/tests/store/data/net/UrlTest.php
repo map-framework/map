@@ -4,7 +4,7 @@ use store\data\net\Url;
 
 class UrlTest extends PHPUnit_Framework_TestCase {
 
-	const URL_FULL 					= 'ftp://frog:quak@test.ninja:33/dir/file.html?the#end';
+	const URL_FULL          = 'ftp://frog:quak@test.ninja:33/dir/file.html?the#end';
 	const URL_FULL_SCHEME   = 'ftp';
 	const URL_FULL_USER     = 'frog';
 	const URL_FULL_PASS     = 'quak';
@@ -14,7 +14,7 @@ class UrlTest extends PHPUnit_Framework_TestCase {
 	const URL_FULL_QUERY    = 'the';
 	const URL_FULL_FRAGMENT = 'end';
 
-	const URL_NONE 					= '';
+	const URL_NONE          = '';
 	const URL_NONE_SCHEME   = null;
 	const URL_NONE_USER     = null;
 	const URL_NONE_PASS     = null;
@@ -25,7 +25,7 @@ class UrlTest extends PHPUnit_Framework_TestCase {
 	const URL_NONE_FRAGMENT = null;
 
 	# constant: URL_FULL
-	
+
 	public function testGetScheme_full() {
 		$this->assertEquals(self::URL_FULL_SCHEME, (new Url(self::URL_FULL))->getScheme());
 	}
@@ -76,7 +76,7 @@ class UrlTest extends PHPUnit_Framework_TestCase {
 	}
 
 	#constant: URL_NONE
-	
+
 	public function testGetScheme_none() {
 		$this->assertEquals(self::URL_NONE_SCHEME, (new Url(self::URL_NONE))->getScheme());
 	}
@@ -112,35 +112,35 @@ class UrlTest extends PHPUnit_Framework_TestCase {
 	public function testSetGet_none() {
 		$this->assertEquals(self::URL_NONE, (new Url(self::URL_NONE))->get());
 	}
-	
+
 	public function testSetScheme_none() {
 		$this->assertEquals(self::URL_NONE_SCHEME, (new Url())->setScheme(self::URL_NONE_SCHEME)->getScheme());
 	}
-	
+
 	public function testSetUser_none() {
 		$this->assertEquals(self::URL_NONE_USER, (new Url())->setUser(self::URL_NONE_USER)->getUser());
 	}
-	
+
 	public function testSetPass_none() {
 		$this->assertEquals(self::URL_NONE_PASS, (new Url())->setPass(self::URL_NONE_PASS)->getPass());
 	}
-	
+
 	public function testSetHost_none() {
 		$this->assertEquals(self::URL_NONE_HOST, (new Url())->setHost(self::URL_NONE_HOST)->getHost());
 	}
-	
+
 	public function testSetPort_none() {
 		$this->assertEquals(self::URL_NONE_PORT, (new Url())->setPort(self::URL_NONE_PORT)->getPort());
 	}
-	
+
 	public function testSetPath_none() {
 		$this->assertEquals(self::URL_NONE_PATH, (new Url())->setPath(self::URL_NONE_PATH)->getPath());
 	}
-	
+
 	public function testSetQuery_none() {
 		$this->assertEquals(self::URL_NONE_QUERY, (new Url())->setQuery(self::URL_NONE_QUERY)->getQuery());
 	}
-	
+
 	public function testSetFragment_none() {
 		$this->assertEquals(self::URL_NONE_FRAGMENT, (new Url())->setFragment(self::URL_NONE_FRAGMENT)->getFragment());
 	}

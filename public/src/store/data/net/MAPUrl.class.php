@@ -6,17 +6,35 @@ use store\data\File;
 
 class MAPUrl extends Url {
 
-	const PATTERN_MODE	= '^[0-9A-Za-z_\-+]{1,32}$';
-	const PATTERN_AREA 	= '^[0-9A-Za-z_\-+]{1,32}$';
-	const PATTERN_PAGE	= '^[0-9A-Za-z]{1,32}$';
-	const PATTERN_INPUT	= '^[0-9A-Za-z_\-+ÄÖÜßäöü;,]+$';
+	const PATTERN_MODE  = '^[0-9A-Za-z_\-+]{1,32}$';
+	const PATTERN_AREA  = '^[0-9A-Za-z_\-+]{1,32}$';
+	const PATTERN_PAGE  = '^[0-9A-Za-z]{1,32}$';
+	const PATTERN_INPUT = '^[0-9A-Za-z_\-+ÄÖÜßäöü;,]+$';
 
-	private $mode 			= null;
-	private $area 			= null;
-	private $page 			= null;
-	private $inputList 	= array();
+	/**
+	 * @var string|null
+	 */
+	private $mode = null;
 
-	private $config 		= null;
+	/**
+	 * @var string|null
+	 */
+	private $area = null;
+
+	/**
+	 * @var string|null
+	 */
+	private $page = null;
+
+	/**
+	 * @var array { string }
+	 */
+	private $inputList = array();
+
+	/**
+	 * @var string|null
+	 */
+	private $config = null;
 
 	/**
 	 * @param string $url
@@ -179,10 +197,10 @@ class MAPUrl extends Url {
 		$itemList = explode('/', $path);
 
 		# reset values
-		$this->mode 	= null;
-		$this->area 	= null;
-		$this->page 	= null;
-		$this->input 	= array();
+		$this->mode      = null;
+		$this->area      = null;
+		$this->page      = null;
+		$this->inputList = array();
 
 		$level = 0;
 
@@ -228,7 +246,7 @@ class MAPUrl extends Url {
 	 */
 	public function getPath() {
 		$itemList = array();
-		
+
 		if ($this->mode !== null) {
 			$itemList[] = $this->mode;
 		}
@@ -236,7 +254,7 @@ class MAPUrl extends Url {
 		if ($this->area !== null) {
 			$itemList[] = $this->area;
 		}
-		
+
 		if ($this->page !== null) {
 			$itemList[] = $this->page;
 		}

@@ -7,13 +7,16 @@ use store\data\File;
 use store\data\net\MAPUrl;
 
 final class Web {
-	
-	const AUTOLOAD 			  = 'src/misc/autoload.php';
-	const CONFIG_PUBLIC		= 'public/web.ini';
-	const CONFIG_PRIVATE	= 'private/web.ini';
-	
+
+	const AUTOLOAD       = 'src/misc/autoload.php';
+	const CONFIG_PUBLIC  = 'public/web.ini';
+	const CONFIG_PRIVATE = 'private/web.ini';
+
+	/**
+	 * @var Bucket
+	 */
 	private $config;
-	
+
 	/**
 	 * initialize application and load configs
 	 */
@@ -39,6 +42,7 @@ final class Web {
 
 	/**
 	 * call mode handler
+	 *
 	 * @throws Exception
 	 * @return void
 	 */
@@ -50,7 +54,7 @@ final class Web {
 			$scheme = 'http';
 		}
 
-		$request = new MAPUrl($scheme.'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], $this->config);
+		$request      = new MAPUrl($scheme.'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], $this->config);
 		$modeSettings = $this->config->get('mode', $request->getMode());
 
 		if ($modeSettings === null) {
@@ -63,12 +67,18 @@ final class Web {
 
 		$handler = new $modeSettings['handler']($this->config, $modeSettings);
 		if (!($handler instanceof AbstractModeHandler)) {
-			throw new RuntimeException('mode `'.$request->getMode().'` handler `'.$modeSettings['handler'].'` is not instance of `handler\mode\AbstractModeHandler`');
+			throw new RuntimeException(
+					'mode `'
+					.$request->getMode()
+					.'` handler `'
+					.$modeSettings['handler']
+					.'` is not instance of `handler\mode\AbstractModeHandler`'
+			);
 		}
 
 		$handler->handle($request);
 	}
-	
+
 }
 
 (new Web())->main();

@@ -7,13 +7,12 @@ use RuntimeException;
 use store\Bucket;
 use store\data\File;
 use store\data\net\MAPUrl;
-use store\data\net\Url;
 use xml\Node;
 use xml\XSLProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
 
-	const	PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
+	const  PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
 
 	/**
 	 * @var MAPUrl
@@ -27,9 +26,10 @@ class SiteModeHandler extends AbstractModeHandler {
 
 	/**
 	 * load stored forms
+	 *
 	 * @see   AbstractModeHandler::__construct()
 	 * @param Bucket $config
-	 * @param array $settings { string => mixed }
+	 * @param array  $settings { string => mixed }
 	 */
 	public function __construct(Bucket $config, $settings) {
 		parent::__construct($config, $settings);
@@ -57,7 +57,7 @@ class SiteModeHandler extends AbstractModeHandler {
 
 		$className = ucfirst($request->getPage()).'Page';
 
-		$nameSpace = 'area\\'.$request->getArea().'\logic\site\\'.$className;
+		$nameSpace  = 'area\\'.$request->getArea().'\logic\site\\'.$className;
 		$styleSheet = new File('private/src/area/'.$request->getArea().'/app/view/site/'.$request->getPage().'.xsl');
 
 		if (!class_exists($nameSpace) || !$styleSheet->isFile()) {
@@ -116,7 +116,6 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @see AbstractPage::STATUS_REPEATED
 	 * @see AbstractPage::STATUS_ACCEPTED
 	 * @see AbstractPage::STATUS_REJECTED
-	 *
 	 * null = unknown (ACCEPTED or REJECTED)
 	 * @return null|string
 	 */
@@ -158,8 +157,8 @@ class SiteModeHandler extends AbstractModeHandler {
 
 			# apply text files
 			foreach ($textFileList as $textFile) {
-				$path = '/text/'.$this->config->get('display', 'language').'/';
-				$areaFile = (new File('private/src/area/'.$this->request->getArea().$path))->attach($textFile);
+				$path       = '/text/'.$this->config->get('display', 'language').'/';
+				$areaFile   = (new File('private/src/area/'.$this->request->getArea().$path))->attach($textFile);
 				$commonFile = (new File('private/src/common'.$path))->attach($textFile);
 
 				if ($areaFile->isFile()) {
@@ -191,12 +190,12 @@ class SiteModeHandler extends AbstractModeHandler {
 
 	/**
 	 * @param  array $data { string => string }
-	 * @param  bool $close
+	 * @param  bool  $close
 	 * @return SiteModeHandler this
 	 */
 	protected function saveForm($data, $close = false) {
 		$form = array(
-				'data' => $data,
+				'data'  => $data,
 				'close' => $close
 		);
 		$this->storedForms->set($this->request->getArea(), $this->request->getPage(), $form);
@@ -231,7 +230,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return bool
 	 */
 	final protected function isFormId($formId) {
-		return (bool)preg_match('/'.self::PATTERN_FORM_ID.'/', $formId);
+		return (bool) preg_match('/'.self::PATTERN_FORM_ID.'/', $formId);
 	}
 
 }

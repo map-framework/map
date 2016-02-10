@@ -9,7 +9,7 @@ class TextModeHandler extends AbstractModeHandler {
 	 * @param  MAPUrl $request
 	 * @return TextModeHandler this
 	 */
-	public function handle(MAPUrl $request)	{
+	public function handle(MAPUrl $request) {
 		$sourceFile = $this->getFile($request);
 		if ($sourceFile === null) {
 			return $this->error(404, self::ERROR_404);

@@ -5,14 +5,11 @@ use RuntimeException;
 use store\data\File;
 use xml\Node;
 
-/**
- * @TODO write unit-tests
- */
 class Bucket {
-	
+
 	const PATTERN_GROUP = '/^[A-Za-z0-9_-]{1,32}$/';
-	const PATTERN_KEY = '/^[A-Za-z0-9_-]{1,32}$/';
-	
+	const PATTERN_KEY   = '/^[A-Za-z0-9_-]{1,32}$/';
+
 	private $data = array();
 
 	/**
@@ -69,11 +66,12 @@ class Bucket {
 	 * @return bool
 	 */
 	final public function isBool($group, $key) {
-		return is_bool($this->get($group, $key));
+		return $this->isTrue($group, $key) || $this->isFalse($group, $key);
 	}
 
 	/**
 	 * is exactly true
+	 *
 	 * @param  $group
 	 * @param  $key
 	 * @return bool
@@ -84,6 +82,7 @@ class Bucket {
 
 	/**
 	 * is exactly false
+	 *
 	 * @param  $group
 	 * @param  $key
 	 * @return bool
@@ -91,7 +90,7 @@ class Bucket {
 	final public function isFalse($group, $key) {
 		return $this->get($group, $key) === false;
 	}
-	
+
 	/**
 	 * @param  string $group
 	 * @param  string $key
@@ -108,21 +107,21 @@ class Bucket {
 	/**
 	 * @param  string $group
 	 * @param  string $key
-	 * @param  mixed $value
+	 * @param  mixed  $value
 	 * @throws RuntimeException if group or key invalid
 	 * @return Bucket
 	 */
 	final public function set($group, $key, $value) {
 		if (!preg_match(self::PATTERN_GROUP, $group)) {
-			throw new RuntimeException('Invalid group `'.$group.'`.');
+			throw new RuntimeException('Invalid group `'.$group.'`.', 1);
 		}
 		if (!preg_match(self::PATTERN_KEY, $key)) {
-			throw new RuntimeException('Invalid key `'.$key.'`.');
+			throw new RuntimeException('Invalid key `'.$key.'`.', 2);
 		}
 		$this->data[$group][$key] = $value;
 		return $this;
 	}
-	
+
 	/**
 	 * @param  File $iniFile
 	 * @throws RuntimeException if file not exist
@@ -140,7 +139,7 @@ class Bucket {
 	 * @throws RuntimeException if data invalid
 	 * @return Bucket
 	 */
-	final public function applyArray($data)	{
+	final public function applyArray($data) {
 		if (!is_array($data)) {
 			throw new RuntimeException('data is invalid');
 		}
@@ -179,5 +178,5 @@ class Bucket {
 		}
 		return $node;
 	}
-	
+
 }

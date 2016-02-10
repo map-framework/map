@@ -3,12 +3,14 @@
 
 class Console {
 
-	const AUTOLOAD 			  = 'public/src/misc/autoload.php';
+	const AUTOLOAD        = 'public/src/misc/autoload.php';
 	const COMMAND_PATTERN = '/^[a-z0-9-_+]+$/';
-	const COMMAND_DEFAULT	= 'help';
+	const COMMAND_DEFAULT = 'help';
 
-	protected $file 			= null;
-	protected $command 		= null;
+	protected $file       = null;
+
+	protected $command    = null;
+
 	protected $optionList = array();
 
 	/**
@@ -63,6 +65,7 @@ class Console {
 
 	/**
 	 * print info message
+	 *
 	 * @param  string $message
 	 * @return Console
 	 */
@@ -72,6 +75,7 @@ class Console {
 
 	/**
 	 * print error message
+	 *
 	 * @param  string $message
 	 * @param  bool   $exit = false
 	 * @return Console
@@ -87,6 +91,7 @@ class Console {
 
 	/**
 	 * print message
+	 *
 	 * @param  string $message
 	 * @return Console
 	 */
@@ -97,11 +102,12 @@ class Console {
 
 	/**
 	 * get command object by name
+	 *
 	 * @param  string $name
 	 * @throws Exception if name invalid
 	 * @throws Exception if not exists
-	 * @throws Exception if class is abstract 
-	 * @throws Exception if not instance of AbstractCommand 
+	 * @throws Exception if class is abstract
+	 * @throws Exception if not instance of AbstractCommand
 	 * @return AbstractCommand
 	 */
 	final public static function getCommand($name) {

@@ -1,6 +1,9 @@
 <?php
 namespace xml;
 
+use RuntimeException;
+use store\Logger;
+
 class Node {
 
 	/**
@@ -87,7 +90,15 @@ class Node {
 	 * @return Node this
 	 */
 	final public function setContent($content) {
-		$this->content = $content;
+		if (is_object($content) && method_exists($content, '__toString')) {
+			$content = (string) $content;
+		}
+		if ($content === null || is_string($content) || is_int($content)) {
+			$this->content = $content;
+		}
+		else {
+			Logger::warning('ignored node content of type `'.gettype($content).'`');
+		}
 		return $this;
 	}
 
@@ -134,21 +145,21 @@ class Node {
 	 * @return bool
 	 */
 	final public function hasChildren() {
-		return (bool)$this->countChildren();
+		return (bool) $this->countChildren();
 	}
 
 	/**
-	 * @param  bool $indent
+	 * @param  bool   $indent
 	 * @param  string $prefix
 	 * @param  string $prefixChar
 	 * @return string
 	 */
 	public function getSource($indent = true, $prefix = '', $prefixChar = "\t") {
-		$prefixThis = $prefix;
+		$prefixThis  = $prefix;
 		$prefixChild = $prefix;
 
 		if ($indent === true) {
-			$prefixThis = $prefix;
+			$prefixThis  = $prefix;
 			$prefixChild = $prefix.$prefixChar;
 		}
 

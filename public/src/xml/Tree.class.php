@@ -12,12 +12,14 @@ class Tree {
 
 	/**
 	 * xml version
+	 *
 	 * @var string
 	 */
 	protected $version = '1.0';
 
 	/**
 	 * xml encoding
+	 *
 	 * @var null|string
 	 */
 	protected $encoding = null;
@@ -61,6 +63,7 @@ class Tree {
 
 	/**
 	 * get XML prolog
+	 *
 	 * @return string
 	 */
 	final public function getProlog() {
@@ -86,6 +89,7 @@ class Tree {
 
 	/**
 	 * convert to DOMDocument
+	 *
 	 * @return DOMDocument
 	 */
 	final public function toDomDoc() {

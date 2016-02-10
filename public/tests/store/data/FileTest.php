@@ -3,15 +3,15 @@
 use store\data\File;
 
 final class FileTest extends PHPUnit_Framework_TestCase {
-	
-	const FILE 		= 'map';
-	const DIR 	  = 'public/';
+
+	const FILE    = 'map';
+	const DIR     = 'public/';
 	const NOTHING = 'notExists.magic';
-	
+
 	public function testExists_file_true() {
 		$this->assertTrue((new File(self::FILE))->exists());
 	}
-	
+
 	public function testIsFile_file_true() {
 		$this->assertTrue((new File(self::FILE))->isFile());
 	}
@@ -83,5 +83,5 @@ final class FileTest extends PHPUnit_Framework_TestCase {
 	public function testChangeMode_nothing_failed() {
 		(new File(self::NOTHING))->changeMode(5, 5, 0);
 	}
-	
+
 }

@@ -10,40 +10,44 @@ use RuntimeException;
  */
 class Logger {
 
-	const TYPE_ERROR		= 'ERROR';
-	const TYPE_WARNING	= 'WARNING';
-	const TYPE_INFO			= 'INFO';
-	const LOG_DIR 			= ROOT_DIR.'log/';
-	
+	const TYPE_ERROR   = 'ERROR';
+	const TYPE_WARNING = 'WARNING';
+	const TYPE_INFO    = 'INFO';
+	const LOG_DIR      = ROOT_DIR.'log/';
+
 	/**
 	 * write error logs
+	 *
 	 * @param  string $message
 	 * @return Logger
 	 */
 	public static function error($message) {
 		return self::log(self::TYPE_ERROR, $message);
 	}
-	
+
 	/**
 	 * write warning logs
+	 *
 	 * @param  string $message
 	 * @return Logger
 	 */
 	public static function warning($message) {
 		return self::log(self::TYPE_WARNING, $message);
 	}
-	
+
 	/**
 	 * write info logs
+	 *
 	 * @param  string $message
 	 * @return Logger
 	 */
 	public static function info($message) {
 		return self::log(self::TYPE_INFO, $message);
 	}
-	
+
 	/**
 	 * write logs
+	 *
 	 * @param  string $type
 	 * @param  string $message
 	 * @throws RuntimeException if failed to create log-dir
@@ -68,5 +72,5 @@ class Logger {
 		# write log
 		$logFile->putContents('['.$type.'] '.$message.PHP_EOL);
 	}
-	
+
 }
