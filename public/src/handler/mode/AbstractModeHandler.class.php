@@ -7,6 +7,7 @@ use store\Bucket;
 use store\data\File;
 use store\data\net\MAPUrl;
 use store\data\net\Url;
+use store\Logger;
 
 abstract class AbstractModeHandler extends AbstractHandler {
 
@@ -87,6 +88,47 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * @param  MAPUrl $request
+	 * @return Bucket
+	 */
+	final protected function getText(MAPUrl $request) {
+		$texts = new Bucket();
+		# is enabled
+		if (isset($this->settings['multiLang']) && $this->settings['multiLang'] === true) {
+			# get text file paths
+			if ($this->config->isArray('multiLang', 'texts')) {
+				$textFileList = $this->config->get('multiLang', 'texts');
+			}
+			else {
+				$textFileList = array();
+			}
+
+			# is autoPageTexts enabled
+			if ($this->config->isTrue('multiLang', 'autoPageTexts')) {
+				$textFileList[] = $request->getPage().'.ini';
+			}
+
+			# apply text files
+			foreach ($textFileList as $textFile) {
+				$path       = '/text/'.$this->config->get('display', 'language').'/';
+				$areaFile   = (new File('private/src/area/'.$request->getArea().$path))->attach($textFile);
+				$commonFile = (new File('private/src/common'.$path))->attach($textFile);
+
+				if ($areaFile->isFile()) {
+					$texts->applyIni($areaFile);
+				}
+				elseif ($commonFile->isFile()) {
+					$texts->applyIni($commonFile);
+				}
+				else {
+					Logger::warning('lang-file `'.$textFile.'` not found');
+				}
+			}
+		}
+		return $texts;
 	}
 
 	/**

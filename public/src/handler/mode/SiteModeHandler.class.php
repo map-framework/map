@@ -1,7 +1,6 @@
 <?php
 namespace handler\mode;
 
-use store\Logger;
 use extension\AbstractPage;
 use RuntimeException;
 use store\Bucket;
@@ -137,44 +136,10 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return Node
 	 */
 	protected function getTextNode($nodeName = 'text') {
-		$texts = new Bucket();
-
-		# is enabled
-		if ($this->config->isTrue('multiLang', 'enabled')) {
-			# get text file paths
-			if ($this->config->isArray('multiLang', 'texts')) {
-				$textFileList = $this->config->get('multiLang', 'texts');
-			}
-			else {
-				$textFileList = array();
-				Logger::warning('expect `array { string }` in config: `display` -> `texts`');
-			}
-
-			# is autoPageTexts enabled
-			if ($this->config->isTrue('multiLang', 'autoPageTexts')) {
-				$textFileList[] = $this->request->getPage().'.ini';
-			}
-
-			# apply text files
-			foreach ($textFileList as $textFile) {
-				$path       = '/text/'.$this->config->get('display', 'language').'/';
-				$areaFile   = (new File('private/src/area/'.$this->request->getArea().$path))->attach($textFile);
-				$commonFile = (new File('private/src/common'.$path))->attach($textFile);
-
-				if ($areaFile->isFile()) {
-					$texts->applyIni($areaFile);
-				}
-				elseif ($commonFile->isFile()) {
-					$texts->applyIni($commonFile);
-				}
-				else {
-					Logger::warning('text file `'.$textFile.'` not found');
-				}
-			}
-		}
-
-		# create node
-		return $texts->toNode($nodeName)->setAttribute('language', $this->config->get('display', 'language'));
+		return $this->getText($this->request)->toNode($nodeName)->setAttribute(
+				'language',
+				$this->config->get('display', 'language')
+		);
 	}
 
 	/**
