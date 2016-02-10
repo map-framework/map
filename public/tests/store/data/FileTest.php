@@ -4,9 +4,9 @@ use store\data\File;
 
 final class FileTest extends PHPUnit_Framework_TestCase {
 
-	const FILE    = 'map';
+	const FILE    = 'public/web.php';
 	const DIR     = 'public/';
-	const NOTHING = 'notExists.magic';
+	const NOTHING = 'notExists.file';
 
 	public function testExists_file_true() {
 		$this->assertTrue((new File(self::FILE))->exists());
