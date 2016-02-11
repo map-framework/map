@@ -15,6 +15,11 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	const ERROR_404 = 'Not Found';
 
 	/**
+	 * @var MAPUrl
+	 */
+	protected $request = null;
+
+	/**
 	 * mode settings
 	 *
 	 * @var array { string => mixed }
@@ -22,22 +27,23 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	protected $settings = array();
 
 	/**
-	 * @param  MAPUrl $request
 	 * @return AbstractModeHandler this
 	 */
-	abstract public function handle(MAPUrl $request);
+	abstract public function handle();
 
 	/**
 	 * @throws RuntimeException
 	 * @param  Bucket $config
+	 * @param  MAPUrl $request
 	 * @param  array  $settings { string => mixed }
 	 */
-	public function __construct(Bucket $config, $settings) {
+	public function __construct(Bucket $config, MAPUrl $request, $settings) {
 		if (!isset($settings['type'])) {
 			throw new RuntimeException('mode invalid: expect `type`');
 		}
 		$this->setMimeType($settings['type']);
 
+		$this->request = $request;
 		$this->settings = $settings;
 		parent::__construct($config);
 	}
@@ -63,17 +69,16 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * get file in app folder
 	 *
-	 * @param  MAPUrl $request
 	 * @throws RuntimeException
 	 * @return null|File
 	 */
-	final protected function getFile(MAPUrl $request) {
+	final protected function getFile() {
 		if (!isset($this->settings['prefix'], $this->settings['suffix'])) {
 			throw new RuntimeException('mode invalid: expect `prefix` and `suffix`');
 		}
 
 		$fileList = array(
-				new File('private/src/area/'.$request->getArea().'/app'),
+				new File('private/src/area/'.$this->request->getArea().'/app'),
 				new File('private/src/common/app')
 		);
 		foreach ($fileList as $file) {
@@ -82,7 +87,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			}
 			$file
 					->attach($this->settings['prefix'])
-					->attach($request->getPage().$this->settings['suffix']);
+					->attach($this->request->getPage().$this->settings['suffix']);
 			if ($file->isFile()) {
 				return $file;
 			}
@@ -91,10 +96,9 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	}
 
 	/**
-	 * @param  MAPUrl $request
 	 * @return Bucket
 	 */
-	final protected function getText(MAPUrl $request) {
+	final protected function getText() {
 		$texts = new Bucket();
 		# is enabled
 		if (isset($this->settings['multiLang']) && $this->settings['multiLang'] === true) {
@@ -108,13 +112,13 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 			# is autoPageTexts enabled
 			if ($this->config->isTrue('multiLang', 'autoPageTexts')) {
-				$textFileList[] = $request->getPage().'.ini';
+				$textFileList[] = $this->request->getPage().'.ini';
 			}
 
 			# apply text files
 			foreach ($textFileList as $textFile) {
 				$path       = '/text/'.$this->config->get('display', 'language').'/';
-				$areaFile   = (new File('private/src/area/'.$request->getArea().$path))->attach($textFile);
+				$areaFile   = (new File('private/src/area/'.$this->request->getArea().$path))->attach($textFile);
 				$commonFile = (new File('private/src/common'.$path))->attach($textFile);
 
 				if ($areaFile->isFile()) {

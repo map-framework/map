@@ -65,7 +65,7 @@ final class Web {
 			throw new RuntimeException('mode `'.$request->getMode().'` handler `'.$modeSettings['handler'].'` not applied');
 		}
 
-		$handler = new $modeSettings['handler']($this->config, $modeSettings);
+		$handler = new $modeSettings['handler']($this->config, $request, $modeSettings);
 		if (!($handler instanceof AbstractModeHandler)) {
 			throw new RuntimeException(
 					'mode `'
@@ -76,7 +76,7 @@ final class Web {
 			);
 		}
 
-		$handler->handle($request);
+		$handler->handle();
 	}
 
 }

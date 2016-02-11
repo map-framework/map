@@ -14,11 +14,6 @@ class SiteModeHandler extends AbstractModeHandler {
 	const  PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
 
 	/**
-	 * @var MAPUrl
-	 */
-	protected $request = null;
-
-	/**
 	 * @var Bucket
 	 */
 	protected $storedForms = null;
@@ -28,10 +23,11 @@ class SiteModeHandler extends AbstractModeHandler {
 	 *
 	 * @see   AbstractModeHandler::__construct()
 	 * @param Bucket $config
+	 * @param MAPUrl $request
 	 * @param array  $settings { string => mixed }
 	 */
-	public function __construct(Bucket $config, $settings) {
-		parent::__construct($config, $settings);
+	public function __construct(Bucket $config, MAPUrl $request, $settings) {
+		parent::__construct($config, $request, $settings);
 		if (!isset($_SESSION['form'])) {
 			$_SESSION['form'] = array();
 		}
@@ -47,17 +43,16 @@ class SiteModeHandler extends AbstractModeHandler {
 
 	/**
 	 * @see    AbstractModeHandler::handle
-	 * @param  MAPUrl $request
 	 * @throws RuntimeException
 	 * @return AbstractModeHandler this
 	 */
-	public function handle(MAPUrl $request) {
-		$this->request = $request;
+	public function handle() {
+		$className = ucfirst($this->request->getPage()).'Page';
 
-		$className = ucfirst($request->getPage()).'Page';
-
-		$nameSpace  = 'area\\'.$request->getArea().'\logic\site\\'.$className;
-		$styleSheet = new File('private/src/area/'.$request->getArea().'/app/view/site/'.$request->getPage().'.xsl');
+		$nameSpace  = 'area\\'.$this->request->getArea().'\logic\site\\'.$className;
+		$styleSheet = new File(
+				'private/src/area/'.$this->request->getArea().'/app/view/site/'.$this->request->getPage().'.xsl'
+		);
 
 		if (!class_exists($nameSpace) || !$styleSheet->isFile()) {
 			return $this->error(404, self::ERROR_404);
@@ -136,7 +131,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return Node
 	 */
 	protected function getTextNode($nodeName = 'text') {
-		return $this->getText($this->request)->toNode($nodeName)->setAttribute(
+		return $this->getText()->toNode($nodeName)->setAttribute(
 				'language',
 				$this->config->get('display', 'language')
 		);
