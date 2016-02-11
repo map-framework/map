@@ -11,6 +11,10 @@ use store\Logger;
 
 abstract class AbstractModeHandler extends AbstractHandler {
 
+	const TEXT_PREFIX   = '{';
+	const TEXT_SPLITTER = '#';
+	const TEXT_SUFFIX   = '}';
+
 	const ERROR_403 = 'Forbidden';
 	const ERROR_404 = 'Not Found';
 
@@ -43,7 +47,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		}
 		$this->setMimeType($settings['type']);
 
-		$this->request = $request;
+		$this->request  = $request;
 		$this->settings = $settings;
 		parent::__construct($config);
 	}
@@ -93,6 +97,46 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * @param  string $text
+	 * @return string
+	 */
+	final protected function translate($text) {
+		$locateTexts = array();
+
+		$suffixPosition = -1;
+		while (true) {
+			$prefixPosition   = strpos($text, self::TEXT_PREFIX, $suffixPosition + 1);
+			$splitterPosition = strpos($text, self::TEXT_SPLITTER, $prefixPosition + 2);
+			$suffixPosition   = strpos($text, self::TEXT_SUFFIX, $splitterPosition + 2);
+
+			if ($prefixPosition === false || $splitterPosition === false || $suffixPosition === false) {
+				break;
+			}
+
+			$group = substr($text, $prefixPosition + 1, $splitterPosition - $prefixPosition - 1);
+			$key   = substr($text, $splitterPosition + 1, $suffixPosition - $splitterPosition - 1);
+
+			if (!isset($locateTexts[$group])) {
+				$locateTexts[$group] = array();
+			}
+			if (!in_array($key, $locateTexts[$group])) {
+				$locateTexts[$group][] = $key;
+			}
+		}
+
+		$textBucket = $this->getText();
+		foreach ($locateTexts as $group => $keyList) {
+			foreach ($keyList as $key) {
+				if ($textBucket->isString($group, $key)) {
+					$pattern = self::TEXT_PREFIX.$group.self::TEXT_SPLITTER.$key.self::TEXT_SUFFIX;
+					$text    = str_replace($pattern, $textBucket->get($group, $key), $text);
+				}
+			}
+		}
+		return $text;
 	}
 
 	/**

@@ -12,7 +12,7 @@ class TextModeHandler extends AbstractModeHandler {
 			return $this->error(404, self::ERROR_404);
 		}
 
-		echo $sourceFile->getContents();
+		echo $this->translate($sourceFile->getContents());
 		return $this;
 	}
 
