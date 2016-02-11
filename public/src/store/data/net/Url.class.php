@@ -6,17 +6,16 @@ use Exception;
 
 /**
  * @link http://www.ietf.org/rfc/rfc2396.txt
- * @todo #3 correct patterns
  */
 class Url extends AbstractData {
 
-	const PATTERN_SCHEME   = '^[0-9a-zA-Z+-.]+$';
-	const PATTERN_USER     = '^[0-9a-zA-Z-_.~%]+$';
-	const PATTERN_PASS     = '^[0-9a-zA-Z-_.~%]+$';
-	const PATTERN_HOST     = '^[0-9a-zA-Z-.]+$';
-	const PATTERN_PATH     = '^[0-9a-zA-Z-_.!~*():@&=+$,%\/;]*$';
-	const PATTERN_QUERY    = '^[0-9a-zA-Z-_.!~*();\/:@&=+$,]+$';
-	const PATTERN_FRAGMENT = '^[0-9a-zA-Z-_.~%]+$';
+	const PATTERN_SCHEME   = '^[A-Za-z0-9\-+.]+$';
+	const PATTERN_USER     = '^[A-Za-z0-9\-_.!~*\'();&=+$,%]+$';
+	const PATTERN_PASS     = '^[A-Za-z0-9\-_.!~*\'();&=+$,%]+$';
+	const PATTERN_HOST     = '^[A-Za-z0-9\-.]+$';
+	const PATTERN_PATH     = '^[A-Za-z0-9\-_.!~*\'();\/%]*$';
+	const PATTERN_QUERY    = '^[A-Za-z0-9\-_.!~*\'();\/:@&=+$,%]+$';
+	const PATTERN_FRAGMENT = '^[A-Za-z0-9\-_.!~*\'();\/:@&=+$,%]+$';
 
 	/**
 	 * @var string|null
