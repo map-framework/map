@@ -3,6 +3,9 @@ namespace store\data;
 
 abstract class AbstractData {
 
+	/**
+	 * @var mixed
+	 */
 	protected $data = '';
 
 	/**
@@ -13,7 +16,7 @@ abstract class AbstractData {
 	}
 
 	/**
-	 * @param string $data
+	 * @param  mixed $data
 	 * @return AbstractData
 	 */
 	protected function set($data) {
@@ -36,8 +39,8 @@ abstract class AbstractData {
 	}
 
 	/**
-	 * @param string $pattern
-	 * @param string $subject
+	 * @param  string $pattern
+	 * @param  string $subject
 	 * @return bool
 	 */
 	final protected static function match($pattern, $subject) {

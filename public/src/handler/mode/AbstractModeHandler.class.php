@@ -45,7 +45,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		if (!isset($settings['type'])) {
 			throw new RuntimeException('mode invalid: expect `type`');
 		}
-		$this->setMimeType($settings['type']);
+		$this->setContentType($settings['type']);
 
 		$this->request  = $request;
 		$this->settings = $settings;
@@ -56,7 +56,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 * @param  string $mimeType
 	 * @return AbstractModeHandler this
 	 */
-	final protected function setMimeType($mimeType) {
+	final protected function setContentType($mimeType) {
 		header('Content-Type: '.$mimeType);
 		return $this;
 	}
@@ -127,7 +127,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			}
 		}
 
-		$textBucket = $this->getText();
+		$textBucket = $this->getTextBucket();
 		foreach ($locateTexts as $group => $keyList) {
 			foreach ($keyList as $key) {
 				if ($textBucket->isString($group, $key)) {
@@ -142,7 +142,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @return Bucket
 	 */
-	final protected function getText() {
+	final protected function getTextBucket() {
 		$texts = new Bucket();
 		# is enabled
 		if (isset($this->settings['multiLang']) && $this->settings['multiLang'] === true) {
@@ -197,7 +197,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		}
 
 		# default error-output
-		$this->setMimeType('text/plain');
+		$this->setContentType('text/plain');
 		echo '['.$code.'] '.$message;
 		return $this;
 	}

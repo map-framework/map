@@ -83,6 +83,13 @@ class File extends AbstractData {
 	}
 
 	/**
+	 * @return int
+	 */
+	final public function getSize() {
+		return filesize($this->get());
+	}
+
+	/**
 	 * @param  string $path
 	 * @return File
 	 */
@@ -181,6 +188,18 @@ class File extends AbstractData {
 			throw new Exception('failed to put content in file `'.$this.'`');
 		}
 		return $this;
+	}
+
+	/**
+	 * print the file
+	 *
+	 * @return bool
+	 */
+	final public function printFile() {
+		if (readfile($this->get()) === false) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
