@@ -1,6 +1,7 @@
 <?php
 namespace store\data\net;
 
+use RuntimeException;
 use store\Bucket;
 use store\data\File;
 
@@ -186,6 +187,54 @@ class MAPUrl extends Url {
 	 */
 	public function getInputList() {
 		return $this->inputList;
+	}
+
+	/**
+	 * @param  string $mode
+	 * @throws RuntimeException
+	 * @return string|null
+	 */
+	final public function getModeAlias($mode) {
+		if (!$this->config->isArray('alias', 'mode')) {
+			throw new RuntimeException('config malformed: `alias` - `mode` not an array');
+		}
+		$modeAliasList = $this->config->get('alias', 'mode');
+		if (!isset($modeAliasList[$mode]) || !$this->isMode($mode)) {
+			return null;
+		}
+		return $modeAliasList[$mode];
+	}
+
+	/**
+	 * @param  string $area
+	 * @throws RuntimeException
+	 * @return string|null
+	 */
+	final public function getAreaAlias($area) {
+		if (!$this->config->isArray('alias', 'area')) {
+			throw new RuntimeException('config malformed: `alias` - `area` not an array');
+		}
+		$areaAliasList = $this->config->get('alias', 'area');
+		if (!isset($areaAliasList[$area]) || !$this->isArea($areaAliasList[$area])) {
+			return null;
+		}
+		return $areaAliasList[$area];
+	}
+
+	/**
+	 * @param  string $page
+	 * @throws RuntimeException
+	 * @return string|null
+	 */
+	final public function getPageAlias($page) {
+		if (!$this->config->isArray('alias', 'page')) {
+			throw new RuntimeException('config malformed: `alias` - `page` not an array');
+		}
+		$pageAliasList = $this->config->get('alias', 'page');
+		if (!isset($pageAliasList[$page]) || !$this->isPage($pageAliasList[$page])) {
+			return null;
+		}
+		return $pageAliasList[$page];
 	}
 
 	/**

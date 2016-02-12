@@ -7,8 +7,8 @@ use xml\Node;
 
 class Bucket {
 
-	const PATTERN_GROUP = '/^[A-Za-z0-9_-]{1,32}$/';
-	const PATTERN_KEY   = '/^[A-Za-z0-9_-]{1,32}$/';
+	const PATTERN_GROUP = '/^[A-Za-z0-9_\-.]{1,32}$/';
+	const PATTERN_KEY   = '/^[A-Za-z0-9_\-.]{1,32}$/';
 
 	private $data = array();
 
