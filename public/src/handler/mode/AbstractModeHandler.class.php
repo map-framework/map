@@ -77,8 +77,8 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 * @return null|File
 	 */
 	final protected function getFile() {
-		if (!isset($this->settings['prefix'], $this->settings['suffix'])) {
-			throw new RuntimeException('mode invalid: expect `prefix` and `suffix`');
+		if (!isset($this->settings['folder'], $this->settings['extension'])) {
+			throw new RuntimeException('mode invalid: expect `folder` and `extension`');
 		}
 
 		$fileList = array(
@@ -90,8 +90,8 @@ abstract class AbstractModeHandler extends AbstractHandler {
 				continue;
 			}
 			$file
-					->attach($this->settings['prefix'])
-					->attach($this->request->getPage().$this->settings['suffix']);
+					->attach($this->settings['folder'])
+					->attach($this->request->getPage().$this->settings['extension']);
 			if ($file->isFile()) {
 				return $file;
 			}
