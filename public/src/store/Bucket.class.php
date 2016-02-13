@@ -26,6 +26,14 @@ class Bucket {
 
 	/**
 	 * @param  string $group
+	 * @return bool
+	 */
+	final public function isGroup($group) {
+		return isset($this->data[$group]);
+	}
+
+	/**
+	 * @param  string $group
 	 * @param  string $key
 	 * @return bool
 	 */
@@ -103,7 +111,7 @@ class Bucket {
 	 * @return int
 	 */
 	final public function getKeyCount($group) {
-		if (!isset($this->data[$group])) {
+		if (!$this->isGroup($group)) {
 			return 0;
 		}
 		return count($this->data[$group]);
