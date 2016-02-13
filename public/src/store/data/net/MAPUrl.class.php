@@ -97,7 +97,7 @@ class MAPUrl extends Url {
 	 * @return bool
 	 */
 	public function setMode($mode) {
-		if ($mode !== null && !$this->isMode($mode)) {
+		if ($mode !== null && $this->getModeAlias($mode) === null && !$this->isMode($mode)) {
 			return false;
 		}
 		$this->mode = $mode;
@@ -109,7 +109,7 @@ class MAPUrl extends Url {
 	 * @return bool
 	 */
 	public function setArea($area) {
-		if ($area !== null && !$this->isArea($area)) {
+		if ($area !== null && $this->getAreaAlias($area) === null && !$this->isArea($area)) {
 			return false;
 		}
 		$this->area = $area;
@@ -153,30 +153,54 @@ class MAPUrl extends Url {
 	}
 
 	/**
-	 * @return string
+	 * @return string|null
 	 */
 	public function getMode() {
-		if ($this->mode !== null || $this->config === null) {
+		if ($this->config === null) {
+			return $this->mode;
+		}
+
+		if ($this->mode !== null) {
+			$modeAlias = $this->getModeAlias($this->mode);
+			if ($modeAlias !== null) {
+				return $modeAlias;
+			}
 			return $this->mode;
 		}
 		return $this->config->get('default', 'mode');
 	}
 
 	/**
-	 * @return string
+	 * @return string|null
 	 */
 	public function getArea() {
-		if ($this->area !== null || $this->config === null) {
+		if ($this->config === null) {
+			return $this->area;
+		}
+
+		if ($this->area !== null) {
+			$areaAlias = $this->getAreaAlias($this->area);
+			if ($areaAlias !== null) {
+				return $areaAlias;
+			}
 			return $this->area;
 		}
 		return $this->config->get('default', 'area');
 	}
 
 	/**
-	 * @return string
+	 * @return string|null
 	 */
 	public function getPage() {
-		if ($this->page !== null || $this->config === null) {
+		if ($this->config === null) {
+			return $this->page;
+		}
+
+		if ($this->page !== null) {
+			$pageAlias = $this->getPageAlias($this->page);
+			if ($pageAlias !== null) {
+				return $pageAlias;
+			}
 			return $this->page;
 		}
 		return $this->config->get('default', 'page');
@@ -195,9 +219,14 @@ class MAPUrl extends Url {
 	 * @return string|null
 	 */
 	final public function getModeAlias($mode) {
+		if ($this->config === null || $this->config->isNull('alias', 'mode')) {
+			return null;
+		}
+
 		if (!$this->config->isArray('alias', 'mode')) {
 			throw new RuntimeException('config malformed: `alias` - `mode` not an array');
 		}
+
 		$modeAliasList = $this->config->get('alias', 'mode');
 		if (!isset($modeAliasList[$mode]) || !$this->isMode($mode)) {
 			return null;
@@ -211,9 +240,14 @@ class MAPUrl extends Url {
 	 * @return string|null
 	 */
 	final public function getAreaAlias($area) {
+		if ($this->config === null || $this->config->isNull('alias', 'area')) {
+			return null;
+		}
+
 		if (!$this->config->isArray('alias', 'area')) {
 			throw new RuntimeException('config malformed: `alias` - `area` not an array');
 		}
+
 		$areaAliasList = $this->config->get('alias', 'area');
 		if (!isset($areaAliasList[$area]) || !$this->isArea($areaAliasList[$area])) {
 			return null;
@@ -227,9 +261,14 @@ class MAPUrl extends Url {
 	 * @return string|null
 	 */
 	final public function getPageAlias($page) {
+		if ($this->config === null || $this->config->isNull('alias', 'page')) {
+			return null;
+		}
+
 		if (!$this->config->isArray('alias', 'page')) {
 			throw new RuntimeException('config malformed: `alias` - `page` not an array');
 		}
+
 		$pageAliasList = $this->config->get('alias', 'page');
 		if (!isset($pageAliasList[$page]) || !$this->isPage($pageAliasList[$page])) {
 			return null;
