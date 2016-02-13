@@ -92,6 +92,24 @@ class Bucket {
 	}
 
 	/**
+	 * @return int
+	 */
+	final public function getGroupCount() {
+		return count($this->data);
+	}
+
+	/**
+	 * @param  string $group
+	 * @return int
+	 */
+	final public function getKeyCount($group) {
+		if (!isset($this->data[$group])) {
+			return 0;
+		}
+		return count($this->data[$group]);
+	}
+
+	/**
 	 * @param  string $group
 	 * @param  string $key
 	 * @param  string $default
