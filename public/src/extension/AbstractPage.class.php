@@ -1,6 +1,7 @@
 <?php
 namespace extension;
 
+use store\Bucket;
 use xml\Node;
 use xml\Tree;
 
@@ -36,6 +37,11 @@ abstract class AbstractPage {
 	 * @see exception\request\AcceptedException
 	 */
 	const STATUS_REPEATED = 'REPEATED';
+
+	/**
+	 * @var Bucket
+	 */
+	protected $config = null;
 
 	/**
 	 * @var string[]
@@ -79,11 +85,13 @@ abstract class AbstractPage {
 	abstract public function check();
 
 	/**
-	 * @param array $request
+	 * @param Bucket $config
+	 * @param array  $request
 	 */
-	public function __construct($request) {
+	public function __construct(Bucket $config, $request) {
 		$this->addExpect('formId');
 		$this->request = $request;
+		$this->config  = $config;
 
 		$this->response = new Tree('document');
 		$this->formData = $this->response->getRootNode()->addChild(new Node('form'));

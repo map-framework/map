@@ -66,7 +66,7 @@ class SiteModeHandler extends AbstractModeHandler {
 			$requestData = array();
 		}
 
-		$page = new $nameSpace($requestData);
+		$page = new $nameSpace($this->config, $requestData);
 		if (!($page instanceof AbstractPage)) {
 			throw new RuntimeException('class `'.$nameSpace.'` isn\'t instance of `'.AbstractPage::class.'`');
 		}
