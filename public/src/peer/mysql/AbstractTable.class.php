@@ -2,6 +2,7 @@
 namespace peer\mysql;
 
 use DateTime;
+use ReflectionClass;
 use RuntimeException;
 use store\Bucket;
 
@@ -69,6 +70,11 @@ abstract class AbstractTable {
 	protected $config = null;
 
 	/**
+	 * @var string
+	 */
+	private $tableName = null;
+
+	/**
 	 * array[columnName : string]['type']       : string
 	 * array[columnName : string]['hasDefault'] : bool
 	 *
@@ -87,11 +93,9 @@ abstract class AbstractTable {
 	private $pointer = 0;
 
 	/**
-	 * is filled
-	 *
 	 * @var bool
 	 */
-	private $filled = false;
+	private $isFilled = false;
 
 	/**
 	 * init table: call self::addColumn()
@@ -105,6 +109,25 @@ abstract class AbstractTable {
 		$this->config = $config;
 		$this->clear();
 		$this->init();
+	}
+
+	/**
+	 * @param  string $tableName
+	 * @return AbstractTable this
+	 */
+	final public function setTableName($tableName) {
+		$this->tableName = $tableName;
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	final public function getTableName() {
+		if ($this->tableName !== null) {
+			return $this->tableName;
+		}
+		return (new ReflectionClass($this))->getShortName();
 	}
 
 	/**
@@ -242,7 +265,7 @@ abstract class AbstractTable {
 
 		# @TODO make MYSQL SELECT
 
-		# @TODO set self::filled = true on success
+		# @TODO set self::isFilled = true on success
 	}
 
 	/**
@@ -251,7 +274,7 @@ abstract class AbstractTable {
 	 * @return bool
 	 */
 	final public function save() {
-		if ($this->filled) {
+		if ($this->isFilled) {
 			return $this->update();
 		}
 		else {
