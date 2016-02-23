@@ -2,6 +2,7 @@
 namespace peer\mysql;
 
 use Exception;
+use peer\mysql\statement\Insert;
 use peer\mysql\statement\Select;
 use ReflectionClass;
 use RuntimeException;
@@ -220,10 +221,32 @@ abstract class AbstractTable {
 	/**
 	 * make MySQL INSERT
 	 *
+	 * @throws Exception
 	 * @return bool
 	 */
 	final private function insert() {
-		# @TODO make MYSQL INSERT
+		$request = new Request($this->config);
+		$success = true;
+
+		for ($i = 0; $i < $this->content->getGroupCount(); $i++) {
+			$insert = new Insert($this->getTableName());
+
+			foreach ($this->columnList as $columnName => $options) {
+				if ($this->content->isNull($i, $columnName)) {
+					if ($options['hasDefault'] === false) {
+						throw new Exception('column `'.$columnName.'` is null (pointer: `'.$i.'`)');
+					}
+				}
+				else {
+					$insert->addValue($columnName, $options['type'], $this->content->get($i, $columnName));
+				}
+			}
+
+			if ($request->query($insert->assemble()) === false) {
+				$success = false;
+			}
+		}
+		return $success;
 	}
 
 	/**

@@ -21,10 +21,10 @@ final class Select extends AbstractStatement {
 	private $expressionList = array();
 
 	/**
-	 * array [int]['columnName'] = columnName:string
-	 * array [int]['type']       = type:string
-	 * array [int]['value']      = value:mixed
-	 * array [int]['operator']   = operator:string
+	 * array[int]['columnName'] = columnName:string
+	 * array[int]['type']       = type:string
+	 * array[int]['value']      = value:mixed
+	 * array[int]['operator']   = operator:string
 	 *
 	 * @see AbstractStatement (OPERATOR_* constants)
 	 * @see Query (TYPE_* constants)
@@ -170,24 +170,24 @@ final class Select extends AbstractStatement {
 			$sql .= ' DISTINCT';
 		}
 
-		$placeHolderNumber = count($this->getExpressionList());
-		if ($placeHolderNumber !== 0) {
+		$phNumber = count($this->getExpressionList());
+		if ($phNumber !== 0) {
 			foreach ($this->getExpressionList() as $nr => $expression) {
 				if ($nr !== 0) {
 					$sql .= ',';
 				}
 
 				$sql .= ' %('.$nr.')';
-				$query->addPlaceHolder(Query::TYPE_COLUMN, $expression);
+				$query->addPH(Query::TYPE_COLUMN, $expression);
 			}
 		}
 		else {
 			$sql .= ' *';
 		}
 
-		$sql .= ' FROM %('.$placeHolderNumber.')';
-		$placeHolderNumber++;
-		$query->addPlaceHolder(Query::TYPE_TABLE, $this->getTableName());
+		$sql .= ' FROM %('.$phNumber.')';
+		$phNumber++;
+		$query->addPH(Query::TYPE_TABLE, $this->getTableName());
 
 		if (count($this->getConditionList())) {
 			$sql .= ' WHERE';
@@ -196,13 +196,13 @@ final class Select extends AbstractStatement {
 					$sql .= ' &&';
 				}
 
-				$sql .= ' %('.($placeHolderNumber).') '.$condition['operator'];
-				$placeHolderNumber++;
-				$query->addPlaceHolder(Query::TYPE_COLUMN, $condition['columnName']);
+				$sql .= ' %('.($phNumber).') '.$condition['operator'];
+				$phNumber++;
+				$query->addPH(Query::TYPE_COLUMN, $condition['columnName']);
 
-				$sql .= ' %('.($placeHolderNumber).')';
-				$placeHolderNumber++;
-				$query->addPlaceHolder($condition['type'], $condition['value']);
+				$sql .= ' %('.($phNumber).')';
+				$phNumber++;
+				$query->addPH($condition['type'], $condition['value']);
 
 			}
 		}
@@ -214,9 +214,9 @@ final class Select extends AbstractStatement {
 					$sql .= ',';
 				}
 
-				$sql .= ' %('.($placeHolderNumber).')';
-				$placeHolderNumber++;
-				$query->addPlaceHolder(Query::TYPE_COLUMN, $orderBy['columnName']);
+				$sql .= ' %('.($phNumber).')';
+				$phNumber++;
+				$query->addPH(Query::TYPE_COLUMN, $orderBy['columnName']);
 
 				if ($orderBy['desc'] === true) {
 					$sql .= ' DESC';
@@ -225,13 +225,13 @@ final class Select extends AbstractStatement {
 		}
 
 		if ($this->getLimit() >= 1) {
-			$sql .= ' LIMIT %('.$placeHolderNumber.')';
-			$placeHolderNumber++;
-			$query->addPlaceHolder(Query::TYPE_INT, $this->getLimit());
+			$sql .= ' LIMIT %('.$phNumber.')';
+			$phNumber++;
+			$query->addPH(Query::TYPE_INT, $this->getLimit());
 
 			if ($this->getOffset() >= 1) {
-				$sql .= ' OFFSET %('.$placeHolderNumber.')';
-				$query->addPlaceHolder(Query::TYPE_INT, $this->getOffset());
+				$sql .= ' OFFSET %('.$phNumber.')';
+				$query->addPH(Query::TYPE_INT, $this->getOffset());
 			}
 		}
 
