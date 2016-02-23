@@ -1,7 +1,8 @@
 <?php
 namespace peer\mysql;
 
-use DateTime;
+use Exception;
+use peer\mysql\statement\Select;
 use ReflectionClass;
 use RuntimeException;
 use store\Bucket;
@@ -21,10 +22,11 @@ abstract class AbstractTable {
 	private $tableName = null;
 
 	/**
-	 * array[columnName : string]['type']       : string
-	 * array[columnName : string]['hasDefault'] : bool
+	 * array[columnName:string]['type']       = type:string
+	 * array[columnName:string]['hasDefault'] = hasDefault:bool
 	 *
-	 * @var array see above
+	 * @see Query (TYPE_* constants)
+	 * @var array (see above)
 	 */
 	private $columnList = array();
 
@@ -73,7 +75,7 @@ abstract class AbstractTable {
 		if ($this->tableName !== null) {
 			return $this->tableName;
 		}
-		return (new ReflectionClass($this))->getShortName();
+		return lcfirst((new ReflectionClass($this))->getShortName());
 	}
 
 	/**
@@ -82,10 +84,10 @@ abstract class AbstractTable {
 	 * @param  bool   $hasDefault
 	 * @return AbstractTable this
 	 */
-	final protected function addColumn($name, $type, $hasDefault) {
+	final protected function addColumn($name, $type, $hasDefault = false) {
 		$this->columnList[$name] = array(
 				'type'       => $type,
-				'hasDefault' => $hasDefault
+				'hasDefault' => (bool) $hasDefault
 		);
 		return $this;
 	}
@@ -114,10 +116,15 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * @return AbstractTable this
+	 * @return bool
 	 */
 	final public function next() {
-		return $this->setPointer($this->getPointer() + 1);
+		$newPointer = $this->getPointer() + 1;
+		if ($this->content->getGroupCount() <= $newPointer) {
+			return false;
+		}
+		$this->setPointer($newPointer);
+		return true;
 	}
 
 	/**
@@ -161,22 +168,43 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * make MYSQL SELECT
+	 * make MySQL SELECT
 	 *
-	 * @param  string $columnName
-	 * @param  mixed  $content
-	 * @return bool
+	 * @param  string   $columnName
+	 * @param  mixed    $value
+	 * @param  int|null $limit
+	 * @throws Exception
+	 * @return AbstractTable this
 	 */
-	final public function fillBy($columnName, $content) {
+	final public function fillBy($columnName, $value, $limit = null) {
 		$this->clear();
 
-		# @TODO make MYSQL SELECT
+		if (!isset($this->columnList[$columnName])) {
+			throw new RuntimeException('column `'.$columnName.'` not exists');
+		}
 
-		# @TODO set self::isFilled = true on success
+		$select = (new Select($this->getTableName()))
+				->addCondition($columnName, $this->columnList[$columnName]['type'], $value);
+		foreach ($this->columnList as $column => $settings) {
+			$select->addExpression($column);
+		}
+		if ($limit !== null) {
+			$select->setLimit($limit);
+		}
+
+		$request = new Request($this->config);
+		$result  = $request->query($select->assemble());
+		if ($result === false) {
+			throw new Exception('request failed');
+		}
+
+		$this->content  = $result;
+		$this->isFilled = true;
+		return $this;
 	}
 
 	/**
-	 * make MYSQL UPDATE or INSERT
+	 * make MySQL UPDATE or INSERT
 	 *
 	 * @return bool
 	 */
@@ -190,7 +218,7 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * make MYSQL INSERT
+	 * make MySQL INSERT
 	 *
 	 * @return bool
 	 */
@@ -199,7 +227,7 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * make MYSQL UPDATE
+	 * make MySQL UPDATE
 	 *
 	 * @return bool
 	 */
