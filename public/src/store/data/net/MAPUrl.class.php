@@ -109,8 +109,10 @@ class MAPUrl extends Url {
 	 * @return bool
 	 */
 	public function setArea($area) {
-		if ($area !== null && $this->getAreaAlias($area) === null && !$this->isArea($area)) {
-			return false;
+		if ($area !== null && !$this->isArea($area)) {
+			if ($this->getAreaAlias($area) === null && $this->getHostAlias($this->getHost()) === null) {
+				return false;
+			}
 		}
 		$this->area = $area;
 		return true;
@@ -179,6 +181,10 @@ class MAPUrl extends Url {
 		}
 
 		if ($this->area !== null) {
+			$hostAlias = $this->getHostAlias($this->getHost());
+			if ($hostAlias !== null) {
+				return $hostAlias;
+			}
 			$areaAlias = $this->getAreaAlias($this->area);
 			if ($areaAlias !== null) {
 				return $areaAlias;
@@ -214,6 +220,30 @@ class MAPUrl extends Url {
 	}
 
 	/**
+	 * @param  string $host
+	 * @return RuntimeException
+	 * @return string|null area
+	 */
+	public function getHostAlias($host = null) {
+		if ($host === null) {
+			$host = $this->getHost();
+		}
+		if ($this->config === null || $this->config->isNull('alias', 'host')) {
+			return null;
+		}
+
+		if (!$this->config->isArray('alias', 'host')) {
+			throw new RuntimeException('config malformed: `alias` - `host` not an array');
+		}
+
+		$hostAliasList = $this->config->get('alias', 'host');
+		if (!isset($hostAliasList[$host]) || !$this->isArea($hostAliasList[$host])) {
+			return null;
+		}
+		return $hostAliasList[$host];
+	}
+
+	/**
 	 * @param  string $mode
 	 * @throws RuntimeException
 	 * @return string|null
@@ -228,7 +258,7 @@ class MAPUrl extends Url {
 		}
 
 		$modeAliasList = $this->config->get('alias', 'mode');
-		if (!isset($modeAliasList[$mode]) || !$this->isMode($mode)) {
+		if (!isset($modeAliasList[$mode]) || !$this->isMode($modeAliasList[$mode])) {
 			return null;
 		}
 		return $modeAliasList[$mode];
@@ -290,6 +320,11 @@ class MAPUrl extends Url {
 		$this->page      = null;
 		$this->inputList = array();
 
+		# host alias
+		if ($this->getHostAlias() !== null) {
+			$this->area = $this->getHostAlias();
+		}
+
 		$level = 0;
 
 		# assign
@@ -308,6 +343,9 @@ class MAPUrl extends Url {
 			}
 
 			# level 1 = area
+			if ($this->area !== null) {
+				$level++;
+			}
 			if ($level === 1) {
 				$level++;
 				if ($this->setArea($item)) {
