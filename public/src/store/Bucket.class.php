@@ -10,9 +10,16 @@ class Bucket {
 	const PATTERN_GROUP = '/^[A-Za-z0-9_\-.]{1,32}$/';
 	const PATTERN_KEY   = '/^[A-Za-z0-9_\-.]{1,32}$/';
 
+	/**
+	 * array[group:string|int][key:string|int] => value:mixed
+	 *
+	 * @var array (see above)
+	 */
 	private $data = array();
 
 	/**
+	 * @see   Bucket::applyIni
+	 * @see   Bucket::applyArray
 	 * @param null|File|array $applyData
 	 */
 	public function __construct($applyData = null) {
@@ -25,7 +32,7 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
+	 * @param  string|int $group
 	 * @return bool
 	 */
 	final public function isGroup($group) {
@@ -33,8 +40,8 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isNull($group, $key) {
@@ -42,8 +49,8 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isArray($group, $key) {
@@ -51,8 +58,8 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isString($group, $key) {
@@ -60,8 +67,8 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isInt($group, $key) {
@@ -69,8 +76,8 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isBool($group, $key) {
@@ -80,8 +87,8 @@ class Bucket {
 	/**
 	 * is exactly true
 	 *
-	 * @param  $group
-	 * @param  $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isTrue($group, $key) {
@@ -91,8 +98,8 @@ class Bucket {
 	/**
 	 * is exactly false
 	 *
-	 * @param  $group
-	 * @param  $key
+	 * @param  string|int $group
+	 * @param  string|int $key
 	 * @return bool
 	 */
 	final public function isFalse($group, $key) {
@@ -107,7 +114,7 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
+	 * @param  string|int $group
 	 * @return int
 	 */
 	final public function getKeyCount($group) {
@@ -118,9 +125,9 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
-	 * @param  string $default
+	 * @param  string|int $group
+	 * @param  string|int $key
+	 * @param  mixed      $default
 	 * @return mixed
 	 */
 	final public function get($group, $key, $default = null) {
@@ -131,17 +138,17 @@ class Bucket {
 	}
 
 	/**
-	 * @param  string $group
-	 * @param  string $key
-	 * @param  mixed  $value
+	 * @param  string|int $group
+	 * @param  string|int $key
+	 * @param  mixed      $value
 	 * @throws RuntimeException if group or key invalid
 	 * @return Bucket
 	 */
 	final public function set($group, $key, $value) {
-		if (!preg_match(self::PATTERN_GROUP, $group)) {
+		if (!is_int($group) && !preg_match(self::PATTERN_GROUP, $group)) {
 			throw new RuntimeException('Invalid group `'.$group.'`.', 1);
 		}
-		if (!preg_match(self::PATTERN_KEY, $key)) {
+		if (!is_int($key) && !preg_match(self::PATTERN_KEY, $key)) {
 			throw new RuntimeException('Invalid key `'.$key.'`.', 2);
 		}
 		$this->data[$group][$key] = $value;
@@ -161,6 +168,7 @@ class Bucket {
 	}
 
 	/**
+	 * @see    Bucket::$data
 	 * @param  array $data
 	 * @throws RuntimeException if data invalid
 	 * @return Bucket
@@ -182,6 +190,7 @@ class Bucket {
 	}
 
 	/**
+	 * @see    Bucket::$data
 	 * @return array
 	 */
 	final public function toArray() {
