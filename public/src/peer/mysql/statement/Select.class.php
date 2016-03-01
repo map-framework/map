@@ -196,14 +196,13 @@ final class Select extends AbstractStatement {
 					$sql .= ' &&';
 				}
 
-				$sql .= ' %('.($phNumber).') '.$condition['operator'];
+				$sql .= ' %('.$phNumber.') '.$condition['operator'];
 				$phNumber++;
 				$query->addPH(Query::TYPE_COLUMN, $condition['columnName']);
 
-				$sql .= ' %('.($phNumber).')';
+				$sql .= ' %('.$phNumber.')';
 				$phNumber++;
 				$query->addPH($condition['type'], $condition['value']);
-
 			}
 		}
 
