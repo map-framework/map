@@ -1,5 +1,4 @@
 <?php
-
 namespace peer\mysql\statement;
 
 use peer\mysql\Query;

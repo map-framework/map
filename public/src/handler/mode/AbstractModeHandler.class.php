@@ -85,13 +85,16 @@ abstract class AbstractModeHandler extends AbstractHandler {
 				new File('private/src/area/'.$this->request->getArea().'/app'),
 				new File('private/src/common/app')
 		);
+
+		$page = implode('/', array_merge(array($this->request->getPage()), $this->request->getInputList()));
+
 		foreach ($fileList as $file) {
 			if (!($file instanceof File)) {
 				continue;
 			}
 			$file
 					->attach($this->settings['folder'])
-					->attach($this->request->getPage().$this->settings['extension']);
+					->attach($page.$this->settings['extension']);
 			if ($file->isFile()) {
 				return $file;
 			}

@@ -112,6 +112,29 @@ final class Query {
 	 * @param  string $type
 	 * @param  mixed  $value
 	 * @throws RuntimeException
+	 * @return string placeholder
+	 */
+	public function placeHolder($type, $value) {
+		$this->addPlaceHolder($type, $value);
+		return self::REPLACE_PREFIX.(count($this->placeHolderList) - 1).self::REPLACE_SUFFIX;
+	}
+
+	/**
+	 * alias for Query::placeHolder
+	 *
+	 * @param  string $type
+	 * @param  mixed  $value
+	 * @throws RuntimeException
+	 * @return string placeholder
+	 */
+	public function ph($type, $value) {
+		return $this->placeHolder($type, $value);
+	}
+
+	/**
+	 * @param  string $type
+	 * @param  mixed  $value
+	 * @throws RuntimeException
 	 * @return Query this
 	 */
 	public function addPlaceHolder($type, $value) {
