@@ -170,24 +170,19 @@ final class Select extends AbstractStatement {
 			$sql .= ' DISTINCT';
 		}
 
-		$phNumber = count($this->getExpressionList());
-		if ($phNumber !== 0) {
+		if (count($this->getExpressionList())) {
 			foreach ($this->getExpressionList() as $nr => $expression) {
 				if ($nr !== 0) {
 					$sql .= ',';
 				}
-
-				$sql .= ' %('.$nr.')';
-				$query->addPH(Query::TYPE_COLUMN, $expression);
+				$sql .= $query->ph(Query::TYPE_COLUMN, $expression);
 			}
 		}
 		else {
 			$sql .= ' *';
 		}
 
-		$sql .= ' FROM %('.$phNumber.')';
-		$phNumber++;
-		$query->addPH(Query::TYPE_TABLE, $this->getTableName());
+		$sql .= ' FROM '.$query->ph(Query::TYPE_TABLE, $this->getTableName());
 
 		if (count($this->getConditionList())) {
 			$sql .= ' WHERE';
@@ -196,13 +191,9 @@ final class Select extends AbstractStatement {
 					$sql .= ' &&';
 				}
 
-				$sql .= ' %('.$phNumber.') '.$condition['operator'];
-				$phNumber++;
-				$query->addPH(Query::TYPE_COLUMN, $condition['columnName']);
-
-				$sql .= ' %('.$phNumber.')';
-				$phNumber++;
-				$query->addPH($condition['type'], $condition['value']);
+				$sql .= ' '.$query->ph(Query::TYPE_COLUMN, $condition['columnName']);
+				$sql .= ' '.$condition['operator'];
+				$sql .= ' '.$query->ph($condition['type'], $condition['value']);
 			}
 		}
 
@@ -213,10 +204,7 @@ final class Select extends AbstractStatement {
 					$sql .= ',';
 				}
 
-				$sql .= ' %('.($phNumber).')';
-				$phNumber++;
-				$query->addPH(Query::TYPE_COLUMN, $orderBy['columnName']);
-
+				$sql .= ' '.$query->ph(Query::TYPE_COLUMN, $orderBy['columnName']);
 				if ($orderBy['desc'] === true) {
 					$sql .= ' DESC';
 				}
@@ -224,16 +212,12 @@ final class Select extends AbstractStatement {
 		}
 
 		if ($this->getLimit() >= 1) {
-			$sql .= ' LIMIT %('.$phNumber.')';
-			$phNumber++;
-			$query->addPH(Query::TYPE_INT, $this->getLimit());
+			$sql .= ' LIMIT '.$query->ph(Query::TYPE_INT, $this->getLimit());
 
 			if ($this->getOffset() >= 1) {
-				$sql .= ' OFFSET %('.$phNumber.')';
-				$query->addPH(Query::TYPE_INT, $this->getOffset());
+				$sql .= ' OFFSET '.$query->ph(Query::TYPE_INT, $this->getOffset());
 			}
 		}
-
 		return $query->setQuery($sql);
 	}
 
