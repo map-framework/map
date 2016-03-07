@@ -37,25 +37,18 @@ final class Insert extends AbstractStatement {
 	 */
 	public function assemble() {
 		$query = new Query();
+		$sql   = 'INSERT INTO '.$query->ph(Query::TYPE_TABLE, $this->getTableName());
 
-		$sql = 'INSERT INTO %(0)';
-		$query->addPH(Query::TYPE_TABLE, $this->getTableName());
-
-		$phNumber   = 1;
 		$columnPart = '';
 		$valuePart  = '';
 		foreach ($this->valueList as $columnName => $options) {
-			if ($phNumber !== 1) {
+			if ($columnPart !== '' && $valuePart !== '') {
 				$columnPart .= ', ';
 				$valuePart .= ', ';
 			}
-			$columnPart .= '%('.$phNumber.')';
-			$phNumber++;
-			$query->addPH(Query::TYPE_COLUMN, $columnName);
 
-			$valuePart .= '%('.$phNumber.')';
-			$phNumber++;
-			$query->addPH($options['type'], $options['value']);
+			$columnPart .= $query->ph(Query::TYPE_COLUMN, $columnName);
+			$valuePart .= $query->ph($options['type'], $options['value']);
 		}
 		$sql .= ' ('.$columnPart.') VALUES ('.$valuePart.')';
 		return $query->setQuery($sql);
