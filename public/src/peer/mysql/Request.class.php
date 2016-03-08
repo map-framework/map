@@ -60,7 +60,7 @@ class Request {
 	 * @return array ($map === true && possible ? array with Buckets : array with raw result)
 	 */
 	public function queryList($queryList, $map = false) {
-		$this->link->query('START TRANSACTION');
+		$this->link->begin_transaction();
 
 		$rawResultList = array();
 		foreach ($queryList as $query) {
@@ -72,13 +72,13 @@ class Request {
 			$rawResult       = $this->link->query($this->lastQuery);
 
 			if ($rawResult === false) {
-				$this->link->query('ROLLBACK');
+				$this->link->rollback();
 				throw new Exception('MySQL query failed: `'.$this->lastQuery.'`');
 			}
 			$rawResultList[] = $rawResult;
 		}
 
-		$this->link->query('COMMIT');
+		$this->link->commit();
 		if ($map !== true) {
 			return $rawResultList;
 		}
