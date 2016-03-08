@@ -14,6 +14,11 @@ class Request {
 	protected $link = null;
 
 	/**
+	 * @var null|string
+	 */
+	protected $lastQuery = null;
+
+	/**
 	 * @param  Bucket $config
 	 * @throws Exception
 	 */
@@ -37,7 +42,8 @@ class Request {
 	 * @return Bucket|bool
 	 */
 	public function query(Query $query) {
-		$result = $this->link->query($query->getQuery($this->link));
+		$this->lastQuery = $query->getQuery($this->link);
+		$result = $this->link->query($this->lastQuery);
 		if (is_bool($result)) {
 			return $result;
 		}
@@ -49,6 +55,14 @@ class Request {
 			}
 		}
 		return $bucket;
+	}
+
+	/**
+	 * @see    Request::query
+	 * @return null|string
+	 */
+	public function getLastQuery() {
+		return $this->lastQuery;
 	}
 
 	public function __destruct() {
