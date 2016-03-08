@@ -4,6 +4,7 @@ namespace peer\mysql;
 use Exception;
 use peer\mysql\statement\Insert;
 use peer\mysql\statement\Select;
+use peer\mysql\statement\Update;
 use ReflectionClass;
 use RuntimeException;
 use store\Bucket;
@@ -23,13 +24,19 @@ abstract class AbstractTable {
 	private $tableName = null;
 
 	/**
-	 * array[columnName:string]['type']       = type:string
-	 * array[columnName:string]['hasDefault'] = hasDefault:bool
+	 * array[columnName:string]['type']        = type:string
+	 * array[columnName:string]['null']        = null:bool
+	 * array[columnName:string]['default']     = default:bool
 	 *
 	 * @see Query (TYPE_* constants)
 	 * @var array (see above)
 	 */
 	private $columnList = array();
+
+	/**
+	 * @var null|string
+	 */
+	private $idColumn = null;
 
 	/**
 	 * @var Bucket
@@ -42,30 +49,83 @@ abstract class AbstractTable {
 	private $pointer = 0;
 
 	/**
-	 * @var bool
-	 */
-	private $isFilled = false;
-
-	/**
-	 * init table: call self::addColumn()
+	 * 1. call AbstractTable::setTableName, if: Class-Name <> Table-Name
+	 * 2. call AbstractTable::setIdColumn
+	 * 3. call AbstractTable::addColumn, for each column (expect id column)
+	 *
+	 * @return void
 	 */
 	abstract protected function init();
 
 	/**
-	 * @param Bucket $config
+	 * @throws RuntimeException
+	 * @param  Bucket $config
 	 */
 	final public function __construct(Bucket $config) {
-		$this->config = $config;
-		$this->clear();
+		$this->config  = $config;
+		$this->content = new Bucket();
+
 		$this->init();
+
+		if (count($this->columnList) === 0) {
+			throw new RuntimeException('required to call: AbstractTable::addColumn');
+		}
+		if ($this->idColumn === null) {
+			throw new RuntimeException('required to call: AbstractTable::setIdColumn');
+		}
+		if (!isset($this->columnList[$this->idColumn])) {
+			throw new RuntimeException('ID column `'.$this->idColumn.'` not exists');
+		}
 	}
 
 	/**
+	 * set custom table name
+	 * type:     table set-up
+	 * required: false
+	 *
 	 * @param  string $tableName
 	 * @return AbstractTable this
 	 */
-	final public function setTableName($tableName) {
+	final protected function setTableName($tableName) {
 		$this->tableName = $tableName;
+		return $this;
+	}
+
+	/**
+	 * set AUTO_INCREMENT column (id)
+	 * type:     table set-up
+	 * required: true
+	 *
+	 * @param  string $name
+	 * @return AbstractTable this
+	 */
+	final protected function setIdColumn($name) {
+		$this->idColumn = $name;
+		return $this->addColumn($name, Query::TYPE_INT, false, true);
+	}
+
+	/**
+	 * add column
+	 * type:     table set-up
+	 * required: true
+	 *
+	 * @param  string $name
+	 * @param  string $type
+	 * @param  bool   $null
+	 * @param  bool   $default
+	 * @throws RuntimeException
+	 * @return AbstractTable this
+	 */
+	final protected function addColumn($name, $type, $null = true, $default = false) {
+		if (isset($this->columnList[$name])) {
+			throw new RuntimeException('column `'.$name.'` already configured');
+		}
+
+		$this->columnList[$name] = array(
+				'type'    => (string) $type,
+				'null'    => (bool) $null,
+				'default' => (bool) $default
+		);
 		return $this;
 	}
 
@@ -80,20 +140,8 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * @param  string $name
-	 * @param  string $type
-	 * @param  bool   $hasDefault
-	 * @return AbstractTable this
-	 */
-	final protected function addColumn($name, $type, $hasDefault = false) {
-		$this->columnList[$name] = array(
-				'type'       => $type,
-				'hasDefault' => (bool) $hasDefault
-		);
-		return $this;
-	}
-
-	/**
+	 * length of rows
+	 *
 	 * @return int
 	 */
 	final public function getLength() {
@@ -101,6 +149,8 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * set pointer to row
+	 *
 	 * @param  int $pointer
 	 * @return AbstractTable this
 	 */
@@ -117,7 +167,13 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * @return bool
+	 * do {
+	 *   echo $person->name;
+	 * }
+	 * while ($person->next());
+	 *
+	 * @example (see above)
+	 * @return  bool
 	 */
 	final public function next() {
 		$newPointer = $this->getPointer() + 1;
@@ -129,19 +185,10 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * @return AbstractTable this
-	 */
-	final public function clear() {
-		$this->content  = new Bucket();
-		$this->pointer  = 0;
-		$this->isFilled = false;
-		return $this;
-	}
-
-	/**
+	 * @TODO revise
 	 * @param  string   $columnName
 	 * @param  mixed    $value
-	 * @param  int|null $pointer default this::getPointer()
+	 * @param  int|null $pointer default AbstractTable::getPointer()
 	 * @throws RuntimeException
 	 * @return AbstractTable this
 	 */
@@ -157,8 +204,9 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @TODO revise
 	 * @param  string   $columnName
-	 * @param  int|null $pointer default this::getPointer()
+	 * @param  int|null $pointer default AbstractTable::getPointer()
 	 * @return mixed
 	 */
 	final public function get($columnName, $pointer = null) {
@@ -169,11 +217,13 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @TODO revise
 	 * make MySQL SELECT
 	 *
 	 * @param  string   $columnName
 	 * @param  mixed    $value
 	 * @param  int|null $limit
+	 * @throws RuntimeException
 	 * @throws Exception
 	 * @return AbstractTable this
 	 */
@@ -205,6 +255,7 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @TODO revise
 	 * make MySQL UPDATE or INSERT
 	 *
 	 * @return bool
@@ -219,9 +270,10 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @TODO revise
 	 * make MySQL INSERT
 	 *
-	 * @throws Exception
+	 * @throws RuntimeException
 	 * @return bool
 	 */
 	final private function insert() {
@@ -233,8 +285,8 @@ abstract class AbstractTable {
 
 			foreach ($this->columnList as $columnName => $options) {
 				if ($this->content->isNull($i, $columnName)) {
-					if ($options['hasDefault'] === false) {
-						throw new Exception('column `'.$columnName.'` is null (pointer: `'.$i.'`)');
+					if ($options['nullAllowed'] === false) {
+						throw new RuntimeException('column `'.$columnName.'` is null (pointer: `'.$i.'`)');
 					}
 				}
 				else {
@@ -250,15 +302,40 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @TODO revise
 	 * make MySQL UPDATE
 	 *
 	 * @return bool
 	 */
 	final private function update() {
-		# TODO make MYSQL UPDATE
+		$request = new Request($this->config);
+		$success = true;
+
+		for ($i = 0; $i < $this->content->getGroupCount(); $i++) {
+			$update = new Update($this->getTableName());
+
+			foreach ($this->columnList as $columnName => $options) {
+				if ($this->content->isNull($i, $columnName) && $options['nullAllowed'] === false) {
+					throw new RuntimeException('column `'.$columnName.'` is null (pointer: `'.$i.'`)');
+				}
+				$update->addAssignment($columnName, $options['type'], $this->content->get($i, $columnName));
+			}
+			$update->setLimit(1);
+		}
 	}
 
 	/**
+	 * @TODO revise
+	 * make MySQL DELETE
+	 *
+	 * @return bool
+	 */
+	final public function delete() {
+		# @TODO make MySQL DELETE
+	}
+
+	/**
+	 * @TODO revise
 	 * @param string $name
 	 * @param mixed  $value
 	 */
@@ -267,6 +344,7 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @TODO revise
 	 * @param  string $name
 	 * @return mixed
 	 */
