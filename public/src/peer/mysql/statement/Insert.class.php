@@ -33,6 +33,14 @@ final class Insert extends AbstractStatement {
 	}
 
 	/**
+	 * @see    Insert::$valueList
+	 * @return array
+	 */
+	public function getValueList() {
+		return $this->valueList;
+	}
+
+	/**
 	 * @return Query
 	 */
 	public function assemble() {

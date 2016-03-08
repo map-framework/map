@@ -43,7 +43,7 @@ final class Select extends AbstractStatement {
 	private $limit = 0;
 
 	/**
-	 * required self::limit
+	 * required Select::$limit > 0
 	 *
 	 * @var int
 	 */
@@ -125,21 +125,24 @@ final class Select extends AbstractStatement {
 	}
 
 	/**
-	 * @return array { int => string }
+	 * @see    Select::$expressionList
+	 * @return array
 	 */
 	public function getExpressionList() {
 		return $this->expressionList;
 	}
 
 	/**
-	 * @return array (see this::conditionList)
+	 * @see    Select::$conditionList
+	 * @return array
 	 */
 	public function getConditionList() {
 		return $this->conditionList;
 	}
 
 	/**
-	 * @return array (see this::orderByList)
+	 * @see    Select::$orderByList
+	 * @return array
 	 */
 	public function getOrderByList() {
 		return $this->orderByList;
@@ -222,3 +225,4 @@ final class Select extends AbstractStatement {
 	}
 
 }
+
