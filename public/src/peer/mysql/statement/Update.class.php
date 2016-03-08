@@ -104,31 +104,24 @@ final class Update extends AbstractStatement {
 	}
 
 	/**
-	 * @TODO test method
 	 * @return Query
 	 */
 	public function assemble() {
 		$query = new Query();
 
-		$sql = 'UPDATE %(0) SET';
-		$query->addPH(Query::TYPE_TABLE, $this->getTableName());
+		$sql = 'UPDATE '.$query->ph(Query::TYPE_TABLE, $this->getTableName()).' SET';
 
 		if (count($this->getAssignmentList()) === 0) {
 			throw new RuntimeException('assignmentList is empty');
 		}
-		$phNumber = 1;
 		foreach ($this->getAssignmentList() as $columnName => $options) {
-			if ($phNumber !== 1) {
-				$sql .= ', ';
+			if (isset($notFirst)) {
+				$sql .= ',';
 			}
-
-			$sql .= '%('.$phNumber.')=';
-			$phNumber++;
-			$query->addPH(Query::TYPE_COLUMN, $columnName);
-
-			$sql .= '%('.$phNumber.')';
-			$phNumber++;
-			$query->addPH($options['type'], $options['value']);
+			$notFirst = true;
+			$sql .= ' '.$query->ph(Query::TYPE_COLUMN, $columnName);
+			$sql .= '=';
+			$sql .= $query->ph($options['type'], $options['value']);
 		}
 
 		if (count($this->getConditionList())) {
@@ -137,23 +130,16 @@ final class Update extends AbstractStatement {
 				if ($nr !== 0) {
 					$sql .= ' &&';
 				}
-
-				$sql .= ' %('.$phNumber.') '.$condition['operator'];
-				$phNumber++;
-				$query->addPH(Query::TYPE_COLUMN, $condition['columnName']);
-
-				$sql .= ' %('.$phNumber.')';
-				$phNumber++;
-				$query->addPH($condition['type'], $condition['value']);
+				$sql .= ' '.$query->ph(Query::TYPE_COLUMN, $condition['columnName']);
+				$sql .= ' '.$condition['operator'].' ';
+				$sql .= $query->ph($condition['type'], $condition['value']);
 			}
 		}
 
 		if ($this->getLimit() >= 1) {
-			$sql .= ' LIMIT %('.$phNumber.')';
-			$phNumber++;
-			$query->addPH(Query::TYPE_INT, $this->getLimit());
+			$sql .= ' LIMIT '.$query->ph(Query::TYPE_INT, $this->getLimit());
 		}
-		return $query->setQuery($query);
+		return $query->setQuery($sql);
 	}
 
 }
