@@ -3,6 +3,7 @@ namespace peer\mysql;
 
 use Exception;
 use mysqli;
+use RuntimeException;
 use store\Bucket;
 use store\Logger;
 
@@ -14,7 +15,7 @@ class Request {
 	protected $link = null;
 
 	/**
-	 * @var null|string
+	 * @var string
 	 */
 	protected $lastQuery = null;
 
@@ -36,25 +37,68 @@ class Request {
 	}
 
 	/**
-	 * execute MySQL query
+	 * execute MySQL Query
 	 *
+	 * @see    Request::queryList
 	 * @param  Query $query
+	 * @throws RuntimeException
+	 * @throws Exception on failure
 	 * @return Bucket|bool
 	 */
 	public function query(Query $query) {
-		$this->lastQuery = $query->getQuery($this->link);
-		$result = $this->link->query($this->lastQuery);
-		if (is_bool($result)) {
-			return $result;
+		return $this->queryList(array($query), true)[0];
+	}
+
+	/**
+	 * execute MySQL Query's
+	 *
+	 * @see    Query
+	 * @param  array   $queryList
+	 * @param  boolean $map
+	 * @throws RuntimeException
+	 * @throws Exception on failure -> rollback
+	 * @return array ($map === true && possible ? array with Buckets : array with raw result)
+	 */
+	public function queryList($queryList, $map = false) {
+		$this->link->query('START TRANSACTION');
+
+		$rawResultList = array();
+		foreach ($queryList as $query) {
+			if (!($query instanceof Query)) {
+				throw new RuntimeException('item in queryList is not instance of `\peer\mysql\Query`');
+			}
+
+			$this->lastQuery = $query->getQuery($this->link);
+			$rawResult       = $this->link->query($this->lastQuery);
+
+			if ($rawResult === false) {
+				$this->link->query('ROLLBACK');
+				throw new Exception('MySQL query failed: `'.$this->lastQuery.'`');
+			}
+			$rawResultList[] = $rawResult;
 		}
 
-		$bucket = new Bucket();
-		for ($i = 0; $resultLine = $result->fetch_array(); $i++) {
-			foreach ($resultLine as $column => $value) {
-				$bucket->set($i, $column, $value);
+		$this->link->query('COMMIT');
+		if ($map !== true) {
+			return $rawResultList;
+		}
+
+		$bucketResultList = array();
+		foreach ($rawResultList as $rawResult) {
+			if ($rawResult === true) {
+				$bucketResultList[] = true;
+			}
+			else {
+				$bucket = new Bucket();
+				foreach ($rawResult as $rowNumber => $valueList) {
+					foreach ($valueList as $column => $value) {
+						$bucket->set($rowNumber, $column, $value);
+					}
+				}
+				$bucketResultList[] = $bucket;
 			}
 		}
-		return $bucket;
+		return $bucketResultList;
 	}
 
 	/**
