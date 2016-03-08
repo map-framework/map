@@ -138,46 +138,48 @@ final class Query {
 	 * @return Query this
 	 */
 	public function addPlaceHolder($type, $value) {
-		if (in_array($type, self::LIST_INT)) {
-			$value = (int) $value;
-		}
-		elseif (in_array($type, self::LIST_FLOAT)) {
-			$value = (float) $value;
-		}
-		elseif (in_array($type, self::LIST_STRING)) {
-			$value = (string) $value;
-		}
-		elseif (in_array($type, self::LIST_DATE)) {
-			if (!($value instanceof DateTime)) {
-				throw new RuntimeException('value is not instance of `DateTime`');
+		if ($value !== null) {
+			if (in_array($type, self::LIST_INT)) {
+				$value = (int) $value;
 			}
+			elseif (in_array($type, self::LIST_FLOAT)) {
+				$value = (float) $value;
+			}
+			elseif (in_array($type, self::LIST_STRING)) {
+				$value = (string) $value;
+			}
+			elseif (in_array($type, self::LIST_DATE)) {
+				if (!($value instanceof DateTime)) {
+					throw new RuntimeException('value is not instance of `DateTime`');
+				}
 
-			if ($type === self::TYPE_DATETIME) {
-				$value = $value->format(self::FORMAT_DATETIME);
+				if ($type === self::TYPE_DATETIME) {
+					$value = $value->format(self::FORMAT_DATETIME);
+				}
+				elseif ($type === self::TYPE_DATE) {
+					$value = $value->format(self::FORMAT_DATE);
+				}
+				elseif ($type === self::TYPE_TIME) {
+					$value = $value->format(self::FORMAT_TIME);
+				}
+				elseif ($type === self::TYPE_YEAR) {
+					$value = $value->format(self::FORMAT_YEAR);
+				}
+				else {
+					$value = $value->getTimestamp();
+				}
 			}
-			elseif ($type === self::TYPE_DATE) {
-				$value = $value->format(self::FORMAT_DATE);
-			}
-			elseif ($type === self::TYPE_TIME) {
-				$value = $value->format(self::FORMAT_TIME);
-			}
-			elseif ($type === self::TYPE_YEAR) {
-				$value = $value->format(self::FORMAT_YEAR);
+			elseif (in_array($type, self::LIST_CUSTOM)) {
+				if ($type === self::TYPE_COLUMN) {
+					$value = self::BOUNDARY_COLUMN.$value.self::BOUNDARY_COLUMN;
+				}
+				elseif ($type === self::TYPE_TABLE) {
+					$value = self::BOUNDARY_TABLE.$value.self::BOUNDARY_TABLE;
+				}
 			}
 			else {
-				$value = $value->getTimestamp();
+				throw new RuntimeException('type `'.$type.'` is invalid');
 			}
-		}
-		elseif (in_array($type, self::LIST_CUSTOM)) {
-			if ($type === self::TYPE_COLUMN) {
-				$value = self::BOUNDARY_COLUMN.$value.self::BOUNDARY_COLUMN;
-			}
-			elseif ($type === self::TYPE_TABLE) {
-				$value = self::BOUNDARY_TABLE.$value.self::BOUNDARY_TABLE;
-			}
-		}
-		else {
-			throw new RuntimeException('type `'.$type.'` is invalid');
 		}
 
 		$this->placeHolderList[] = array(
@@ -210,6 +212,9 @@ final class Query {
 		foreach ($this->placeHolderList as $number => $placeHolder) {
 			if (!in_array($placeHolder['type'], self::LIST_CUSTOM) && is_string($placeHolder['value'])) {
 				$value = self::BOUNDARY_STRING.$mysqli->escape_string($placeHolder['value']).self::BOUNDARY_STRING;
+			}
+			elseif ($placeHolder['value'] === null) {
+				$value = 'NULL';
 			}
 			else {
 				$value = $placeHolder['value'];
