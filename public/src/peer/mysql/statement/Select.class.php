@@ -178,7 +178,7 @@ final class Select extends AbstractStatement {
 				if ($nr !== 0) {
 					$sql .= ',';
 				}
-				$sql .= $query->ph(Query::TYPE_COLUMN, $expression);
+				$sql .= ' '.$query->ph(Query::TYPE_COLUMN, $expression);
 			}
 		}
 		else {
