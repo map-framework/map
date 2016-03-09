@@ -3,6 +3,7 @@ namespace peer\mysql;
 
 use DateTime;
 use Exception;
+use peer\mysql\statement\Delete;
 use peer\mysql\statement\Insert;
 use peer\mysql\statement\Select;
 use peer\mysql\statement\Update;
@@ -214,6 +215,13 @@ abstract class AbstractTable {
 	}
 
 	/**
+	 * @return Bucket|null
+	 */
+	final public function getBucket() {
+		return clone $this->content;
+	}
+
+	/**
 	 * @see    AbstractTable::getPointer
 	 * @param  string   $columnName
 	 * @param  mixed    $value
@@ -281,8 +289,12 @@ abstract class AbstractTable {
 
 		$request = new Request($this->config);
 		$result  = $request->query($select->assemble());
+
 		if ($result === false) {
-			throw new Exception('MySQL request failed: `'.$request->getLastQuery().'`');
+			throw new RuntimeException('MySQL-Request failed: `'.$request->getLastQuery().'`');
+		}
+		if ($result->getGroupCount() === 0) {
+			throw new Exception('MySQL-Result is empty (Query: `'.$request->getLastQuery().'`)');
 		}
 
 		# convert Date columns into `\DateTime`
@@ -309,6 +321,9 @@ abstract class AbstractTable {
 	final public function save() {
 		if ($this->isReadOnly()) {
 			throw new RuntimeException('can\'t save read only object');
+		}
+		if (!$this->getLength()) {
+			throw new RuntimeException('nothing to save');
 		}
 
 		if ($this->isFilled()) {
@@ -348,6 +363,7 @@ abstract class AbstractTable {
 			}
 			$queryList[] = $update->assemble();
 		}
+
 		try {
 			$request->queryList($queryList);
 		}
@@ -398,11 +414,40 @@ abstract class AbstractTable {
 	/**
 	 * make MySQL DELETE
 	 *
+	 * @see    Delete
+	 * @throws RuntimeException
 	 * @return bool
 	 */
 	final public function delete() {
-		# @TODO make MySQL DELETE
-		# @TODO make this object read only
+		if ($this->isReadOnly()) {
+			throw new RuntimeException('can\'t delete read only object');
+		}
+		if (!$this->isFilled()) {
+			throw new RuntimeException('nothing to delete');
+		}
+		$this->toReadOnly();
+
+		$request = new Request($this->config);
+
+		$queryList = array();
+		for ($i = 0; $i < $this->getLength(); $i++) {
+			$queryList[] = (new Delete($this->getTableName()))
+					->addCondition(
+							$this->primaryKey,
+							$this->columnList[$this->primaryKey]['type'],
+							$this->content->get($i, $this->primaryKey)
+					)
+					->setLimit(1)
+					->assemble();
+		}
+
+		try {
+			$request->queryList($queryList);
+		}
+		catch (Exception $e) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
