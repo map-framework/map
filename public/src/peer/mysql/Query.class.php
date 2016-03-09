@@ -13,6 +13,8 @@ final class Query {
 	const TYPE_MEDIUMINT = 'MEDIUMINT';
 	const TYPE_INT       = 'INT';
 	const TYPE_BIGINT    = 'BIGINT';
+	const TYPE_BOOLEAN   = 'BOOLEAN';
+	const TYPE_BOOL      = 'BOOLEAN';
 
 	# Float-Number
 	const TYPE_FLOAT   = 'FLOAT';
@@ -177,6 +179,9 @@ final class Query {
 					$value = self::BOUNDARY_TABLE.$value.self::BOUNDARY_TABLE;
 				}
 			}
+			elseif ($type === self::TYPE_BOOLEAN) {
+				$value = (bool) $value;
+			}
 			else {
 				throw new RuntimeException('type `'.$type.'` is invalid');
 			}
@@ -215,6 +220,14 @@ final class Query {
 			}
 			elseif ($placeHolder['value'] === null) {
 				$value = 'NULL';
+			}
+			elseif ($placeHolder['type'] === self::TYPE_BOOLEAN) {
+				if ($placeHolder['value'] === true) {
+					$value = 'TRUE';
+				}
+				else {
+					$value = 'FALSE';
+				}
 			}
 			else {
 				$value = $placeHolder['value'];
