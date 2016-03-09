@@ -19,6 +19,11 @@ abstract class AbstractTable {
 	protected $config = null;
 
 	/**
+	 * @var string
+	 */
+	private $accessPoint = Request::DEFAULT_ACCESS_POINT;
+
+	/**
 	 * custom table name
 	 *
 	 * @var string
@@ -56,9 +61,10 @@ abstract class AbstractTable {
 	private $isReadOnly = false;
 
 	/**
-	 * 1. call AbstractTable::setTableName, if: Class-Name <> Table-Name
-	 * 2. call AbstractTable::addColumn, for each column (expect id column)
-	 * 3. call AbstractTable::setPrimaryKey
+	 * 1. call AbstractTable::setAccessPoint, if not default (Request::$DEFAULT_ACCESS_POINT)
+	 * 2. call AbstractTable::setTableName, if: Class-Name <> Table-Name
+	 * 3. call AbstractTable::addColumn, for each column (expect id column)
+	 * 4. call AbstractTable::setPrimaryKey
 	 *
 	 * @return void
 	 */
@@ -83,6 +89,19 @@ abstract class AbstractTable {
 		if (!isset($this->columnList[$this->primaryKey])) {
 			throw new RuntimeException('primary key column `'.$this->primaryKey.'` not exists');
 		}
+	}
+
+	/**
+	 * set access point
+	 * type:     table set-up
+	 * required: false
+	 *
+	 * @param  string $accessPoint
+	 * @return AbstractTable $this
+	 */
+	final protected function setAccessPoint($accessPoint) {
+		$this->accessPoint = $accessPoint;
+		return $this;
 	}
 
 	/**
@@ -287,7 +306,7 @@ abstract class AbstractTable {
 			$select->setLimit($limit);
 		}
 
-		$request = new Request($this->config);
+		$request = new Request($this->config, $this->accessPoint);
 		$result  = $request->query($select->assemble());
 
 		if ($result === false) {
@@ -342,7 +361,7 @@ abstract class AbstractTable {
 	 * @return bool
 	 */
 	final private function update() {
-		$request = new Request($this->config);
+		$request = new Request($this->config, $this->accessPoint);
 
 		$queryList = array();
 		for ($i = 0; $i < $this->getLength(); $i++) {
@@ -383,7 +402,7 @@ abstract class AbstractTable {
 	 */
 	final private function insert() {
 		$this->toReadOnly();
-		$request = new Request($this->config);
+		$request = new Request($this->config, $this->accessPoint);
 
 		$queryList = array();
 		for ($i = 0; $i < $this->getLength(); $i++) {
@@ -427,7 +446,7 @@ abstract class AbstractTable {
 		}
 		$this->toReadOnly();
 
-		$request = new Request($this->config);
+		$request = new Request($this->config, $this->accessPoint);
 
 		$queryList = array();
 		for ($i = 0; $i < $this->getLength(); $i++) {

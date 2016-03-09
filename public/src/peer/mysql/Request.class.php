@@ -9,6 +9,8 @@ use store\Logger;
 
 class Request {
 
+	const DEFAULT_ACCESS_POINT = 'local';
+
 	/**
 	 * @var MySQLi
 	 */
@@ -21,18 +23,26 @@ class Request {
 
 	/**
 	 * @param  Bucket $config
+	 * @param  string $accessPoint
+	 * @throws RuntimeException
 	 * @throws Exception
 	 */
-	public function __construct(Bucket $config) {
+	public function __construct(Bucket $config, $accessPoint = self::DEFAULT_ACCESS_POINT) {
+		if (!$config->isArray('mysql', $accessPoint)) {
+			throw new RuntimeException('unknown access point `'.$accessPoint.'`');
+		}
+
+		$accessData = $config->get('mysql', $accessPoint);
+
 		$this->link = new MySQLi(
-				$config->get('mysql', 'hostname'),
-				$config->get('mysql', 'username'),
-				$config->get('mysql', 'password'),
-				$config->get('mysql', 'database'),
-				$config->get('mysql', 'port')
+				isset($accessData['hostname']) ? $accessData['hostname'] : null,
+				isset($accessData['username']) ? $accessData['username'] : null,
+				isset($accessData['password']) ? $accessData['password'] : null,
+				isset($accessData['database']) ? $accessData['database'] : null,
+				isset($accessData['port']) ? $accessData['port'] : null
 		);
 		if ($this->link->connect_errno) {
-			throw new Exception('connection error: '.$this->link->connect_error);
+			throw new Exception('MySQL Connection-Error: '.$this->link->connect_error);
 		}
 	}
 
