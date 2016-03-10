@@ -214,4 +214,11 @@ class Bucket {
 		return $node;
 	}
 
+	/**
+	 * @return string|bool
+	 */
+	final public function toJson() {
+		return json_encode($this->toArray());
+	}
+
 }
