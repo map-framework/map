@@ -180,7 +180,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	}
 
 	/**
-	 * @param  int    $code
+	 * @param  int $code
 	 * @return AbstractModeHandler this
 	 */
 	protected function error($code) {

@@ -21,7 +21,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	/**
 	 * load stored forms
 	 *
-	 * @see   AbstractModeHandler::__construct()
+	 * @see   AbstractModeHandler::__construct
 	 * @param Bucket $config
 	 * @param MAPUrl $request
 	 * @param array  $settings { string => mixed }
@@ -105,12 +105,13 @@ class SiteModeHandler extends AbstractModeHandler {
 	}
 
 	/**
-	 * @see AbstractPage::STATUS_INIT
-	 * @see AbstractPage::STATUS_RESTORED
-	 * @see AbstractPage::STATUS_REPEATED
-	 * @see AbstractPage::STATUS_ACCEPTED
-	 * @see AbstractPage::STATUS_REJECTED
-	 * null = unknown (ACCEPTED or REJECTED)
+	 * null = unknown/undefined (ACCEPTED or REJECTED)
+	 *
+	 * @see    AbstractPage::STATUS_INIT
+	 * @see    AbstractPage::STATUS_RESTORED
+	 * @see    AbstractPage::STATUS_REPEATED
+	 * @see    AbstractPage::STATUS_ACCEPTED
+	 * @see    AbstractPage::STATUS_REJECTED
 	 * @return null|string
 	 */
 	protected function getFormStatus() {
