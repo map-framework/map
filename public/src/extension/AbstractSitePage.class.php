@@ -5,7 +5,7 @@ use store\Bucket;
 use xml\Node;
 use xml\Tree;
 
-abstract class AbstractPage {
+abstract class AbstractSitePage {
 
 	/**
 	 * initialized question
@@ -100,7 +100,7 @@ abstract class AbstractPage {
 	/**
 	 * @param  string $name
 	 * @param  string $value
-	 * @return AbstractPage this
+	 * @return AbstractSitePage this
 	 */
 	final public function setFormData($name, $value) {
 		$this->formData
@@ -112,7 +112,7 @@ abstract class AbstractPage {
 	/**
 	 * @param  string $formItemName
 	 * @param  string $pattern
-	 * @return AbstractPage this
+	 * @return AbstractSitePage this
 	 */
 	final protected function addExpect($formItemName, $pattern = '.*') {
 		$this->expect[$formItemName] = $pattern;

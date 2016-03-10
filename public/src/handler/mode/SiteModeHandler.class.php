@@ -1,7 +1,7 @@
 <?php
 namespace handler\mode;
 
-use extension\AbstractPage;
+use extension\AbstractSitePage;
 use RuntimeException;
 use store\Bucket;
 use store\data\File;
@@ -67,8 +67,8 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		$page = new $nameSpace($this->config, $requestData);
-		if (!($page instanceof AbstractPage)) {
-			throw new RuntimeException('class `'.$nameSpace.'` isn\'t instance of `'.AbstractPage::class.'`');
+		if (!($page instanceof AbstractSitePage)) {
+			throw new RuntimeException('class `'.$nameSpace.'` isn\'t instance of `'.AbstractSitePage::class.'`');
 		}
 
 		if ($page->access() !== true) {
@@ -76,7 +76,7 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		if ($formStatus !== null) {
-			if ($formStatus === AbstractPage::STATUS_RESTORED) {
+			if ($formStatus === AbstractSitePage::STATUS_RESTORED) {
 				foreach ($this->getStoredFormData() as $name => $value) {
 					$page->setFormData($name, $value);
 				}
@@ -85,11 +85,11 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 		else {
 			if ($page->checkExpectation() === true && $page->check() === true) {
-				$formStatus = AbstractPage::STATUS_ACCEPTED;
+				$formStatus = AbstractSitePage::STATUS_ACCEPTED;
 				$this->closeStoredForm($requestData['formId']);
 			}
 			else {
-				$formStatus = AbstractPage::STATUS_REJECTED;
+				$formStatus = AbstractSitePage::STATUS_REJECTED;
 				$this->saveForm($requestData);
 			}
 		}
@@ -107,22 +107,22 @@ class SiteModeHandler extends AbstractModeHandler {
 	/**
 	 * null = unknown/undefined (ACCEPTED or REJECTED)
 	 *
-	 * @see    AbstractPage::STATUS_INIT
-	 * @see    AbstractPage::STATUS_RESTORED
-	 * @see    AbstractPage::STATUS_REPEATED
-	 * @see    AbstractPage::STATUS_ACCEPTED
-	 * @see    AbstractPage::STATUS_REJECTED
+	 * @see    AbstractSitePage::STATUS_INIT
+	 * @see    AbstractSitePage::STATUS_RESTORED
+	 * @see    AbstractSitePage::STATUS_REPEATED
+	 * @see    AbstractSitePage::STATUS_ACCEPTED
+	 * @see    AbstractSitePage::STATUS_REJECTED
 	 * @return null|string
 	 */
 	protected function getFormStatus() {
 		if (!count($_POST)) {
 			if ($this->getStoredFormData() !== null) {
-				return AbstractPage::STATUS_RESTORED;
+				return AbstractSitePage::STATUS_RESTORED;
 			}
-			return AbstractPage::STATUS_INIT;
+			return AbstractSitePage::STATUS_INIT;
 		}
 		if (isset($_POST['formId']) && $this->isStoredFormClose($_POST['formId'])) {
-			return AbstractPage::STATUS_REPEATED;
+			return AbstractSitePage::STATUS_REPEATED;
 		}
 		return null;
 	}
