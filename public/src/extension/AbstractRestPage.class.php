@@ -2,8 +2,15 @@
 namespace extension;
 
 use store\Bucket;
-use store\data\net\MAPUrl;
 
+/**
+ * Implement the following methods. Returns HTTP-Status Code (HttpConst).
+ * [GET]  /rest/person/nickname -> getNickname(request:MAPUrl):int|bool
+ * [PUT]  /rest/person/age      -> putAge(request:MAPUrl):int|bool
+ * [POST] /rest/person          -> postIndex(request:MAPUrl):int|bool
+ *
+ * @example (see above)
+ */
 abstract class AbstractRestPage {
 
 	/**
@@ -12,10 +19,16 @@ abstract class AbstractRestPage {
 	protected $config = null;
 
 	/**
+	 * @var Bucket
+	 */
+	protected $response = null;
+
+	/**
 	 * @param Bucket $config
 	 */
 	public function __construct(Bucket $config) {
-		$this->config = $config;
+		$this->config   = $config;
+		$this->response = new Bucket();
 	}
 
 	/**
@@ -26,13 +39,10 @@ abstract class AbstractRestPage {
 	abstract public function access();
 
 	/**
-	 * default method
-	 *
-	 * @param  MAPUrl $request
-	 * @return bool
+	 * @return Bucket
 	 */
-	public function index(MAPUrl $request) {
-		return false;
+	final public function getResponse() {
+		return clone $this->response;
 	}
 
 }
