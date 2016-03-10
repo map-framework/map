@@ -189,17 +189,14 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 */
 	protected function error($code, $message) {
 		http_response_code($code);
-		if (isset($this->settings['error'.$code])) {
-			$errSettings = $this->settings['error'.$code];
 
-			# pipe to url
-			if (isset($errSettings['pipe'])) {
-				$this->setLocation(new Url($errSettings['pipe']));
-				return $this;
-			}
+		# pipe to URL
+		if (isset($this->settings['err'.$code.'-pipe'])) {
+			$this->setLocation(new Url($this->settings['err'.$code.'-pipe']));
+			return $this;
 		}
 
-		# default error-output
+		# default error output
 		$this->setContentType('text/plain');
 		echo '['.$code.'] '.$message;
 		return $this;
