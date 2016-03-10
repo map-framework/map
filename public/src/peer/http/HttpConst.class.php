@@ -91,4 +91,12 @@ final class HttpConst {
 		return defined('self::METHOD_'.$method);
 	}
 
+	/**
+	 * @param  int $status
+	 * @return bool
+	 */
+	public static function isStatus($status) {
+		return defined('self::STATUS_'.$status);
+	}
+
 }
