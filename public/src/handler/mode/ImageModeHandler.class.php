@@ -12,7 +12,7 @@ class ImageModeHandler extends AbstractModeHandler {
 	public function handle() {
 		$file = $this->getFile();
 		if ($file === null) {
-			return $this->error(404, self::ERROR_404);
+			return $this->error(404);
 		}
 
 		if (!$file->printFile()) {

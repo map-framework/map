@@ -15,9 +15,6 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	const TEXT_SPLITTER = '#';
 	const TEXT_SUFFIX   = '}';
 
-	const ERROR_403 = 'Forbidden';
-	const ERROR_404 = 'Not Found';
-
 	/**
 	 * @var MAPUrl
 	 */
@@ -184,10 +181,9 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 	/**
 	 * @param  int    $code
-	 * @param  string $message
-	 * @return SiteModeHandler this
+	 * @return AbstractModeHandler this
 	 */
-	protected function error($code, $message) {
+	protected function error($code) {
 		http_response_code($code);
 
 		# pipe to URL
@@ -197,6 +193,13 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		}
 
 		# default error output
+		if (defined('peer\http\HttpConst::STATUS_'.$code)) {
+			$message = constant('peer\http\HttpConst::STATUS_'.$code);
+		}
+		else {
+			$message = 'N/A';
+		}
+
 		$this->setContentType('text/plain');
 		echo '['.$code.'] '.$message;
 		return $this;

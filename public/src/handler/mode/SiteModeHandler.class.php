@@ -44,7 +44,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	/**
 	 * @see    AbstractModeHandler::handle
 	 * @throws RuntimeException
-	 * @return AbstractModeHandler this
+	 * @return SiteModeHandler this
 	 */
 	public function handle() {
 		$className = ucfirst($this->request->getPage()).'Page';
@@ -55,7 +55,7 @@ class SiteModeHandler extends AbstractModeHandler {
 		);
 
 		if (!class_exists($nameSpace) || !$styleSheet->isFile()) {
-			return $this->error(404, self::ERROR_404);
+			return $this->error(404);
 		}
 
 		$formStatus = $this->getFormStatus();
@@ -72,7 +72,7 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		if ($page->access() !== true) {
-			return $this->error(403, self::ERROR_403);
+			return $this->error(403);
 		}
 
 		if ($formStatus !== null) {
