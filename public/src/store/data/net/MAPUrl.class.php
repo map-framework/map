@@ -343,12 +343,9 @@ class MAPUrl extends Url {
 			}
 
 			# level 1 = area
-			if ($this->area !== null) {
-				$level++;
-			}
 			if ($level === 1) {
 				$level++;
-				if ($this->setArea($item)) {
+				if ($this->area === null && $this->setArea($item)) {
 					continue;
 				}
 			}
