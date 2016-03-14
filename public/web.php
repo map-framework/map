@@ -53,6 +53,12 @@ final class Web {
 			$scheme = 'http';
 		}
 		$this->request = new MAPUrl($scheme.'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], $this->config);
+		Logger::debug(
+				'REQUEST ('.
+				'mode: `'.$this->request->getMode().'` '.
+				'area: `'.$this->request->getArea().'` '.
+				'page: `'.$this->request->getPage().'`'
+		);
 
 		# load area & page config
 		$configPathList = array(

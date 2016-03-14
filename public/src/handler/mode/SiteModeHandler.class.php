@@ -6,6 +6,7 @@ use RuntimeException;
 use store\Bucket;
 use store\data\File;
 use store\data\net\MAPUrl;
+use store\Logger;
 use xml\Node;
 use xml\XSLProcessor;
 
@@ -54,7 +55,15 @@ class SiteModeHandler extends AbstractModeHandler {
 				'private/src/area/'.$this->request->getArea().'/app/view/site/'.$this->request->getPage().'.xsl'
 		);
 
-		if (!class_exists($nameSpace) || !$styleSheet->isFile()) {
+		if (!class_exists($nameSpace)) {
+			$reason404 = 'class `'.$nameSpace.'`';
+		}
+		elseif (!$styleSheet->isFile()) {
+			$reason404 = 'stylesheet `'.$styleSheet.'`';
+		}
+
+		if (isset($reason404)) {
+			Logger::debug('HTTP-404 because: '.$reason404.' not found');
 			return $this->error(404);
 		}
 
