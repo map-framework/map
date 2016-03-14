@@ -90,7 +90,7 @@ final class Web {
 			throw new RuntimeException('mode `'.$this->request->getMode().'` not applied');
 		}
 
-		if (!class_exists($modeSettings['handler'])) {
+		if (!isset($modeSettings['handler']) || !class_exists($modeSettings['handler'])) {
 			throw new RuntimeException('mode `'.$this->request->getMode().'` is invalid');
 		}
 
