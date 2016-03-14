@@ -56,8 +56,8 @@ final class Web {
 
 		# load area & page config
 		$configPathList = array(
-				'../private/src/area/'.$this->request->getArea().'/config/area.ini',
-				'../private/src/area/'.$this->request->getArea().'/config/page/'.$this->request->getPage().'.ini'
+				'private/src/area/'.$this->request->getArea().'/config/area.ini',
+				'private/src/area/'.$this->request->getArea().'/config/page/'.$this->request->getPage().'.ini'
 		);
 		foreach ($configPathList as $configPath) {
 			$configFile = new File($configPath);
