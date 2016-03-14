@@ -134,7 +134,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	protected function getTextNode($nodeName = 'text') {
 		return $this->getTextBucket()->toNode($nodeName)->setAttribute(
 				'language',
-				$this->config->get('display', 'language')
+				$this->config->get('multiLang', 'language')
 		);
 	}
 
