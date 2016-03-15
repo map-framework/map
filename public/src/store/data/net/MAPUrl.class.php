@@ -1,6 +1,7 @@
 <?php
 namespace store\data\net;
 
+use Exception;
 use RuntimeException;
 use store\Bucket;
 use store\data\File;
@@ -38,8 +39,10 @@ class MAPUrl extends Url {
 	private $config = null;
 
 	/**
-	 * @param string $url
-	 * @param Bucket $config validate
+	 * @see    Url::set
+	 * @param  string $url
+	 * @param  Bucket $config validate
+	 * @throws Exception
 	 */
 	public function __construct($url = null, Bucket $config = null) {
 		$this->config = $config;
@@ -307,7 +310,7 @@ class MAPUrl extends Url {
 	}
 
 	/**
-	 * @see    Url::setPath()
+	 * @see    Url::setPath
 	 * @param  string $path
 	 * @return MAPUrl
 	 */
@@ -365,7 +368,8 @@ class MAPUrl extends Url {
 	}
 
 	/**
-	 * @see Url::getPath()
+	 * @see    Url::getPath
+	 * @return string
 	 */
 	public function getPath() {
 		$itemList = array();

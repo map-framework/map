@@ -2,6 +2,7 @@
 namespace handler\mode;
 
 use handler\AbstractHandler;
+use peer\http\HttpConst;
 use RuntimeException;
 use store\Bucket;
 use store\data\File;
@@ -182,10 +183,20 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 * @return AbstractModeHandler this
 	 */
 	protected function error($code) {
+		if (!HttpConst::isStatus($code)) {
+			throw new RuntimeException('unknown HTTP-Status Code `'.$code.'`');
+		}
 		http_response_code($code);
 
 		# pipe to URL
 		if (isset($this->settings['err'.$code.'-pipe'])) {
+			$target = new MAPUrl($this->settings['err'.$code.'-pipe'], $this->config);
+
+			if ($target->get() === $this->request->get()) {
+				Logger::error('endless pipe-loop (status: `'.$code.'`) - interrupted with HTTP-Status `508`');
+				return $this->error(508);
+			}
+
 			$this->setLocation(new Url($this->settings['err'.$code.'-pipe']));
 			return $this;
 		}

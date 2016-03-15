@@ -58,7 +58,9 @@ class Url extends AbstractData {
 	private $fragment = null;
 
 	/**
-	 * @param $url string
+	 * @see    Url::set
+	 * @param  $url string
+	 * @throws Exception
 	 */
 	public function __construct($url = '') {
 		parent::__construct($url);
