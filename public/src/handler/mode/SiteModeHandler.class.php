@@ -11,7 +11,8 @@ use xml\XSLProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
 
-	const  PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
+	const PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
+	const PATH_TEMP_XML   = '.siteResponse.xml';
 
 	/**
 	 * @var Bucket
@@ -101,6 +102,13 @@ class SiteModeHandler extends AbstractModeHandler {
 				->setStyleSheetFile($styleSheet)
 				->setDocumentDoc($page->response->toDomDoc())
 				->transform();
+
+		# output: XML-Tree into temporary File
+		if (isset($this->settings['tempXMLFile']) && $this->settings['tempXMLFile'] === true) {
+			$xmlFile = new File(self::PATH_TEMP_XML);
+			$xmlFile->putContents($page->response->getSource(true), false);
+			exit();
+		}
 		return $this;
 	}
 
