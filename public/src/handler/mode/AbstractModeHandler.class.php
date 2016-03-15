@@ -15,6 +15,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	const TEXT_PREFIX   = '{';
 	const TEXT_SPLITTER = '#';
 	const TEXT_SUFFIX   = '}';
+	const LANG_VAR      = '%(lang)';
 
 	/**
 	 * @var MAPUrl
@@ -164,6 +165,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			}
 
 			foreach ($loadPathList as $loadPath) {
+				$loadPath = str_replace(self::LANG_VAR, $this->config->get('multiLang', 'language'), $loadPath);
 				$loadFile = (new File('private/src'))
 						->attach($loadPath);
 
