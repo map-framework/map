@@ -141,16 +141,22 @@ class Bucket {
 	 * @param  string|int $group
 	 * @param  string|int $key
 	 * @param  mixed      $value
+	 * @param  boolean    $merge (arrays)
 	 * @throws RuntimeException if group or key invalid
 	 * @return Bucket
 	 */
-	final public function set($group, $key, $value) {
+	final public function set($group, $key, $value, $merge = false) {
 		if (!is_int($group) && !preg_match(self::PATTERN_GROUP, $group)) {
 			throw new RuntimeException('Invalid group `'.$group.'`.', 1);
 		}
 		if (!is_int($key) && !preg_match(self::PATTERN_KEY, $key)) {
 			throw new RuntimeException('Invalid key `'.$key.'`.', 2);
 		}
+
+		if ($merge === true && is_array($value) && $this->isArray($group, $key)) {
+			$value = array_merge($this->get($group, $key), $value);
+		}
+
 		$this->data[$group][$key] = $value;
 		return $this;
 	}
@@ -183,7 +189,7 @@ class Bucket {
 				continue;
 			}
 			foreach ($keyList as $key => $value) {
-				$this->set($group, $key, $value);
+				$this->set($group, $key, $value, true);
 			}
 		}
 		return $this;

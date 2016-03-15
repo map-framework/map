@@ -10,39 +10,48 @@ use RuntimeException;
  */
 class Logger {
 
-	const TYPE_ERROR   = 'ERROR';
-	const TYPE_WARNING = 'WARNING';
-	const TYPE_INFO    = 'INFO';
 	const LOG_DIR      = ROOT_DIR.'log/';
+	const TYPE_ERROR   = 'ERROR';
+	const TYPE_WARNING = 'WARN ';
+	const TYPE_INFO    = 'INFO ';
+	const TYPE_DEBUG   = 'DEBUG';
 
 	/**
 	 * write error logs
 	 *
 	 * @param  string $message
-	 * @return Logger
 	 */
 	public static function error($message) {
-		return self::log(self::TYPE_ERROR, $message);
+		self::log(self::TYPE_ERROR, $message);
 	}
 
 	/**
 	 * write warning logs
 	 *
 	 * @param  string $message
-	 * @return Logger
 	 */
 	public static function warning($message) {
-		return self::log(self::TYPE_WARNING, $message);
+		self::log(self::TYPE_WARNING, $message);
 	}
 
 	/**
 	 * write info logs
 	 *
 	 * @param  string $message
-	 * @return Logger
 	 */
 	public static function info($message) {
-		return self::log(self::TYPE_INFO, $message);
+		self::log(self::TYPE_INFO, $message);
+	}
+
+	/**
+	 * write debug logs (only DEV)
+	 *
+	 * @param  string $message
+	 */
+	public static function debug($message) {
+		if (constant('ENVIRONMENT') === 'DEV') {
+			self::log(self::TYPE_DEBUG, $message);
+		}
 	}
 
 	/**
@@ -52,7 +61,6 @@ class Logger {
 	 * @param  string $message
 	 * @throws RuntimeException if failed to create log-dir
 	 * @throws RuntimeException if log-file exists & is dir or link
-	 * @return Logger
 	 */
 	protected static function log($type, $message) {
 		$now = new DateTime();
@@ -70,7 +78,8 @@ class Logger {
 		}
 
 		# write log
-		$logFile->putContents('['.$type.'] '.$message.PHP_EOL);
+		$time = $now->format('H:i:s');
+		$logFile->putContents('['.$type.' @ '.$time.'] '.$message.PHP_EOL);
 	}
 
 }

@@ -144,35 +144,33 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 */
 	final protected function getTextBucket() {
 		$texts = new Bucket();
-		# is enabled
+
 		if (isset($this->settings['multiLang']) && $this->settings['multiLang'] === true) {
-			# get text file paths
-			if ($this->config->isArray('multiLang', 'texts')) {
-				$textFileList = $this->config->get('multiLang', 'texts');
+			# additional lang-files
+			if ($this->config->isArray('multiLang', 'loadList')) {
+				$loadPathList = $this->config->get('multiLang', 'loadList');
 			}
 			else {
-				$textFileList = array();
+				$loadPathList = array();
 			}
 
-			# is autoPageTexts enabled
-			if ($this->config->isTrue('multiLang', 'autoPageTexts')) {
-				$textFileList[] = $this->request->getPage().'.ini';
+			# auto-loading lang-file
+			if ($this->config->isTrue('multiLang', 'autoLoading')) {
+				$language       = $this->config->get('multiLang', 'language');
+				$area           = $this->request->getArea();
+				$page           = $this->request->getPage();
+				$loadPathList[] = 'area/'.$area.'/text/'.$language.'/page/'.$page.'.ini';
 			}
 
-			# apply text files
-			foreach ($textFileList as $textFile) {
-				$path       = '/text/'.$this->config->get('display', 'language').'/';
-				$areaFile   = (new File('private/src/area/'.$this->request->getArea().$path))->attach($textFile);
-				$commonFile = (new File('private/src/common'.$path))->attach($textFile);
+			foreach ($loadPathList as $loadPath) {
+				$loadFile = (new File('private/src'))
+						->attach($loadPath);
 
-				if ($areaFile->isFile()) {
-					$texts->applyIni($areaFile);
-				}
-				elseif ($commonFile->isFile()) {
-					$texts->applyIni($commonFile);
+				if ($loadFile->isFile()) {
+					$texts->applyIni($loadFile);
 				}
 				else {
-					Logger::warning('lang-file `'.$textFile.'` not found');
+					Logger::warning('lang-file `'.$loadFile.'` not found');
 				}
 			}
 		}
