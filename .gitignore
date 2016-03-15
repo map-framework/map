@@ -1,2 +1,11 @@
-# ignore eclipse
+# MAP
+log/
+
+# eclipse
 .project
+
+# phpStorm
+.idea
+
+# phpUnit
+phpunit.phar

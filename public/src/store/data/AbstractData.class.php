@@ -1,45 +1,53 @@
 <?php
 namespace store\data;
 
-/**
- * @TODO write unit-tests
- */
-class AbstractData {
-	
-	private $data = '';
-	
+abstract class AbstractData {
+
+	/**
+	 * @var mixed
+	 */
+	protected $data = '';
+
 	/**
 	 * @param mixed $data
 	 */
 	public function __construct($data) {
 		$this->set($data);
 	}
-	
+
 	/**
-	 * @param string $data
-	 * @throws RuntimeException
+	 * @param  mixed $data
 	 * @return AbstractData
 	 */
-	final protected function set($data) {
-		if (!is_string($data)) {
-			throw new RuntimeException();
-		}
+	protected function set($data) {
 		$this->data = $data;
 		return $this;
 	}
-	
+
 	/**
 	 * @return string
 	 */
-	final protected function get() {
+	public function get() {
 		return $this->data;
 	}
-	
+
 	/**
 	 * @return string
 	 */
 	public function __toString() {
 		return $this->get();
 	}
-	
+
+	/**
+	 * @param  string $pattern
+	 * @param  string $subject
+	 * @return bool
+	 */
+	final protected static function match($pattern, $subject) {
+		if (!is_string($subject)) {
+			return false;
+		}
+		return (bool) preg_match('/'.$pattern.'/', $subject);
+	}
+
 }
