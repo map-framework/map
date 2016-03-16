@@ -116,7 +116,6 @@ class SiteModeHandler extends AbstractModeHandler {
 		if (isset($this->settings['tempXMLFile']) && $this->settings['tempXMLFile'] === true) {
 			$xmlFile = new File(self::PATH_TEMP_XML);
 			$xmlFile->putContents($page->response->getSource(true), false);
-			exit();
 		}
 		return $this;
 	}
