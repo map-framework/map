@@ -3,8 +3,11 @@ namespace store\data;
 
 use Exception;
 use RuntimeException;
+use store\data\math\number\OctalNumber;
 
 class File extends AbstractData {
+
+	const ROOT_DIR = '../';
 
 	const TYPE_FILE = 'file';
 	const TYPE_DIR  = 'dir';
@@ -15,78 +18,110 @@ class File extends AbstractData {
 	const MAKE_LINK_MODE = 0777;
 
 	/**
+	 * set file path
+	 *
 	 * @param string $file
 	 * @return File
 	 */
 	public function set($file) {
-		if (substr($file, -1) === '/') {
+		if ($file[strlen($file) - 1] === '/') {
 			$file = substr($file, 0, -1);
 		}
-
-		$length = strlen(constant('ROOT_DIR'));
-		if ($length) {
-			if (substr($file, 0, $length) !== constant('ROOT_DIR')) {
-				$file = constant('ROOT_DIR').$file;
-			}
-		}
-
 		return parent::set($file);
 	}
 
 	/**
+	 * get real file system path
+	 *
+	 * @return string
+	 */
+	public function getRealPath() {
+		if ($this->isRelative()) {
+			return self::ROOT_DIR.$this->get();
+		}
+		return $this->get();
+	}
+
+	/**
+	 * is absolute file path
+	 *
+	 * @return bool
+	 */
+	final public function isAbsolute() {
+		return $this->get()[0] === '/';
+	}
+
+	/**
+	 * is relative file path
+	 *
+	 * @return bool
+	 */
+	final public function isRelative() {
+		return $this->get()[0] !== '/';
+	}
+
+	/**
+	 * @link   http://php.net/file_exists
 	 * @return bool
 	 */
 	final public function exists() {
-		return file_exists($this->get());
+		return file_exists($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/is_file
 	 * @return bool
 	 */
 	final public function isFile() {
-		return is_file($this->get());
+		return is_file($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/is_dir
 	 * @return bool
 	 */
 	final public function isDir() {
-		return is_dir($this->get());
+		return is_dir($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/is_link
 	 * @return bool
 	 */
 	final public function isLink() {
-		return is_link($this->get());
+		return is_link($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/is_readable
 	 * @return bool
 	 */
 	final public function isReadable() {
-		return is_readable($this->get());
+		return is_readable($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/is_writeable
 	 * @return bool
 	 */
 	final public function isWritable() {
-		return is_writeable($this->get());
+		return is_writeable($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/is_executable
 	 * @return bool
 	 */
 	final public function isExecutable() {
-		return is_executable($this->get());
+		return is_executable($this->getRealPath());
 	}
 
 	/**
+	 * @link   http://php.net/filesize
 	 * @return int
 	 */
 	final public function getSize() {
-		return filesize($this->get());
+		return filesize($this->getRealPath());
 	}
 
 	/**
@@ -94,41 +129,38 @@ class File extends AbstractData {
 	 * @return File
 	 */
 	final public function attach($path) {
-		if (substr($path, 0, 1) === '/') {
+		if ($path[0] === '/') {
 			$path = substr($path, 1);
 		}
-		return $this->set($this->get().'/'.$path);
+		return $this->set(parent::get().'/'.$path);
 	}
 
 	/**
-	 * @param  int $user
-	 * @param  int $group
-	 * @param  int $other
-	 * @throws RuntimeException if invalid user mode
-	 * @throws RuntimeException if invalid group mode
-	 * @throws RuntimeException if invalid other mode
+	 * @param  OctalNumber $user
+	 * @param  OctalNumber $group
+	 * @param  OctalNumber $other
 	 * @throws Exception if changing mode failed
 	 * @return File
 	 */
-	final public function changeMode($user, $group, $other) {
-		if (!is_int($user) || $user < 0 || $user > 7) {
-			throw new RuntimeException('Invalid User-Mode `'.$user.'`.', 1);
+	final public function changeMode(OctalNumber $user, OctalNumber $group, OctalNumber $other) {
+		if ($user === null) {
+			$user = new OctalNumber(7);
 		}
-		elseif (!is_int($group) || $group < 0 || $group > 7) {
-			throw new RuntimeException('Invalid Group-Mode `'.$group.'`.', 2);
+		if ($group === null) {
+			$group = new OctalNumber(7);
 		}
-		elseif (!is_int($other) || $other < 0 || $other > 7) {
-			throw new RuntimeException('Invalid Other-Mode `'.$other.'`.', 3);
+		if ($other === null) {
+			$other = new OctalNumber(7);
 		}
-		elseif (!$this->exists()) {
-			throw new Exception('File or Dir `'.$this.'` not exists.', 1);
+
+		if (!$this->exists()) {
+			throw new RuntimeException('File `'.$this.'` not exists.');
 		}
-		elseif (chmod($this->get(), $user.$group.$other) === false) {
-			throw new Exception('Failed to change mode to `'.$user.$group.$other.'` in file `'.$this.'`.', 2);
+
+		if (!chmod($this->getRealPath(), $user.$group.$other)) {
+			throw new Exception('Failed to change mode to '.$user.$group.$other.' of file `'.$this.'`.');
 		}
-		else {
-			return $this;
-		}
+		return $this;
 	}
 
 	/**
@@ -136,7 +168,7 @@ class File extends AbstractData {
 	 * @return File
 	 */
 	final public function makeDir() {
-		if (!mkdir($this->get(), self::MAKE_DIR_MODE, true)) {
+		if (!mkdir($this->getRealPath(), self::MAKE_DIR_MODE, true)) {
 			throw new Exception('Failed to make dir `'.$this.'`', 1);
 		}
 		return $this;
@@ -147,7 +179,7 @@ class File extends AbstractData {
 	 * @return File
 	 */
 	final public function makeFile() {
-		if (file_put_contents($this->get(), '', self::MAKE_FILE_MODE) === false) {
+		if (file_put_contents($this->getRealPath(), '', self::MAKE_FILE_MODE) === false) {
 			throw new Exception('Failed to make file `'.$this.'`', 1);
 		}
 		return $this;
@@ -160,7 +192,7 @@ class File extends AbstractData {
 	 * @return string
 	 */
 	final public function getContents() {
-		$content = file_get_contents($this->get());
+		$content = file_get_contents($this->getRealPath());
 		if ($content !== false) {
 			return $content;
 		}
@@ -184,7 +216,7 @@ class File extends AbstractData {
 	 * @return File
 	 */
 	final public function putContents($content, $append = true) {
-		if (!file_put_contents($this->get(), $content, $append ? FILE_APPEND : 0)) {
+		if (!file_put_contents($this->getRealPath(), $content, $append ? FILE_APPEND : 0)) {
 			throw new Exception('failed to put content in file `'.$this.'`');
 		}
 		return $this;
@@ -196,7 +228,7 @@ class File extends AbstractData {
 	 * @return bool
 	 */
 	final public function printFile() {
-		if (readfile($this->get()) === false) {
+		if (readfile($this->getRealPath()) === false) {
 			return false;
 		}
 		return true;
@@ -218,7 +250,7 @@ class File extends AbstractData {
 			throw new Exception('file `'.$this.'` is not a dir', 2);
 		}
 
-		$fileList = scandir($this->get());
+		$fileList = scandir($this->getRealPath());
 		if ($fileList === false) {
 			throw new Exception('failed to scan dir `'.$this.'`', 3);
 		}

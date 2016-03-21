@@ -52,7 +52,7 @@ class XSLProcessor {
 			throw new Exception('file `'.$styleSheetFile.'` not found');
 		}
 		$styleSheet = new DOMDocument();
-		$styleSheet->load($styleSheetFile);
+		$styleSheet->load($styleSheetFile->getRealPath());
 		$this->styleSheet = $styleSheet;
 		return $this;
 	}

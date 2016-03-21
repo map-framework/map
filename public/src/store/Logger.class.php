@@ -10,7 +10,7 @@ use RuntimeException;
  */
 class Logger {
 
-	const LOG_DIR      = ROOT_DIR.'log/';
+	const LOG_DIR      = 'log';
 	const TYPE_ERROR   = 'ERROR';
 	const TYPE_WARNING = 'WARN ';
 	const TYPE_INFO    = 'INFO ';
@@ -66,7 +66,7 @@ class Logger {
 		$now = new DateTime();
 
 		# create dir
-		$logFile = new File(self::LOG_DIR.$now->format('Y-M'));
+		$logFile = (new File(self::LOG_DIR))->attach($now->format('Y-M'));
 		if (!$logFile->isDir()) {
 			$logFile->makeDir();
 		}

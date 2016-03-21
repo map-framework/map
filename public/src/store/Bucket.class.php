@@ -170,7 +170,7 @@ class Bucket {
 		if ($iniFile === null || !$iniFile->isFile()) {
 			throw new RuntimeException('file not exists `'.$iniFile.'`');
 		}
-		return $this->applyArray(parse_ini_file($iniFile, true, INI_SCANNER_TYPED));
+		return $this->applyArray(parse_ini_file($iniFile->getRealPath(), true, INI_SCANNER_TYPED));
 	}
 
 	/**
