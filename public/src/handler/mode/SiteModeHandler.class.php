@@ -12,9 +12,12 @@ use xml\XSLProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
 
-	const PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
-	const TEMP_DIR        = 'map';
-	const TEMP_FILE       = 'lastSiteResponse.xml';
+	const FORM_ID_CHARS   = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	const FORM_ID_LENGTH  = 16;
+	const FORM_ID_PATTERN = '['.self::FORM_ID_CHARS.']{'.self::FORM_ID_LENGTH.'}';
+
+	const TEMP_DIR  = 'map';
+	const TEMP_FILE = 'lastSiteResponse.xml';
 
 	/**
 	 * @var Bucket
@@ -100,6 +103,7 @@ class SiteModeHandler extends AbstractModeHandler {
 			}
 		}
 
+		# set form data (RESTORED & REJECTED)
 		if ($formStatus === AbstractSitePage::STATUS_RESTORED) {
 			$formDataList = $this->getStoredFormData();
 		}
@@ -109,12 +113,20 @@ class SiteModeHandler extends AbstractModeHandler {
 		else {
 			$formDataList = array();
 		}
-
 		foreach ($formDataList as $name => $value) {
 			$page->setFormData($name, $value);
 		}
-
 		$page->formData->setAttribute('status', $formStatus);
+
+		# set form id (INIT, ACCEPTED & REPEATED)
+		if ($formStatus === AbstractSitePage::STATUS_INIT
+				|| $formStatus === AbstractSitePage::STATUS_ACCEPTED
+				|| $formStatus === AbstractSitePage::STATUS_REPEATED
+		) {
+			$page->formData->addChild((new Node('formId'))->setContent($this->generateFormId()));
+		}
+
+		# set form status
 		$page->response->getRootNode()->addChild($this->getTextNode());
 
 		echo (new XSLProcessor())
@@ -220,7 +232,14 @@ class SiteModeHandler extends AbstractModeHandler {
 	 * @return bool
 	 */
 	final protected function isFormId($formId) {
-		return (bool) preg_match('/'.self::PATTERN_FORM_ID.'/', $formId);
+		return (bool) preg_match('/^'.self::FORM_ID_CHARS.'$/', $formId);
+	}
+
+	/**
+	 * @return string
+	 */
+	final protected function generateFormId() {
+		return substr(str_shuffle(self::FORM_ID_CHARS), 0, self::FORM_ID_LENGTH);
 	}
 
 }

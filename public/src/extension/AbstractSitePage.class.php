@@ -1,6 +1,7 @@
 <?php
 namespace extension;
 
+use handler\mode\SiteModeHandler;
 use store\Bucket;
 use xml\Node;
 use xml\Tree;
@@ -44,11 +45,6 @@ abstract class AbstractSitePage {
 	protected $config = null;
 
 	/**
-	 * @var string[]
-	 */
-	private $expect = array();
-
-	/**
 	 * @var array
 	 */
 	protected $request = array();
@@ -78,6 +74,14 @@ abstract class AbstractSitePage {
 	abstract public function setUp();
 
 	/**
+	 * array[name:string] = pattern:string
+	 *
+	 * @see    AbstractSitePage::checkExpectation
+	 * @return array (see above)
+	 */
+	abstract public function getExpectList();
+
+	/**
 	 * call if submitted
 	 *
 	 * @return bool
@@ -89,7 +93,6 @@ abstract class AbstractSitePage {
 	 * @param array  $request
 	 */
 	public function __construct(Bucket $config, $request) {
-		$this->addExpect('formId');
 		$this->request = $request;
 		$this->config  = $config;
 
@@ -110,20 +113,42 @@ abstract class AbstractSitePage {
 	}
 
 	/**
-	 * @param  string $formItemName
-	 * @param  string $pattern
-	 * @return AbstractSitePage this
+	 * Use this method in <i>check</i> to indicate: the request was <b>successful</b>.
+	 * Return this response!
+	 *
+	 * @param  null|string $reason
+	 * @return true
 	 */
-	final protected function addExpect($formItemName, $pattern = '.*') {
-		$this->expect[$formItemName] = $pattern;
+	final public function accept($reason = null) {
+		if ($reason !== null) {
+			$this->formData->setAttribute('reason', $reason);
+		}
+		return true;
+	}
+
+	/**
+	 * Use this method in <i>check</i> to indicate: the request has <b>failed</b>.
+	 * Return this response!
+	 *
+	 * @param  null|string $reason
+	 * @return false
+	 */
+	final public function reject($reason = null) {
+		if ($reason !== null) {
+			$this->formData->setAttribute('reason', $reason);
+		}
+		return false;
 	}
 
 	/**
 	 * @return bool
 	 */
 	public function checkExpectation() {
-		foreach ($this->expect as $formItemName => $pattern) {
-			if (!isset($this->request[$formItemName]) || !preg_match('/^'.$pattern.'$/', $this->request[$formItemName])) {
+		$expectList           = $this->getExpectList();
+		$expectList['formId'] = SiteModeHandler::FORM_ID_PATTERN;
+
+		foreach ($expectList as $name => $pattern) {
+			if (!isset($this->request[$name]) || !preg_match('/^'.$pattern.'$/', $this->request[$name])) {
 				return false;
 			}
 		}
