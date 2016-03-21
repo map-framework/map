@@ -164,12 +164,16 @@ class File extends AbstractData {
 	}
 
 	/**
+	 * create dir if not exists
+	 *
 	 * @throws Exception
 	 * @return File
 	 */
 	final public function makeDir() {
-		if (!mkdir($this->getRealPath(), self::MAKE_DIR_MODE, true)) {
-			throw new Exception('Failed to make dir `'.$this.'`', 1);
+		if (!$this->isDir()) {
+			if (!mkdir($this->getRealPath(), self::MAKE_DIR_MODE, true)) {
+				throw new Exception('Failed to make dir `'.$this.'`', 1);
+			}
 		}
 		return $this;
 	}
