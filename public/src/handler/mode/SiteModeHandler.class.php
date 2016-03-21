@@ -13,7 +13,8 @@ use xml\XSLProcessor;
 class SiteModeHandler extends AbstractModeHandler {
 
 	const PATTERN_FORM_ID = '^[a-zA-Z0-9]+$';
-	const PATH_TEMP_XML   = '.siteResponse.xml';
+	const TEMP_DIR        = 'map';
+	const TEMP_FILE       = 'lastSiteResponse.xml';
 
 	/**
 	 * @var Bucket
@@ -86,11 +87,6 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		if ($formStatus !== null) {
-			if ($formStatus === AbstractSitePage::STATUS_RESTORED) {
-				foreach ($this->getStoredFormData() as $name => $value) {
-					$page->setFormData($name, $value);
-				}
-			}
 			$page->setUp();
 		}
 		else {
@@ -104,6 +100,20 @@ class SiteModeHandler extends AbstractModeHandler {
 			}
 		}
 
+		if ($formStatus === AbstractSitePage::STATUS_RESTORED) {
+			$formDataList = $this->getStoredFormData();
+		}
+		elseif ($formStatus === AbstractSitePage::STATUS_REJECTED) {
+			$formDataList = $requestData;
+		}
+		else {
+			$formDataList = array();
+		}
+
+		foreach ($formDataList as $name => $value) {
+			$page->setFormData($name, $value);
+		}
+
 		$page->formData->setAttribute('status', $formStatus);
 		$page->response->getRootNode()->addChild($this->getTextNode());
 
@@ -113,9 +123,12 @@ class SiteModeHandler extends AbstractModeHandler {
 				->transform();
 
 		# output: XML-Tree into temporary File
-		if (isset($this->settings['tempXMLFile']) && $this->settings['tempXMLFile'] === true) {
-			$xmlFile = new File(self::PATH_TEMP_XML);
-			$xmlFile->putContents($page->response->getSource(true), false);
+		if ($this->settings['tempXMLFile'] === true) {
+			(new File(sys_get_temp_dir()))
+					->attach(self::TEMP_DIR)
+					->makeDir()
+					->attach(self::TEMP_FILE)
+					->putContents($page->response->getSource(true), false);
 		}
 		return $this;
 	}
