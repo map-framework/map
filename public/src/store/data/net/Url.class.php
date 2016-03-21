@@ -73,7 +73,7 @@ class Url extends AbstractData {
 	 * @return Url
 	 */
 	final public function set($url = '') {
-		$parsedUrl = parse_url($url);
+		$parsedUrl = parse_url(urlencode($url));
 		if ($parsedUrl === false) {
 			throw new Exception('URL `'.$url.'` is malformed');
 		}
