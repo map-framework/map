@@ -6,6 +6,13 @@ use store\Bucket;
 use store\data\File;
 use store\data\net\MAPUrl;
 
+/**
+ * This is a part of MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 final class Web {
 
 	const AUTOLOAD       = 'src/misc/autoload.php';
@@ -57,7 +64,7 @@ final class Web {
 				'REQUEST ('.
 				'mode: `'.$this->request->getMode().'` '.
 				'area: `'.$this->request->getArea().'` '.
-				'page: `'.$this->request->getPage().'`'
+				'page: `'.$this->request->getPage().'`)'
 		);
 
 		# load area & page config
