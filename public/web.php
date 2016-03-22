@@ -7,7 +7,7 @@ use store\data\File;
 use store\data\net\MAPUrl;
 
 /**
- * This is a part of MAP-Framework.
+ * This file is part of the MAP-Framework.
  *
  * @author    Michael Piontkowski <mail@mpiontkowski.de>
  * @copyright Copyright 2016 Michael Piontkowski
