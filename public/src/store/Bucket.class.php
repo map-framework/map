@@ -107,6 +107,36 @@ class Bucket {
 	}
 
 	/**
+	 * remove key in group
+	 *
+	 * @param  string $group
+	 * @param  string $key
+	 * @return Bucket this
+	 */
+	final public function remove($group, $key) {
+		if (isset($this->data[$group][$key])) {
+			unset($this->data[$group][$key]);
+			if ($this->getKeyCount($group) === 0) {
+				unset($this->data[$group]);
+			}
+		}
+		return $this;
+	}
+
+	/**
+	 * @param  string $group
+	 * @return Bucket this
+	 */
+	final public function removeGroup($group) {
+		if (isset($this->data[$group])) {
+			unset($this->data[$group]);
+		}
+		return $this;
+	}
+
+	/**
+	 * get count of all groups
+	 *
 	 * @return int
 	 */
 	final public function getGroupCount() {
@@ -114,6 +144,8 @@ class Bucket {
 	}
 
 	/**
+	 * get count of keys in group
+	 *
 	 * @param  string|int $group
 	 * @return int
 	 */
