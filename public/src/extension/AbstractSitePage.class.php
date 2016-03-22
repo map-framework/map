@@ -57,7 +57,7 @@ abstract class AbstractSitePage {
 	/**
 	 * @var Node
 	 */
-	public $formData = null;
+	public $responseForm = null;
 
 	/**
 	 * check if user is entitled
@@ -96,8 +96,8 @@ abstract class AbstractSitePage {
 		$this->request = $request;
 		$this->config  = $config;
 
-		$this->response = new Tree('document');
-		$this->formData = $this->response->getRootNode()->addChild(new Node('form'));
+		$this->response     = new Tree('document');
+		$this->responseForm = $this->response->getRootNode()->addChild(new Node('form'));
 	}
 
 	/**
@@ -105,8 +105,8 @@ abstract class AbstractSitePage {
 	 * @param  string $value
 	 * @return AbstractSitePage this
 	 */
-	final public function setFormData($name, $value) {
-		$this->formData
+	final public function setResponseFormItem($name, $value) {
+		$this->responseForm
 				->addChild(new Node($name))
 				->setContent($value);
 		return $this;
@@ -121,7 +121,7 @@ abstract class AbstractSitePage {
 	 */
 	final public function accept($reason = null) {
 		if ($reason !== null) {
-			$this->formData->setAttribute('reason', $reason);
+			$this->responseForm->setAttribute('reason', $reason);
 		}
 		return true;
 	}
@@ -135,7 +135,7 @@ abstract class AbstractSitePage {
 	 */
 	final public function reject($reason = null) {
 		if ($reason !== null) {
-			$this->formData->setAttribute('reason', $reason);
+			$this->responseForm->setAttribute('reason', $reason);
 		}
 		return false;
 	}
