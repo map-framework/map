@@ -14,10 +14,22 @@ use Throwable;
 class FileNotFoundException extends FileException implements Throwable {
 
 	/**
-	 * @param File $file
+	 * @param File|\store\data\File[] ...$file
 	 */
-	public function __construct(File $file) {
-		parent::__construct('file '.$this->export($file->get()).' not found');
+	public function __construct(File ...$file) {
+		$pathList = array_map(
+				function(File $n):string {
+					return $this->export($n->get());
+				},
+				$file
+		);
+
+		if (count($pathList) === 1) {
+			parent::__construct('file '.$pathList[0].' not found');
+		}
+		else {
+			parent::__construct('required one of the following files: '.implode(', ', $pathList));
+		}
 	}
 
 }
