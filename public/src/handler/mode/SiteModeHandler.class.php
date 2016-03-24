@@ -52,9 +52,9 @@ class SiteModeHandler extends AbstractModeHandler {
 
 	/**
 	 * @see    AbstractModeHandler::handle
-	 * @return SiteModeHandler this
+	 * @return AbstractModeHandler this
 	 */
-	public function handle() {
+	public function handle():AbstractModeHandler {
 		# is page present
 		try {
 			$pageData = $this->getPageData();

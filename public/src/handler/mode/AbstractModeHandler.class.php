@@ -1,6 +1,8 @@
 <?php
 namespace handler\mode;
 
+use exception\file\FileNotFoundException;
+use exception\InvalidValueException;
 use handler\AbstractHandler;
 use peer\http\HttpConst;
 use RuntimeException;
@@ -10,7 +12,16 @@ use store\data\net\MAPUrl;
 use store\data\net\Url;
 use store\Logger;
 
+/**
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 abstract class AbstractModeHandler extends AbstractHandler {
+
+	const PATTERN_MIME_TYPE = '^(text|image|video|audio|application|multipart|message|model|x\-[A-Za-z0-9\-])\/[A-Za-z0-9\-]+$';
 
 	const TEXT_PREFIX   = '{';
 	const TEXT_SPLITTER = '#';
@@ -32,18 +43,15 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @return AbstractModeHandler this
 	 */
-	abstract public function handle();
+	abstract public function handle():AbstractModeHandler;
 
 	/**
-	 * @throws RuntimeException
 	 * @param  Bucket $config
 	 * @param  MAPUrl $request
 	 * @param  array  $settings { string => mixed }
+	 * @throws InvalidValueException
 	 */
 	public function __construct(Bucket $config, MAPUrl $request, $settings) {
-		if (!isset($settings['type'])) {
-			throw new RuntimeException('mode invalid: expect `type`');
-		}
 		$this->setContentType($settings['type']);
 
 		$this->request  = $request;
@@ -53,9 +61,14 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 	/**
 	 * @param  string $mimeType
+	 * @throws InvalidValueException
 	 * @return AbstractModeHandler this
 	 */
-	final protected function setContentType($mimeType) {
+	final protected function setContentType(string $mimeType):AbstractModeHandler {
+		if (!preg_match('/'.self::PATTERN_MIME_TYPE.'/', $mimeType)) {
+			throw new InvalidValueException('MIME-Type', $mimeType);
+		}
+
 		header('Content-Type: '.$mimeType);
 		return $this;
 	}
@@ -64,7 +77,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 * @param  Url $address
 	 * @return AbstractModeHandler this
 	 */
-	final protected function setLocation(Url $address) {
+	final protected function setLocation(Url $address):AbstractModeHandler {
 		header('Location: '.$address);
 		return $this;
 	}
@@ -72,40 +85,42 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * get file in app folder
 	 *
-	 * @throws RuntimeException
-	 * @return null|File
+	 * @throws InvalidValueException
+	 * @throws FileNotFoundException
+	 * @return File
 	 */
-	final protected function getFile() {
-		if (!isset($this->settings['folder'], $this->settings['extension'])) {
-			throw new RuntimeException('mode invalid: expect `folder` and `extension`');
+	final protected function getFile():File {
+		if (!isset($this->settings['folder']) || !is_string($this->settings['folder'])) {
+			throw new InvalidValueException('folder', $this->settings['folder'] ?? null);
+		}
+		if (!isset($this->settings['extension']) || !is_string($this->settings['extension'])) {
+			throw new InvalidValueException('File-Extension', $this->settings['extension'] ?? null);
 		}
 
-		$fileList = array(
-				new File('private/src/area/'.$this->request->getArea().'/app'),
-				new File('private/src/common/app')
-		);
+		$page = implode('/', array_merge(array($this->request->getPage()), $this->request->getInputList()))
+				.$this->settings['extension'];
 
-		$page = implode('/', array_merge(array($this->request->getPage()), $this->request->getInputList()));
+		$fileInArea   = (new File('private/src/area/'.$this->request->getArea().'/app'))
+				->attach($this->settings['folder'])
+				->attach($page);
+		$fileInCommon = (new File('private/src/common/app'))
+				->attach($this->settings['folder'])
+				->attach($page);
 
-		foreach ($fileList as $file) {
-			if (!($file instanceof File)) {
-				continue;
-			}
-			$file
-					->attach($this->settings['folder'])
-					->attach($page.$this->settings['extension']);
-			if ($file->isFile()) {
-				return $file;
-			}
+		if ($fileInArea->isFile()) {
+			return $fileInArea;
 		}
-		return null;
+		elseif ($fileInCommon->isFile()) {
+			return $fileInCommon;
+		}
+		throw new FileNotFoundException();
 	}
 
 	/**
 	 * @param  string $text
 	 * @return string
 	 */
-	final protected function translate($text) {
+	final protected function translate(string $text):string {
 		$locateTexts = array();
 
 		$suffixPosition = -1;
@@ -121,9 +136,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			$group = substr($text, $prefixPosition + 1, $splitterPosition - $prefixPosition - 1);
 			$key   = substr($text, $splitterPosition + 1, $suffixPosition - $splitterPosition - 1);
 
-			if (!isset($locateTexts[$group])) {
-				$locateTexts[$group] = array();
-			}
+			$locateTexts[$group] = $locateTexts[$group] ?? array();
 			if (!in_array($key, $locateTexts[$group])) {
 				$locateTexts[$group][] = $key;
 			}
@@ -144,7 +157,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @return Bucket
 	 */
-	final protected function getTextBucket() {
+	final protected function getTextBucket():Bucket {
 		$texts = new Bucket();
 
 		if (isset($this->settings['multiLang']) && $this->settings['multiLang'] === true) {
@@ -158,22 +171,22 @@ abstract class AbstractModeHandler extends AbstractHandler {
 
 			# auto-loading lang-file
 			if ($this->config->isTrue('multiLang', 'autoLoading')) {
-				$language       = $this->config->get('multiLang', 'language');
-				$area           = $this->request->getArea();
-				$page           = $this->request->getPage();
-				$loadPathList[] = 'area/'.$area.'/text/'.$language.'/page/'.$page.'.ini';
+				$loadPathList[] = sprintf(
+						'private/src/area/%s/text/%s/page/%s.ini',
+						$this->request->getArea(),
+						$this->config->get('multiLang', 'language'),
+						$this->request->getPage()
+				);
 			}
 
 			foreach ($loadPathList as $loadPath) {
-				$loadPath = str_replace(self::LANG_VAR, $this->config->get('multiLang', 'language'), $loadPath);
-				$loadFile = (new File('private/src'))
-						->attach($loadPath);
+				$loadFile = new File(str_replace(self::LANG_VAR, $this->config->get('multiLang', 'language'), $loadPath));
 
 				if ($loadFile->isFile()) {
 					$texts->applyIni($loadFile);
 				}
 				else {
-					Logger::warning('lang-file `'.$loadFile.'` not found');
+					Logger::warning('Lang-File `'.$loadFile.'` not found');
 				}
 			}
 		}
@@ -184,7 +197,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 * @param  int $code
 	 * @return AbstractModeHandler this
 	 */
-	protected function error($code) {
+	protected function error(int $code):AbstractModeHandler {
 		if (!HttpConst::isStatus($code)) {
 			throw new RuntimeException('unknown HTTP-Status Code `'.$code.'`');
 		}
@@ -211,9 +224,8 @@ abstract class AbstractModeHandler extends AbstractHandler {
 			$message = 'N/A';
 		}
 
-		$this->setContentType('text/plain');
-		echo '['.$code.'] '.$message;
-		return $this;
+		printf('[%d] %s', $code, $message);
+		return $this->setContentType('text/plain');
 	}
 
 }

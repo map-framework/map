@@ -8,9 +8,9 @@ use store\Logger;
 class RestModeHandler extends AbstractModeHandler {
 
 	/**
-	 * @return RestModeHandler this
+	 * @return AbstractModeHandler this
 	 */
-	public function handle() {
+	public function handle():AbstractModeHandler {
 		$nameSpace = $this->getNameSpace();
 		if (!class_exists($nameSpace)) {
 			return $this->error(404);
