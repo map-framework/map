@@ -4,24 +4,30 @@ namespace extension;
 use store\Bucket;
 
 /**
- * Implement the following methods. Returns HTTP-Status Code (HttpConst).
- * [GET]  /rest/person/nickname -> getNickname(request:MAPUrl):int|bool
- * [PUT]  /rest/person/age      -> putAge(request:MAPUrl):int|bool
- * [POST] /rest/person          -> postIndex(request:MAPUrl):int|bool
+ * This file is part of the MAP-Framework.
  *
- * @example (see above)
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ *
+ * [GET]  /rest/person/nickname -> +AbstractRestPage::getNickname(request:MAPUrl):int
+ * [PUT]  /rest/person/age      -> +putAge(request:MAPUrl):int
+ * [POST] /rest/person          -> +postIndex(request:MAPUrl):int
+ *
+ * @example   Implement methods like examples. Return HTTP-Status Codes. (see above)
+ * @see       HttpConst
  */
 abstract class AbstractRestPage {
 
 	/**
 	 * @var Bucket
 	 */
-	protected $config = null;
+	protected $config;
 
 	/**
 	 * @var Bucket
 	 */
-	protected $response = null;
+	protected $response;
 
 	/**
 	 * @param Bucket $config
@@ -32,16 +38,16 @@ abstract class AbstractRestPage {
 	}
 
 	/**
-	 * check if user is entitled
+	 * check if user is authorized
 	 *
 	 * @return bool
 	 */
-	abstract public function access();
+	abstract public function access():bool;
 
 	/**
 	 * @return Bucket
 	 */
-	final public function getResponse() {
+	final public function getResponse():Bucket {
 		return clone $this->response;
 	}
 

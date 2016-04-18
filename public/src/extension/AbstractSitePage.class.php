@@ -36,31 +36,32 @@ abstract class AbstractSitePage {
 	const STATUS_ACCEPTED = 'ACCEPTED';
 
 	/**
-	 * @example Double-Click
 	 * 1. request: formId=abc = STATUS_ACCEPTED
 	 * 2. request: formId=abc = STATUS_REPEATED
+	 *
+	 * @example Double-Click (see above)
 	 */
 	const STATUS_REPEATED = 'REPEATED';
 
 	/**
 	 * @var Bucket
 	 */
-	protected $config = null;
+	protected $config;
 
 	/**
 	 * @var array
 	 */
-	protected $request = array();
+	protected $request;
 
 	/**
 	 * @var Tree
 	 */
-	public $response = null;
+	public $response;
 
 	/**
 	 * @var Node
 	 */
-	public $responseForm = null;
+	public $responseForm;
 
 	/**
 	 * check if user is authorized
