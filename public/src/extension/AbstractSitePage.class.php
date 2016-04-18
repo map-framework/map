@@ -6,36 +6,39 @@ use store\Bucket;
 use xml\Node;
 use xml\Tree;
 
+/**
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 abstract class AbstractSitePage {
 
 	/**
-	 * initialized question
+	 * The request was initialized.
 	 */
 	const STATUS_INIT = 'INIT';
 
 	/**
-	 * restored / reloaded question
+	 * This status is returned if an already rejected request is reloading from session.
 	 */
 	const STATUS_RESTORED = 'RESTORED';
 
 	/**
-	 * negative reply
-	 *
-	 * @see exception\request\AcceptedException
+	 * The request was rejected (failed).
 	 */
 	const STATUS_REJECTED = 'REJECTED';
 
 	/**
-	 * positive reply
-	 *
-	 * @see exception\request\AcceptedException
+	 * The request was accepted (success).
 	 */
 	const STATUS_ACCEPTED = 'ACCEPTED';
 
 	/**
-	 * neutral reply
-	 *
-	 * @see exception\request\AcceptedException
+	 * @example Double-Click
+	 * 1. request: formId=abc = STATUS_ACCEPTED
+	 * 2. request: formId=abc = STATUS_REPEATED
 	 */
 	const STATUS_REPEATED = 'REPEATED';
 
@@ -60,14 +63,14 @@ abstract class AbstractSitePage {
 	public $responseForm = null;
 
 	/**
-	 * check if user is entitled
+	 * check if user is authorized
 	 *
 	 * @return bool
 	 */
-	abstract public function access();
+	abstract public function access():bool;
 
 	/**
-	 * call if nothing submitted
+	 * This method will call if nothing is submitted.
 	 *
 	 * @return void
 	 */
@@ -79,20 +82,22 @@ abstract class AbstractSitePage {
 	 * @see    AbstractSitePage::checkExpectation
 	 * @return array (see above)
 	 */
-	abstract public function getExpectList();
+	abstract public function getExpectList():array;
 
 	/**
-	 * call if submitted
+	 * This method will call if:
+	 * - count of $_POST is greater than zero
+	 * - formId and all expectations are correct
 	 *
 	 * @return bool
 	 */
-	abstract public function check();
+	abstract public function check():bool;
 
 	/**
 	 * @param Bucket $config
 	 * @param array  $request
 	 */
-	public function __construct(Bucket $config, $request) {
+	public function __construct(Bucket $config, array $request) {
 		$this->request = $request;
 		$this->config  = $config;
 
@@ -105,7 +110,7 @@ abstract class AbstractSitePage {
 	 * @param  string $value
 	 * @return AbstractSitePage this
 	 */
-	final public function setResponseFormItem($name, $value) {
+	final public function setResponseFormItem(string $name, string $value):AbstractSitePage {
 		$this->responseForm
 				->addChild(new Node($name))
 				->setContent($value);
@@ -113,28 +118,28 @@ abstract class AbstractSitePage {
 	}
 
 	/**
-	 * Use this method in <i>check</i> to indicate: the request was <b>successful</b>.
-	 * Return this response!
+	 * Call this method in <code>AbstractSitePage::check</code> to indicate: the request was <b>successful</b>.
+	 * Return the response of this method!
 	 *
-	 * @param  null|string $reason
-	 * @return true
+	 * @param  string $reason
+	 * @return bool
 	 */
-	final public function accept($reason = null) {
-		if ($reason !== null) {
+	final public function accept(string $reason = null):bool {
+		if (is_string($reason)) {
 			$this->responseForm->setAttribute('reason', $reason);
 		}
 		return true;
 	}
 
 	/**
-	 * Use this method in <i>check</i> to indicate: the request has <b>failed</b>.
-	 * Return this response!
+	 * Call this method in <code>AbstractSitePage::check</code> to indicate: the request was <b>failed</b>.
+	 * Return the response of this method!
 	 *
-	 * @param  null|string $reason
-	 * @return false
+	 * @param  string $reason
+	 * @return bool
 	 */
-	final public function reject($reason = null) {
-		if ($reason !== null) {
+	final public function reject(string $reason = null):bool {
+		if (is_string($reason)) {
 			$this->responseForm->setAttribute('reason', $reason);
 		}
 		return false;
@@ -143,7 +148,7 @@ abstract class AbstractSitePage {
 	/**
 	 * @return bool
 	 */
-	public function checkExpectation() {
+	public function checkExpectation():bool {
 		$expectList           = $this->getExpectList();
 		$expectList['formId'] = SiteModeHandler::FORM_ID_PATTERN;
 
