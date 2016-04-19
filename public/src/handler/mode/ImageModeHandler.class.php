@@ -4,6 +4,7 @@ namespace handler\mode;
 use exception\file\FileNotFoundException;
 use exception\InvalidValueException;
 use RuntimeException;
+use store\Logger;
 
 /**
  * This file is part of the MAP-Framework.
@@ -17,9 +18,8 @@ class ImageModeHandler extends AbstractModeHandler {
 	/**
 	 * @throws InvalidValueException
 	 * @throws RuntimeException
-	 * @return AbstractModeHandler this
 	 */
-	public function handle():AbstractModeHandler {
+	public function handle() {
 		try {
 			$file = $this->getFile();
 		}
@@ -28,9 +28,10 @@ class ImageModeHandler extends AbstractModeHandler {
 		}
 
 		if (!$file->printFile()) {
-			throw new RuntimeException('failed to print file `'.$file.'`');
+			Logger::error('failed to print file '.$file);
+			return $this->error(500);
 		}
-		return $this->setContentLength($file->getSize());
+		$this->setContentLength($file->getSize());
 	}
 
 	/**

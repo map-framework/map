@@ -30,23 +30,15 @@ abstract class AbstractRestPage {
 	protected $response;
 
 	/**
-	 * @param Bucket $config
+	 * check if user is authorized
 	 */
+	abstract public function access():bool;
+
 	public function __construct(Bucket $config) {
 		$this->config   = $config;
 		$this->response = new Bucket();
 	}
 
-	/**
-	 * check if user is authorized
-	 *
-	 * @return bool
-	 */
-	abstract public function access():bool;
-
-	/**
-	 * @return Bucket
-	 */
 	final public function getResponse():Bucket {
 		return clone $this->response;
 	}

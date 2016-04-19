@@ -31,27 +31,22 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	/**
 	 * @var MAPUrl
 	 */
-	protected $request = null;
+	protected $request;
 
 	/**
-	 * mode settings
+	 * array[key:string] => value:mixed
 	 *
-	 * @var array { string => mixed }
+	 * @var array (see above)
 	 */
-	protected $settings = array();
+	protected $settings;
+
+	abstract public function handle();
 
 	/**
-	 * @return AbstractModeHandler this
-	 */
-	abstract public function handle():AbstractModeHandler;
-
-	/**
-	 * @param  Bucket $config
-	 * @param  MAPUrl $request
-	 * @param  array  $settings { string => mixed }
+	 * @see    AbstractModeHandler::$settings
 	 * @throws InvalidValueException
 	 */
-	public function __construct(Bucket $config, MAPUrl $request, $settings) {
+	public function __construct(Bucket $config, MAPUrl $request, array $settings) {
 		$this->setContentType($settings['type']);
 
 		$this->request  = $request;
@@ -60,9 +55,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	}
 
 	/**
-	 * @param  string $mimeType
 	 * @throws InvalidValueException
-	 * @return AbstractModeHandler this
 	 */
 	final protected function setContentType(string $mimeType):AbstractModeHandler {
 		if (!preg_match('/'.self::PATTERN_MIME_TYPE.'/', $mimeType)) {
@@ -73,28 +66,23 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		return $this;
 	}
 
-	/**
-	 * @param  Url $address
-	 * @return AbstractModeHandler this
-	 */
 	final protected function setLocation(Url $address):AbstractModeHandler {
 		header('Location: '.$address);
 		return $this;
 	}
 
 	/**
-	 * get file in app folder
+	 * get existing file in app folder
 	 *
 	 * @throws InvalidValueException
 	 * @throws FileNotFoundException
-	 * @return File
 	 */
 	final protected function getFile():File {
 		if (!isset($this->settings['folder']) || !is_string($this->settings['folder'])) {
 			throw new InvalidValueException('folder', $this->settings['folder'] ?? null);
 		}
 		if (!isset($this->settings['extension']) || !is_string($this->settings['extension'])) {
-			throw new InvalidValueException('File-Extension', $this->settings['extension'] ?? null);
+			throw new InvalidValueException('extension', $this->settings['extension'] ?? null);
 		}
 
 		$page = implode('/', array_merge(array($this->request->getPage()), $this->request->getInputList()))
@@ -113,13 +101,9 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		elseif ($fileInCommon->isFile()) {
 			return $fileInCommon;
 		}
-		throw new FileNotFoundException();
+		throw new FileNotFoundException($fileInArea, $fileInCommon);
 	}
 
-	/**
-	 * @param  string $text
-	 * @return string
-	 */
 	final protected function translate(string $text):string {
 		$locateTexts = array();
 
@@ -154,9 +138,6 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		return $text;
 	}
 
-	/**
-	 * @return Bucket
-	 */
 	final protected function getTextBucket():Bucket {
 		$texts = new Bucket();
 
@@ -193,10 +174,6 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		return $texts;
 	}
 
-	/**
-	 * @param  int $code
-	 * @return AbstractModeHandler this
-	 */
 	protected function error(int $code):AbstractModeHandler {
 		if (!HttpConst::isStatus($code)) {
 			throw new RuntimeException('unknown HTTP-Status Code `'.$code.'`');

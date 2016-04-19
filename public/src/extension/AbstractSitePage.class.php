@@ -72,8 +72,6 @@ abstract class AbstractSitePage {
 
 	/**
 	 * This method will call if nothing is submitted.
-	 *
-	 * @return void
 	 */
 	abstract public function setUp();
 
@@ -89,28 +87,17 @@ abstract class AbstractSitePage {
 	 * This method will call if:
 	 * - count of $_POST is greater than zero
 	 * - formId and all expectations are correct
-	 *
-	 * @return bool
 	 */
 	abstract public function check():bool;
 
-	/**
-	 * @param Bucket $config
-	 * @param array  $request
-	 */
 	public function __construct(Bucket $config, array $request) {
-		$this->request = $request;
 		$this->config  = $config;
+		$this->request = $request;
 
 		$this->response     = new Tree('document');
 		$this->responseForm = $this->response->getRootNode()->addChild(new Node('form'));
 	}
 
-	/**
-	 * @param  string $name
-	 * @param  string $value
-	 * @return AbstractSitePage this
-	 */
 	final public function setResponseFormItem(string $name, string $value):AbstractSitePage {
 		$this->responseForm
 				->addChild(new Node($name))
@@ -121,9 +108,6 @@ abstract class AbstractSitePage {
 	/**
 	 * Call this method in <code>AbstractSitePage::check</code> to indicate: the request was <b>successful</b>.
 	 * Return the response of this method!
-	 *
-	 * @param  string $reason
-	 * @return bool
 	 */
 	final public function accept(string $reason = null):bool {
 		if (is_string($reason)) {
@@ -135,9 +119,6 @@ abstract class AbstractSitePage {
 	/**
 	 * Call this method in <code>AbstractSitePage::check</code> to indicate: the request was <b>failed</b>.
 	 * Return the response of this method!
-	 *
-	 * @param  string $reason
-	 * @return bool
 	 */
 	final public function reject(string $reason = null):bool {
 		if (is_string($reason)) {
@@ -146,9 +127,6 @@ abstract class AbstractSitePage {
 		return false;
 	}
 
-	/**
-	 * @return bool
-	 */
 	public function checkExpectation():bool {
 		$expectList           = $this->getExpectList();
 		$expectList['formId'] = SiteModeHandler::FORM_ID_PATTERN;

@@ -52,9 +52,8 @@ class SiteModeHandler extends AbstractModeHandler {
 
 	/**
 	 * @see    AbstractModeHandler::handle
-	 * @return AbstractModeHandler this
 	 */
-	public function handle():AbstractModeHandler {
+	public function handle() {
 		# is page present
 		try {
 			$pageData = $this->getPageData();
@@ -130,7 +129,6 @@ class SiteModeHandler extends AbstractModeHandler {
 					->attach(self::TEMP_FILE)
 					->putContents($page->response->getSource(true), false);
 		}
-		return $this;
 	}
 
 	/**

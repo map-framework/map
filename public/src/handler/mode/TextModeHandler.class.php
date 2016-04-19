@@ -17,7 +17,7 @@ class TextModeHandler extends AbstractModeHandler {
 	 * @throws InvalidValueException
 	 * @return AbstractModeHandler this
 	 */
-	public function handle():AbstractModeHandler {
+	public function handle() {
 		try {
 			$file = $this->getFile();
 		}
@@ -26,7 +26,6 @@ class TextModeHandler extends AbstractModeHandler {
 		}
 
 		echo $this->translate($file->getContents());
-		return $this;
 	}
 
 }

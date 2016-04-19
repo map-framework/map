@@ -93,8 +93,7 @@ final class Web {
 	/**
 	 * call mode handler
 	 *
-	 * @throws Exception
-	 * @return void
+	 * @throws RuntimeException
 	 */
 	public function main() {
 		$modeSettings = $this->config->get('mode', $this->request->getMode());

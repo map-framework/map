@@ -15,10 +15,7 @@ use store\Logger;
  */
 class RestModeHandler extends AbstractModeHandler {
 
-	/**
-	 * @return AbstractModeHandler this
-	 */
-	public function handle():AbstractModeHandler {
+	public function handle() {
 		$nameSpace = $this->getTargetNameSpace();
 		if (!class_exists($nameSpace)) {
 			return $this->error(404);
@@ -69,7 +66,6 @@ class RestModeHandler extends AbstractModeHandler {
 
 		echo $object->getResponse()->toJson();
 		http_response_code($responseCode);
-		return $this;
 	}
 
 	/**
