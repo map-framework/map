@@ -1,191 +1,64 @@
 <?php
 namespace store;
 
-use RuntimeException;
+use exception\file\FileNotFoundException;
+use exception\InvalidValueException;
+use exception\MAPException;
 use store\data\File;
 use xml\Node;
 
+/**
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 class Bucket {
 
 	const PATTERN_GROUP = '/^[A-Za-z0-9_\-.]{1,32}$/';
 	const PATTERN_KEY   = '/^[A-Za-z0-9_\-.]{1,32}$/';
 
 	/**
-	 * array[group:string|int][key:string|int] => value:mixed
+	 * array[group:string][key:string] => value:mixed
 	 *
 	 * @var array (see above)
 	 */
 	private $data = array();
 
 	/**
-	 * @see   Bucket::applyIni
-	 * @see   Bucket::applyArray
-	 * @param null|File|array $applyData
+	 * @see Bucket::applyIni
+	 * @see Bucket::applyArray
 	 */
 	public function __construct($applyData = null) {
-		if ($applyData instanceof File) {
-			$this->applyIni($applyData);
+		if ($applyData instanceof Bucket) {
+			$applyData = $applyData->toArray();
 		}
-		elseif (is_array($applyData)) {
+
+		if (is_array($applyData)) {
 			$this->applyArray($applyData);
 		}
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @return bool
-	 */
-	final public function isGroup($group) {
-		return isset($this->data[$group]);
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isNull($group, $key) {
-		return is_null($this->get($group, $key));
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isArray($group, $key) {
-		return is_array($this->get($group, $key));
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isString($group, $key) {
-		return is_string($this->get($group, $key));
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isInt($group, $key) {
-		return is_int($this->get($group, $key));
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isBool($group, $key) {
-		return $this->isTrue($group, $key) || $this->isFalse($group, $key);
-	}
-
-	/**
-	 * is exactly true
-	 *
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isTrue($group, $key) {
-		return $this->get($group, $key) === true;
-	}
-
-	/**
-	 * is exactly false
-	 *
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @return bool
-	 */
-	final public function isFalse($group, $key) {
-		return $this->get($group, $key) === false;
-	}
-
-	/**
-	 * remove key in group
-	 *
-	 * @param  string $group
-	 * @param  string $key
-	 * @return Bucket this
-	 */
-	final public function remove($group, $key) {
-		if (isset($this->data[$group][$key])) {
-			unset($this->data[$group][$key]);
-			if ($this->getKeyCount($group) === 0) {
-				unset($this->data[$group]);
-			}
+		elseif ($applyData instanceof File) {
+			$this->applyIni($applyData);
 		}
-		return $this;
+	}
+
+	final public function get(string $group, string $key, $default = null) {
+		return $this->data[$group][$key] ?? $default;
 	}
 
 	/**
-	 * @param  string $group
-	 * @return Bucket this
+	 * @throws InvalidValueException
 	 */
-	final public function removeGroup($group) {
-		if (isset($this->data[$group])) {
-			unset($this->data[$group]);
+	final public function set(string $group, string $key, $value, bool $mergeArrays = false):Bucket {
+		if (!preg_match(self::PATTERN_GROUP, $group)) {
+			throw new InvalidValueException(self::PATTERN_GROUP, $group);
 		}
-		return $this;
-	}
-
-	/**
-	 * get count of all groups
-	 *
-	 * @return int
-	 */
-	final public function getGroupCount() {
-		return count($this->data);
-	}
-
-	/**
-	 * get count of keys in group
-	 *
-	 * @param  string|int $group
-	 * @return int
-	 */
-	final public function getKeyCount($group) {
-		if (!$this->isGroup($group)) {
-			return 0;
-		}
-		return count($this->data[$group]);
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @param  mixed      $default
-	 * @return mixed
-	 */
-	final public function get($group, $key, $default = null) {
-		if (isset($this->data[$group][$key])) {
-			return $this->data[$group][$key];
-		}
-		return $default;
-	}
-
-	/**
-	 * @param  string|int $group
-	 * @param  string|int $key
-	 * @param  mixed      $value
-	 * @param  boolean    $merge (arrays)
-	 * @throws RuntimeException if group or key invalid
-	 * @return Bucket
-	 */
-	final public function set($group, $key, $value, $merge = false) {
-		if (!is_int($group) && !preg_match(self::PATTERN_GROUP, $group)) {
-			throw new RuntimeException('Invalid group `'.$group.'`.', 1);
-		}
-		if (!is_int($key) && !preg_match(self::PATTERN_KEY, $key)) {
-			throw new RuntimeException('Invalid key `'.$key.'`.', 2);
+		if (!preg_match(self::PATTERN_KEY, $key)) {
+			throw new InvalidValueException(self::PATTERN_KEY, $key);
 		}
 
-		if ($merge === true && is_array($value) && $this->isArray($group, $key)) {
+		if ($mergeArrays && is_array($value) && $this->isArray($group, $key)) {
 			$value = array_merge($this->get($group, $key), $value);
 		}
 
@@ -193,53 +66,112 @@ class Bucket {
 		return $this;
 	}
 
-	/**
-	 * @param  File $iniFile
-	 * @throws RuntimeException if file not exist
-	 * @return Bucket
-	 */
-	final public function applyIni(File $iniFile) {
-		if ($iniFile === null || !$iniFile->isFile()) {
-			throw new RuntimeException('file not exists `'.$iniFile.'`');
+	final public function isGroup(string ...$group):bool {
+		foreach ($group as $g) {
+			if (!isset($this->data[$g])) {
+				return false;
+			}
 		}
-		return $this->applyArray(parse_ini_file($iniFile->getRealPath(), true, INI_SCANNER_TYPED));
+		return true;
+	}
+
+	final public function isNull(string $group, string $key):bool {
+		return is_null($this->get($group, $key));
+	}
+
+	final public function isArray(string $group, string $key):bool {
+		return is_array($this->get($group, $key));
+	}
+
+	final public function isString(string $group, string $key):bool {
+		return is_string($this->get($group, $key));
+	}
+
+	final public function isInt(string $group, string $key):bool {
+		return is_int($this->get($group, $key));
+	}
+
+	final public function isBool(string $group, string $key):bool {
+		return is_bool($this->get($group, $key));
+	}
+
+	final public function isTrue(string $group, string $key):bool {
+		return $this->get($group, $key) === true;
+	}
+
+	final public function isFalse(string $group, string $key):bool {
+		return $this->get($group, $key) === false;
+	}
+
+	final public function getGroupCount():int {
+		return count($this->data);
+	}
+
+	final public function getKeyCount(string ...$group):int {
+		$count = 0;
+		foreach ($group as $g) {
+			if ($this->isGroup($g)) {
+				$count += count($this->data[$g]);
+			}
+		}
+		return $count;
+	}
+
+	final public function remove(string $group, string ...$key):Bucket {
+		foreach ($key as $k) {
+			unset($this->data[$group][$k]);
+		}
+		
+		if ($this->getKeyCount($group) === 0) {
+			$this->removeGroup($group);
+		}
+		return $this;
+	}
+
+	final public function removeGroup(string ...$group):Bucket {
+		foreach ($group as $g) {
+			unset($this->data[$g]);
+		}
+		return $this;
 	}
 
 	/**
+	 * ignores keys without group
+	 *
 	 * @see    Bucket::$data
-	 * @param  array $data
-	 * @throws RuntimeException if data invalid
-	 * @return Bucket
+	 * @throws InvalidValueException
 	 */
-	final public function applyArray($data) {
-		if (!is_array($data)) {
-			throw new RuntimeException('data is invalid');
-		}
+	final public function applyArray(array $data):Bucket {
 		foreach ($data as $group => $keyList) {
-			if (!is_array($keyList)) {
-				# ignore keys without group
-				continue;
-			}
-			foreach ($keyList as $key => $value) {
-				$this->set($group, $key, $value, true);
+			if (is_array($keyList)) {
+				foreach ($keyList as $key => $value) {
+					$this->set($group, $key, $value, true);
+				}
 			}
 		}
 		return $this;
 	}
 
 	/**
-	 * @see    Bucket::$data
-	 * @return array
+	 * @see    Bucket::applyArray
+	 * @throws FileNotFoundException
+	 * @throws InvalidValueException
 	 */
-	final public function toArray() {
-		return $this->data;
+	final public function applyIni(File $iniFile):Bucket {
+		if ($iniFile === null || !$iniFile->isFile()) {
+			throw new FileNotFoundException($iniFile);
+		}
+		return $this->applyArray(parse_ini_file($iniFile->getRealPath(), true, INI_SCANNER_TYPED));
 	}
 
 	/**
-	 * @param  string $nodeName
-	 * @return Node
+	 * @see Bucket::$data
 	 */
-	final public function toNode($nodeName) {
+	final public function toArray():array {
+		return $this->data;
+	}
+
+	final public function toNode(string $nodeName):Node {
 		$node = new Node($nodeName);
 		foreach ($this->toArray() as $group => $keyList) {
 			$groupNode = $node->addChild(new Node($group));
@@ -253,10 +185,14 @@ class Bucket {
 	}
 
 	/**
-	 * @return string|bool
+	 * @throws MAPException
 	 */
-	final public function toJson() {
-		return json_encode($this->toArray());
+	final public function toJson():string {
+		$json = json_encode($this->toArray());
+		if ($json === false) {
+			throw new MAPException('failed to encode to json');
+		}
+		return $json;
 	}
 
 }
