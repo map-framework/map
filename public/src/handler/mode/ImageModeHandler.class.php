@@ -3,7 +3,6 @@ namespace handler\mode;
 
 use exception\file\FileNotFoundException;
 use exception\InvalidValueException;
-use RuntimeException;
 use store\Logger;
 
 /**
@@ -17,7 +16,6 @@ class ImageModeHandler extends AbstractModeHandler {
 
 	/**
 	 * @throws InvalidValueException
-	 * @throws RuntimeException
 	 */
 	public function handle() {
 		try {
@@ -25,6 +23,10 @@ class ImageModeHandler extends AbstractModeHandler {
 		}
 		catch (FileNotFoundException $e) {
 			return $this->error(404);
+		}
+		catch (InvalidValueException $e) {
+			Logger::error($e);
+			return $this->error(500);
 		}
 
 		if (!$file->printFile()) {
@@ -34,11 +36,7 @@ class ImageModeHandler extends AbstractModeHandler {
 		$this->setContentLength($file->getSize());
 	}
 
-	/**
-	 * @param  int $length
-	 * @return ImageModeHandler this
-	 */
-	final protected function setContentLength($length):ImageModeHandler {
+	final protected function setContentLength(int $length):ImageModeHandler {
 		header('Content-Length: '.$length);
 		return $this;
 	}

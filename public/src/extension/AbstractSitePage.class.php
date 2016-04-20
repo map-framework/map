@@ -128,10 +128,10 @@ abstract class AbstractSitePage {
 	}
 
 	public function checkExpectation():bool {
-		$expectList           = $this->getExpectList();
-		$expectList['formId'] = SiteModeHandler::FORM_ID_PATTERN;
-
-		foreach ($expectList as $name => $pattern) {
+		if (!SiteModeHandler::isFormId($this->request['formId'] ?? '')) {
+			return false;
+		}
+		foreach ($this->getExpectList() as $name => $pattern) {
 			if (!isset($this->request[$name]) || !preg_match('/^'.$pattern.'$/', $this->request[$name])) {
 				return false;
 			}

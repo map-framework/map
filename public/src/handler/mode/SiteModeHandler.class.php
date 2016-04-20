@@ -2,6 +2,8 @@
 namespace handler\mode;
 
 use Exception;
+use exception\file\FileNotFoundException;
+use exception\MAPException;
 use extension\AbstractSitePage;
 use RuntimeException;
 use store\Bucket;
@@ -13,27 +15,16 @@ use xml\XSLProcessor;
 
 class SiteModeHandler extends AbstractModeHandler {
 
-	const FORM_ID_CHARS   = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	const FORM_ID_LENGTH  = 16;
-	const FORM_ID_PATTERN = '['.self::FORM_ID_CHARS.']{'.self::FORM_ID_LENGTH.'}';
-
-	const TEMP_DIR  = 'map';
-	const TEMP_FILE = 'lastSiteResponse.xml';
+	const FORM_ID_LENGTH = 16;
+	const TEMP_DIR       = 'map';
+	const TEMP_FILE      = 'lastSiteResponse.xml';
 
 	/**
 	 * @var Bucket
 	 */
-	protected $storedForms = null;
+	protected $storedForms;
 
-	/**
-	 * array[key:string] = value:mixed
-	 *
-	 * @see   AbstractModeHandler::__construct
-	 * @param Bucket $config
-	 * @param MAPUrl $request
-	 * @param array  $settings (see above)
-	 */
-	public function __construct(Bucket $config, MAPUrl $request, $settings) {
+	public function __construct(Bucket $config, MAPUrl $request, array $settings) {
 		parent::__construct($config, $request, $settings);
 
 		# load stored forms from session
@@ -43,47 +34,37 @@ class SiteModeHandler extends AbstractModeHandler {
 		$this->storedForms = new Bucket($_SESSION['form']);
 	}
 
-	/**
-	 * save stored forms into session
-	 */
 	public function __destruct() {
+		# save stored forms into session
 		$_SESSION['form'] = $this->storedForms->toArray();
 	}
 
-	/**
-	 * @see    AbstractModeHandler::handle
-	 */
 	public function handle() {
-		# is page present
 		try {
 			$pageData = $this->getPageData();
 		}
-		catch (Exception $e) {
+		catch (MAPException $e) {
 			return $this->error(404);
 		}
 
-		# choose form status
 		$formStatus  = $this->getFormStatus();
 		$requestData = $formStatus === null ? $_POST : array();
 
-		# generate & validate page
 		$page = new $pageData['nameSpace']($this->config, $requestData);
 		if (!($page instanceof AbstractSitePage)) {
-			# TODO: throw ExpectedInstanceException (#28)
 			throw new RuntimeException('class `'.$pageData['nameSpace'].'` isn\'t instance of `'.AbstractSitePage::class.'`');
 		}
 
-		# is page accessible
 		if ($page->access() !== true) {
 			return $this->error(403);
 		}
 
-		# call page -> set-up (response: INIT, RESTORED or REPEATED)
 		if ($formStatus !== null) {
+			# formStatus == INIT, RESTORED or REPEATED
 			$page->setUp();
 		}
-		# call page -> check (response: ACCEPTED or REJECTED)
 		else {
+			# formStatus == ACCEPTED or REJECTED
 			if ($page->checkExpectation() === true && $page->check() === true) {
 				$formStatus = AbstractSitePage::STATUS_ACCEPTED;
 				$this->closeStoredForm($requestData['formId']);
@@ -94,7 +75,6 @@ class SiteModeHandler extends AbstractModeHandler {
 			}
 		}
 
-		# set response form data (if: RESTORED and REJECTED)
 		if ($formStatus === AbstractSitePage::STATUS_RESTORED) {
 			$responseFormData = $this->getStoredFormData();
 		}
@@ -103,16 +83,16 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 
 		if (isset($responseFormData)) {
+			# formStatus == RESTORED or REJECTED
 			foreach ($responseFormData as $name => $value) {
 				$page->setResponseFormItem($name, $value);
 			}
 		}
 		else {
-			# set form id (if: INIT, ACCEPTED or REPEATED)
-			$page->responseForm->addChild((new Node('formId'))->setContent($this->generateFormId()));
+			# formStatus == INIT, ACCEPTED or REPEATED
+			$page->responseForm->addChild((new Node('formId'))->setContent(self::generateFormId()));
 		}
 
-		# enrich response tree
 		$page->responseForm->setAttribute('status', $formStatus);
 		$page->response->getRootNode()->addChild($this->getTextNode());
 
@@ -132,14 +112,10 @@ class SiteModeHandler extends AbstractModeHandler {
 	}
 
 	/**
-	 * array['className']  = className:string
-	 * array['nameSpace']  = nameSpace:string
-	 * array['styleSheet'] = styleSheet:File
-	 *
-	 * @throws Exception
-	 * @return null|array (see above)
+	 * @throws FileNotFoundException
+	 * @throws MAPException
 	 */
-	protected function getPageData() {
+	protected function getPageData():array {
 		$className  = ucfirst($this->request->getPage()).'Page';
 		$nameSpace  = 'area\\'.$this->request->getArea().'\logic\site\\'.$className;
 		$styleSheet = new File(
@@ -147,15 +123,12 @@ class SiteModeHandler extends AbstractModeHandler {
 		);
 
 		if (!class_exists($nameSpace)) {
-			Logger::debug('Returned status 404 because class `'.$nameSpace.'` not found.');
-			# TODO: throw ClassNotFoundException (#28)
-			throw new Exception('Class `'.$nameSpace.'` not found.', 1);
+			Logger::debug('HTTP-Status 404 because: class `'.$nameSpace.'` not found');
+			throw new MAPException('class `'.$nameSpace.'` not found.', 1);
 		}
-
 		if (!$styleSheet->isFile()) {
-			Logger::debug('Returned status 404 because file `'.$styleSheet.'` not found.');
-			# TODO: throw FileNotFoundException (#28)
-			throw new Exception('File `'.$styleSheet.'` not found.', 2);
+			Logger::debug('HTTP-Status 404 because: file `'.$styleSheet.'` not found');
+			throw new FileNotFoundException($styleSheet);
 		}
 
 		return array(
@@ -166,48 +139,37 @@ class SiteModeHandler extends AbstractModeHandler {
 	}
 
 	/**
-	 * null = unknown/undefined (ACCEPTED or REJECTED)
+	 * Returns status RESTORED, REPEATED or INIT.
+	 * Returns null if status unknown (ACCEPTED or REJECTED).
 	 *
-	 * @see    AbstractSitePage::STATUS_INIT
-	 * @see    AbstractSitePage::STATUS_RESTORED
-	 * @see    AbstractSitePage::STATUS_REPEATED
-	 * @see    AbstractSitePage::STATUS_ACCEPTED
-	 * @see    AbstractSitePage::STATUS_REJECTED
-	 * @return null|string
+	 * @return mixed
 	 */
 	protected function getFormStatus() {
 		if (!count($_POST)) {
-			if ($this->getStoredFormData() !== null) {
+			if (count($this->getStoredFormData())) {
 				$formId = $this->getStoredFormData()['formId'];
-				if ($this->isStoredFormClose($formId) === false) {
+				if ($this->isStoredForm($formId) && !$this->isStoredFormClose($formId)) {
 					return AbstractSitePage::STATUS_RESTORED;
 				}
 			}
 			return AbstractSitePage::STATUS_INIT;
 		}
-		if (isset($_POST['formId']) && $this->isStoredFormClose($_POST['formId']) === true) {
-			return AbstractSitePage::STATUS_REPEATED;
+		if (isset($_POST['formId'])) {
+			if ($this->isStoredForm($_POST['formId']) && $this->isStoredFormClose($_POST['formId'])) {
+				return AbstractSitePage::STATUS_REPEATED;
+			}
 		}
 		return null;
 	}
 
-	/**
-	 * @param  string $nodeName
-	 * @return Node
-	 */
-	protected function getTextNode($nodeName = 'text') {
+	protected function getTextNode(string $nodeName = 'text'):Node {
 		return $this->getTextBucket()->toNode($nodeName)->setAttribute(
 				'language',
 				$this->config->get('multiLang', 'language')
 		);
 	}
 
-	/**
-	 * @param  array $data { string => string }
-	 * @param  bool  $close
-	 * @return SiteModeHandler this
-	 */
-	protected function saveForm($data, $close = false) {
+	protected function saveForm(array $data, bool $close = false):SiteModeHandler {
 		$form = array(
 				'data'  => $data,
 				'close' => $close
@@ -216,62 +178,43 @@ class SiteModeHandler extends AbstractModeHandler {
 		return $this;
 	}
 
-	/**
-	 * @param  string $formId
-	 * @return SiteModeHandler this
-	 */
-	protected function closeStoredForm($formId) {
-		if ($this->isFormId($formId)) {
+	protected function closeStoredForm(string $formId):SiteModeHandler {
+		if (self::isFormId($formId)) {
 			$this->saveForm(['formId' => $formId], true);
 		}
 		return $this;
 	}
 
-	/**
-	 * array[name:string] = value:string
-	 *
-	 * @return null|array (see above)
-	 */
-	protected function getStoredFormData() {
+	protected function getStoredFormData():array {
 		if ($this->storedForms->isArray($this->request->getArea(), $this->request->getPage())) {
 			return $this->storedForms->get($this->request->getArea(), $this->request->getPage())['data'];
 		}
-		return null;
+		return array();
 	}
 
-	/**
-	 * @param  string $formId
-	 * @return bool|null
-	 */
-	protected function isStoredFormClose($formId) {
+	protected function isStoredForm(string $formId):bool {
 		$formData = $this->getStoredFormData();
-		if ($formData === null || !$this->isFormId($formId) || $formData['formId'] !== $formId) {
-			return null;
+		return count($formData) && $formData['formId'] === $formId;
+	}
+
+	protected function isStoredFormClose(string $formId):bool {
+		if (!$this->isStoredForm($formId)) {
+			throw new RuntimeException('form not found (formId: `'.$formId.'`)');
 		}
 		return $this->storedForms->get($this->request->getArea(), $this->request->getPage())['close'];
 	}
 
-	/**
-	 * @return SiteModeHandler this
-	 */
-	protected function removeStoredForm() {
+	protected function removeStoredForm():SiteModeHandler {
 		$this->storedForms->remove($this->request->getArea(), $this->request->getPage());
 		return $this;
 	}
 
-	/**
-	 * @param  string $formId
-	 * @return bool
-	 */
-	final protected function isFormId($formId) {
-		return (bool) preg_match('/^'.self::FORM_ID_PATTERN.'$/', $formId);
+	final public static function isFormId(string $formId):bool {
+		return strlen($formId) === self::FORM_ID_LENGTH && ctype_xdigit($formId);
 	}
 
-	/**
-	 * @return string
-	 */
-	final protected function generateFormId() {
-		return substr(str_shuffle(self::FORM_ID_CHARS), 0, self::FORM_ID_LENGTH);
+	final public static function generateFormId():string {
+		return bin2hex(random_bytes(self::FORM_ID_LENGTH / 2));
 	}
 
 }
