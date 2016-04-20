@@ -1,14 +1,21 @@
 <?php
 namespace peer\http;
 
+/**
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 final class HttpConst {
 
-	# Status - Informational
+	# Status: Informational
 	const STATUS_100 = 'Continue';
 	const STATUS_101 = 'Switching Protocols';
 	const STATUS_102 = 'Processing';
 
-	# Status - Success
+	# Status: Success
 	const STATUS_200 = 'OK';
 	const STATUS_201 = 'Created';
 	const STATUS_202 = 'Accepted';
@@ -20,7 +27,7 @@ final class HttpConst {
 	const STATUS_208 = 'Already Reported';
 	const STATUS_226 = 'IM Used';
 
-	# Status - Redirection
+	# Status: Redirection
 	const STATUS_300 = 'Multiple Choices';
 	const STATUS_301 = 'Moved Permanently';
 	const STATUS_302 = 'Found';
@@ -30,7 +37,7 @@ final class HttpConst {
 	const STATUS_307 = 'Temporary Redirect';
 	const STATUS_308 = 'Permanent Redirect';
 
-	# Status - Client Error
+	# Status: Client Error
 	const STATUS_400 = 'Bad Request';
 	const STATUS_401 = 'Unauthorized';
 	const STATUS_403 = 'Forbidden';
@@ -60,7 +67,7 @@ final class HttpConst {
 	const STATUS_431 = 'Request Header Fields Too Large';
 	const STATUS_451 = 'Unavailable For Legal Reasons';
 
-	# Status - Server Error
+	# Status: Server Error
 	const STATUS_500 = 'Internal Server Error';
 	const STATUS_501 = 'Not Implemented';
 	const STATUS_502 = 'Bad Gateway';
@@ -83,19 +90,11 @@ final class HttpConst {
 	const METHOD_OPTIONS = 'OPTIONS';
 	const METHOD_CONNECT = 'CONNECT';
 
-	/**
-	 * @param  string $method
-	 * @return bool
-	 */
-	public static function isMethod($method) {
+	public static function isMethod(string $method):bool {
 		return defined('self::METHOD_'.$method);
 	}
 
-	/**
-	 * @param  int $status
-	 * @return bool
-	 */
-	public static function isStatus($status) {
+	public static function isStatus(int $status):bool {
 		return defined('self::STATUS_'.$status);
 	}
 

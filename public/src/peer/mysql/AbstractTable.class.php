@@ -10,13 +10,21 @@ use peer\mysql\statement\Update;
 use ReflectionClass;
 use RuntimeException;
 use store\Bucket;
+use store\Logger;
 
+/**
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 abstract class AbstractTable {
 
 	/**
 	 * @var Bucket
 	 */
-	protected $config = null;
+	protected $config;
 
 	/**
 	 * @var string
@@ -28,7 +36,7 @@ abstract class AbstractTable {
 	 *
 	 * @var string
 	 */
-	private $tableName = null;
+	private $tableName;
 
 	/**
 	 * array[columnName:string]['type']    = type:string
@@ -43,12 +51,12 @@ abstract class AbstractTable {
 	/**
 	 * @var string
 	 */
-	private $primaryKey = null;
+	private $primaryKey;
 
 	/**
 	 * @var Bucket
 	 */
-	private $content = null;
+	private $content;
 
 	/**
 	 * @var int
@@ -63,102 +71,58 @@ abstract class AbstractTable {
 	/**
 	 * 1. call AbstractTable::setAccessPoint, if not default (Request::$DEFAULT_ACCESS_POINT)
 	 * 2. call AbstractTable::setTableName, if: Class-Name <> Table-Name
-	 * 3. call AbstractTable::addColumn, for each column (expect id column)
+	 * 3. call AbstractTable::addColumn, for each column
 	 * 4. call AbstractTable::setPrimaryKey
-	 *
-	 * @return void
 	 */
 	abstract protected function init();
 
-	/**
-	 * @throws RuntimeException
-	 * @param  Bucket $config
-	 */
 	final public function __construct(Bucket $config) {
 		$this->config  = $config;
 		$this->content = new Bucket();
 
 		$this->init();
 
-		if (count($this->columnList) === 0) {
+		if (!count($this->columnList)) {
 			throw new RuntimeException('required to call: AbstractTable::addColumn');
 		}
 		if ($this->primaryKey === null) {
-			throw new RuntimeException('required one primary key');
+			throw new RuntimeException('required to call: AbstractTable::setPrimaryKey');
 		}
 		if (!isset($this->columnList[$this->primaryKey])) {
-			throw new RuntimeException('primary key column `'.$this->primaryKey.'` not exists');
+			throw new RuntimeException('column `'.$this->primaryKey.'` not exists');
 		}
 	}
 
-	/**
-	 * set access point
-	 * type:     table set-up
-	 * required: false
-	 *
-	 * @param  string $accessPoint
-	 * @return AbstractTable $this
-	 */
-	final protected function setAccessPoint($accessPoint) {
+	final protected function setAccessPoint(string $accessPoint):AbstractTable {
 		$this->accessPoint = $accessPoint;
 		return $this;
 	}
 
-	/**
-	 * set custom table name
-	 * type:     table set-up
-	 * required: false
-	 *
-	 * @param  string $tableName
-	 * @return AbstractTable this
-	 */
-	final protected function setTableName($tableName) {
+	final protected function setTableName(string $tableName):AbstractTable {
 		$this->tableName = $tableName;
 		return $this;
 	}
 
-	/**
-	 * add column
-	 * type:     table set-up
-	 * required: true
-	 *
-	 * @param  string $name
-	 * @param  string $type
-	 * @param  bool   $null
-	 * @param  bool   $default
-	 * @throws RuntimeException
-	 * @return AbstractTable this
-	 */
-	final protected function addColumn($name, $type, $null = true, $default = false) {
-		if (isset($this->columnList[$name])) {
-			throw new RuntimeException('column `'.$name.'` already configured');
-		}
-
+	final protected function addColumn(
+			string $name,
+			string $type,
+			bool $null = true,
+			bool $default = false
+	):AbstractTable {
 		$this->columnList[$name] = array(
-				'type'    => (string) $type,
-				'null'    => (bool) $null,
-				'default' => (bool) $default
+				'type'    => $type,
+				'null'    => $null,
+				'default' => $default
 		);
 		return $this;
 	}
 
-	/**
-	 * set primary key
-	 * type:     table set-up
-	 * required: true
-	 *
-	 * @param  string $columnName
-	 * @return AbstractTable this
-	 */
-	final protected function setPrimaryKey($columnName) {
+	final protected function setPrimaryKey(string $columnName):AbstractTable {
 		$this->primaryKey = $columnName;
 		return $this;
 	}
 
-	/**
-	 * @return string
-	 */
-	final public function getTableName() {
+	final public function getTableName():string {
 		if ($this->tableName !== null) {
 			return $this->tableName;
 		}
@@ -166,134 +130,87 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * length of rows
-	 *
-	 * @return int
+	 * get number of rows
 	 */
-	final public function getLength() {
+	final public function getLength():int {
 		return $this->content->getGroupCount();
 	}
 
 	/**
-	 * set pointer to row
-	 *
-	 * @param  int $pointer
-	 * @return AbstractTable this
+	 * set row-pointer
 	 */
-	final public function setPointer($pointer) {
+	final public function setPointer(int $pointer):AbstractTable {
 		$this->pointer = $pointer;
 		return $this;
 	}
 
 	/**
-	 * @return int
+	 * get row-pointer
 	 */
-	final public function getPointer() {
+	final public function getPointer():int {
 		return $this->pointer;
 	}
 
-	/**
-	 * do {
-	 *   echo $person->name;
-	 * }
-	 * while ($person->next());
-	 *
-	 * @example (see above)
-	 * @return  bool
-	 */
-	final public function next() {
+	final public function next():bool {
 		$newPointer = $this->getPointer() + 1;
-		if ($this->content->getGroupCount() <= $newPointer) {
+		if ($this->getLength() <= $newPointer) {
 			return false;
 		}
 		$this->setPointer($newPointer);
 		return true;
 	}
 
-	/**
-	 * @return bool
-	 */
-	final public function isFilled() {
-		return !$this->content->isNull(0, $this->primaryKey);
-	}
-
-	/**
-	 * @see    AbstractTable::$isReadOnly
-	 * @return bool
-	 */
-	final public function isReadOnly() {
+	final public function isReadOnly():bool {
 		return $this->isReadOnly;
 	}
 
-	/**
-	 * @return AbstractTable this
-	 */
-	final public function toReadOnly() {
+	final public function toReadOnly():AbstractTable {
 		$this->isReadOnly = true;
 		return $this;
 	}
 
-	/**
-	 * @return Bucket|null
-	 */
-	final public function getBucket() {
+	final public function isContentFromDB():bool {
+		return !$this->content->isNull(0, $this->primaryKey);
+	}
+
+	final public function toBucket():Bucket {
 		return clone $this->content;
 	}
 
-	/**
-	 * @see    AbstractTable::getPointer
-	 * @param  string   $columnName
-	 * @param  mixed    $value
-	 * @param  int|null $pointer (default getPointer)
-	 * @throws RuntimeException
-	 * @return AbstractTable this
-	 */
-	final public function set($columnName, $value, $pointer = null) {
-		if ($this->isReadOnly()) {
-			throw new RuntimeException('this object is read only');
-		}
+	final public function set(string $columnName, $value, int $pointer = -1):AbstractTable {
+		$this->assertNotReadonly();
+		$this->assertColumnExists($columnName);
+		$this->assertColumnIsNotPrimaryKey($columnName);
 
-		if (!isset($this->columnList[$columnName])) {
-			throw new RuntimeException('column `'.$columnName.'` not exists');
-		}
-		if ($pointer === null) {
+		if ($pointer < 0) {
 			$pointer = $this->getPointer();
 		}
 		$this->content->set($pointer, $columnName, $value);
 		return $this;
 	}
 
-	/**
-	 * @see    AbstractTable::getPointer
-	 * @param  string   $columnName
-	 * @param  int|null $pointer (default getPointer)
-	 * @return mixed
-	 */
-	final public function get($columnName, $pointer = null) {
-		if ($pointer === null) {
+	final public function __set(string $name, $value) {
+		$this->set($name, $value);
+	}
+
+	final public function get(string $columnName, int $pointer = -1) {
+		if ($pointer < 0) {
 			$pointer = $this->pointer;
 		}
 		return $this->content->get($pointer, $columnName);
 	}
 
+	final public function __get(string $name) {
+		return $this->get($name);
+	}
+
 	/**
-	 * make MySQL SELECT
-	 *
-	 * @see    Select
-	 * @param  string   $columnName
-	 * @param  mixed    $value
-	 * @param  int|null $limit
-	 * @throws RuntimeException
-	 * @throws Exception
-	 * @return AbstractTable this
+	 * @see Select
 	 */
-	final public function fillBy($columnName, $value, $limit = null) {
-		if ($this->getLength() !== 0 || $this->isReadOnly()) {
-			throw new RuntimeException('this object is already filled or readonly');
-		}
-		if (!isset($this->columnList[$columnName])) {
-			throw new RuntimeException('column `'.$columnName.'` not exists');
-		}
+	final public function fillBy(string $columnName, $value, int $limit = 0):AbstractTable {
+		$this->assertNotReadonly();
+		$this->assertContentIsEmpty();
+		$this->assertColumnExists($columnName);
 
 		$select = (new Select($this->getTableName()))
 				->addCondition($columnName, $this->columnList[$columnName]['type'], $value);
@@ -302,7 +219,7 @@ abstract class AbstractTable {
 			$select->addExpression($column);
 		}
 
-		if ($limit !== null) {
+		if ($limit > 0) {
 			$select->setLimit($limit);
 		}
 
@@ -313,7 +230,7 @@ abstract class AbstractTable {
 			throw new RuntimeException('MySQL-Request failed: `'.$request->getLastQuery().'`');
 		}
 		if ($result->getGroupCount() === 0) {
-			throw new Exception('MySQL-Result is empty (Query: `'.$request->getLastQuery().'`)');
+			Logger::debug('MySQL-Result is empty (Query: `'.$request->getLastQuery().'`)');
 		}
 
 		# convert Date columns into `\DateTime`
@@ -324,28 +241,19 @@ abstract class AbstractTable {
 				}
 			}
 		}
-
 		$this->content = $result;
 		return $this;
 	}
 
 	/**
-	 * make MySQL UPDATE or INSERT
-	 *
-	 * @see    AbstractTable::update
-	 * @see    AbstractTable::insert
-	 * @throws RuntimeException
-	 * @return bool
+	 * @see AbstractTable::update
+	 * @see AbstractTable::insert
 	 */
-	final public function save() {
-		if ($this->isReadOnly()) {
-			throw new RuntimeException('can\'t save read only object');
-		}
-		if (!$this->getLength()) {
-			throw new RuntimeException('nothing to save');
-		}
+	final public function save():bool {
+		$this->assertNotReadonly();
+		$this->assertContentIsNotEmpty();
 
-		if ($this->isFilled()) {
+		if ($this->isContentFromDB()) {
 			return $this->update();
 		}
 		else {
@@ -354,13 +262,9 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * make MySQL UPDATE
-	 *
-	 * @see    Update
-	 * @throws RuntimeException
-	 * @return bool
+	 * @see Update
 	 */
-	final private function update() {
+	final private function update():bool {
 		$request = new Request($this->config, $this->accessPoint);
 
 		$queryList = array();
@@ -394,17 +298,14 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * make MySQL INSERT
-	 *
-	 * @see    Insert
-	 * @throws RuntimeException
-	 * @return bool
+	 * @see Insert
 	 */
-	final private function insert() {
+	final private function insert():bool {
 		$this->toReadOnly();
-		$request = new Request($this->config, $this->accessPoint);
 
+		$request   = new Request($this->config, $this->accessPoint);
 		$queryList = array();
+
 		for ($i = 0; $i < $this->getLength(); $i++) {
 			$insert = new Insert($this->getTableName());
 
@@ -431,19 +332,13 @@ abstract class AbstractTable {
 	}
 
 	/**
-	 * make MySQL DELETE
-	 *
-	 * @see    Delete
-	 * @throws RuntimeException
-	 * @return bool
+	 * @see Delete
 	 */
 	final public function delete() {
-		if ($this->isReadOnly()) {
-			throw new RuntimeException('can\'t delete read only object');
-		}
-		if (!$this->isFilled()) {
-			throw new RuntimeException('nothing to delete');
-		}
+		$this->assertNotReadonly();
+		$this->assertContentIsNotEmpty();
+		$this->assertContentIsFromDB();
+
 		$this->toReadOnly();
 
 		$request = new Request($this->config, $this->accessPoint);
@@ -469,22 +364,40 @@ abstract class AbstractTable {
 		return true;
 	}
 
-	/**
-	 * @see   AbstractTable::set
-	 * @param string $name
-	 * @param mixed  $value
-	 */
-	final public function __set($name, $value) {
-		$this->set($name, $value);
+	final private function assertColumnExists(string $columnName) {
+		if (!isset($this->columnList[$columnName])) {
+			throw new RuntimeException('Can\'t do that! Column `'.$columnName.'` not exists.');
+		}
 	}
 
-	/**
-	 * @see     AbstractTable::get
-	 * @param  string $name
-	 * @return mixed
-	 */
-	final public function __get($name) {
-		return $this->get($name);
+	final private function assertColumnIsNotPrimaryKey(string $columnName) {
+		if ($columnName === $this->primaryKey) {
+			throw new RuntimeException('Can\'t do that! Column `'.$columnName.'` is primary key.');
+		}
+	}
+
+	final private function assertNotReadonly() {
+		if ($this->isReadOnly()) {
+			throw new RuntimeException('Can\'t do that! Object is read only.');
+		}
+	}
+
+	final private function assertContentIsFromDB() {
+		if (!$this->isContentFromDB()) {
+			throw new RuntimeException('Can\'t do that! Content isn\'t from DB.');
+		}
+	}
+
+	final private function assertContentIsEmpty() {
+		if ($this->getLength() !== 0) {
+			throw new RuntimeException('Can\'t do that! Content isn\'t empty.');
+		}
+	}
+
+	final private function assertContentIsNotEmpty() {
+		if ($this->getLength() === 0) {
+			throw new RuntimeException('Can\'t do that! Content is empty.');
+		}
 	}
 
 }

@@ -1,19 +1,19 @@
 <?php
 
 /**
- * simple autoload function
+ * This file is part of the MAP-Framework.
  *
- * @param  string $namespace
- * @return bool
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-function mapAutoload($namespace) {
+function mapAutoload(string $namespace):bool {
 	$fileSuffix    = '.class.php';
 	$directoryList = array(
 			'public/src/',
 			'private/src/'
 	);
-
-	$itemList = explode('\\', $namespace);
+	$itemList      = explode('\\', $namespace);
 
 	foreach ($directoryList as $directory) {
 		$path = '../'.$directory.implode('/', $itemList).$fileSuffix;
@@ -25,5 +25,4 @@ function mapAutoload($namespace) {
 	return false;
 }
 
-# register spl autoload-function
 spl_autoload_register('mapAutoload', true);
