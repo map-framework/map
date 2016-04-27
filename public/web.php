@@ -19,6 +19,9 @@ final class Web {
 	const CONFIG_PUBLIC  = 'public/web.ini';
 	const CONFIG_PRIVATE = 'private/web.ini';
 
+	const ENVIRONMENT_DEV  = 'DEV';
+	const ENVIRONMENT_PROD = 'PROD';
+
 	/**
 	 * @var Bucket
 	 */
@@ -35,11 +38,11 @@ final class Web {
 	public function __construct() {
 		include_once self::AUTOLOAD;
 
-		if (strtolower(ini_get('display_errors')) === 'off') {
-			define('ENVIRONMENT', 'LIVE');
+		if (strtolower(ini_get('display_errors')) !== 'off') {
+			define('ENVIRONMENT', self::ENVIRONMENT_DEV);
 		}
 		else {
-			define('ENVIRONMENT', 'DEV');
+			define('ENVIRONMENT', self::ENVIRONMENT_PROD);
 		}
 
 		if (!session_start()) {
@@ -90,12 +93,7 @@ final class Web {
 		$this->config->applyArray($_SESSION['config']);
 	}
 
-	/**
-	 * call mode handler
-	 *
-	 * @throws RuntimeException
-	 */
-	public function main() {
+	public function callModeHandler() {
 		$modeSettings = $this->config->get('mode', $this->request->getMode());
 
 		if ($modeSettings === null) {
@@ -117,9 +115,26 @@ final class Web {
 			);
 		}
 
-		$handler->handle();
+		try {
+			$handler->handle();
+		}
+		catch (Exception $exception) {
+			$this->callExceptionHandlers($exception);
+		}
+	}
+
+	public function callExceptionHandlers(Exception $exception) {
+		# TODO implement method
+	}
+
+	public static function isDev():bool {
+		return constant('ENVIRONMENT') === self::ENVIRONMENT_DEV;
+	}
+
+	public static function isProd():bool {
+		return constant('ENVIRONMENT') === self::ENVIRONMENT_PROD;
 	}
 
 }
 
-(new Web())->main();
+(new Web())->callModeHandler();

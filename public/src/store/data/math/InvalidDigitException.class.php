@@ -1,9 +1,7 @@
 <?php
-namespace exception\file;
+namespace store\data\math\exception;
 
 use exception\MAPException;
-use store\data\File;
-use Throwable;
 
 /**
  * This file is part of the MAP-Framework.
@@ -12,12 +10,13 @@ use Throwable;
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-class FileNotFoundException extends MAPException implements Throwable {
+class InvalidDigitException extends MAPException {
 
-	public function __construct(File ...$file) {
-		parent::__construct('File(s) not found.');
+	public function __construct(string $subject, array $digitList) {
+		parent::__construct('The subject contains invalid digits.');
 
-		$this->setData('fileList', $file);
+		$this->setData('subject', $subject);
+		$this->setData('digitList', $digitList);
 	}
 
 }

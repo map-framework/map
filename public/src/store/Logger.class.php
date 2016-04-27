@@ -1,9 +1,11 @@
 <?php
 namespace store;
 
+use Exception;
 use store\data\File;
 use DateTime;
 use RuntimeException;
+use xml\Tree;
 
 /**
  * use this to write logs
@@ -80,6 +82,29 @@ class Logger {
 		# write log
 		$time = $now->format('H:i:s');
 		$logFile->putContents('['.$type.' @ '.$time.'] '.$message.PHP_EOL);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public static function storeTree(Tree $tree, string $extension = ''):File {
+		return self::storeText($tree->getSource(true), $extension);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public static function storeText(string $text, string $extension = ''):File {
+		$now = new DateTime();
+		do {
+			$file = (new File(self::LOG_DIR))
+					->attach($now->format('Y-M'))
+					->attach($now->format('d'))
+					->makeDir()
+					->attach(bin2hex(random_bytes(4)).$extension);
+		}
+		while ($file->exists());
+		return $file->putContents($text);
 	}
 
 }

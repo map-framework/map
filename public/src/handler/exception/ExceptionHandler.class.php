@@ -1,7 +1,6 @@
 <?php
-namespace exception\file;
+namespace handler\exception;
 
-use exception\MAPException;
 use Throwable;
 
 /**
@@ -11,6 +10,8 @@ use Throwable;
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-class FileException extends MAPException implements Throwable {
+interface ExceptionHandler {
+
+	static public function handle(Throwable $exception):bool;
 
 }
