@@ -13,7 +13,6 @@
 					html {
 					background-color: #ddd;
 					}
-
 					body {
 					width: 80%;
 					margin: 20px auto;
@@ -27,16 +26,13 @@
 					-moz-box-shadow: 0 0 10px #999;
 					box-shadow: 0 0 10px #999;
 					}
-
 					table {
 					width: 100%;
 					}
-
 					th {
 					background-color: #b0c4de;
 					padding: 1px 10px;
 					}
-
 					td {
 					background-color: #ddd;
 					}
