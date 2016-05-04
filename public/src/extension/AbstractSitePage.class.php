@@ -2,7 +2,7 @@
 namespace extension;
 
 use handler\mode\SiteModeHandler;
-use store\Bucket;
+use util\Bucket;
 use xml\Node;
 use xml\Tree;
 

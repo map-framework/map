@@ -1,10 +1,10 @@
 <?php
-namespace store\data\net;
+namespace util\data\net;
 
 use Exception;
 use RuntimeException;
-use store\Bucket;
-use store\data\File;
+use util\Bucket;
+use data\file\File;
 
 class MAPUrl extends Url {
 

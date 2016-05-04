@@ -9,8 +9,8 @@ use peer\mysql\statement\Select;
 use peer\mysql\statement\Update;
 use ReflectionClass;
 use RuntimeException;
-use store\Bucket;
-use store\Logger;
+use util\Bucket;
+use util\Logger;
 
 /**
  * This file is part of the MAP-Framework.

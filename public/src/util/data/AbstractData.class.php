@@ -1,5 +1,5 @@
 <?php
-namespace store\data;
+namespace util\data;
 
 abstract class AbstractData {
 

@@ -1,9 +1,10 @@
 <?php
 namespace handler\mode;
 
-use exception\file\FileNotFoundException;
+use data\file\NotFoundException;
 use exception\InvalidValueException;
-use store\Logger;
+use exception\MAPException;
+use util\Logger;
 
 /**
  * This file is part of the MAP-Framework.
@@ -21,7 +22,7 @@ class ImageModeHandler extends AbstractModeHandler {
 		try {
 			$file = $this->getFile();
 		}
-		catch (FileNotFoundException $e) {
+		catch (NotFoundException $e) {
 			return $this->error(404);
 		}
 		catch (InvalidValueException $e) {
@@ -29,10 +30,7 @@ class ImageModeHandler extends AbstractModeHandler {
 			return $this->error(500);
 		}
 
-		if (!$file->printFile()) {
-			Logger::error('failed to print file '.$file);
-			return $this->error(500);
-		}
+		$file->output();
 		$this->setContentLength($file->getSize());
 	}
 

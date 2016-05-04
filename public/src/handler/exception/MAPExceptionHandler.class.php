@@ -2,8 +2,8 @@
 namespace handler\exception;
 
 use exception\MAPException;
-use store\data\File;
-use store\Logger;
+use data\file\File;
+use util\Logger;
 use Throwable;
 use xml\Tree;
 use xml\XSLProcessor;

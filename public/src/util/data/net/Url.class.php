@@ -1,7 +1,7 @@
 <?php
-namespace store\data\net;
+namespace util\data\net;
 
-use store\data\AbstractData;
+use util\data\AbstractData;
 use Exception;
 
 /**

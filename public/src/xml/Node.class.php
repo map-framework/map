@@ -2,7 +2,7 @@
 namespace xml;
 
 use RuntimeException;
-use store\Logger;
+use util\Logger;
 
 class Node {
 

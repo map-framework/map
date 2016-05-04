@@ -1,10 +1,12 @@
 <?php
-namespace store;
+namespace util;
 
-use exception\file\FileNotFoundException;
-use exception\InvalidValueException;
+use data\AbstractData;
+use data\file\NotFoundException;
+use data\file\UnexpectedTypeException;
+use data\InvalidDataException;
 use exception\MAPException;
-use store\data\File;
+use data\file\File;
 use xml\Node;
 
 /**
@@ -16,8 +18,8 @@ use xml\Node;
  */
 class Bucket {
 
-	const PATTERN_GROUP = '/^[A-Za-z0-9_\-.]{1,32}$/';
-	const PATTERN_KEY   = '/^[A-Za-z0-9_\-.]{1,32}$/';
+	const PATTERN_GROUP = '^[A-Za-z0-9_\-.]{1,32}$';
+	const PATTERN_KEY   = '^[A-Za-z0-9_\-.]{1,32}$';
 
 	/**
 	 * array[group:string][key:string] => value:mixed
@@ -32,10 +34,9 @@ class Bucket {
 	 */
 	public function __construct($applyData = null) {
 		if ($applyData instanceof Bucket) {
-			$applyData = $applyData->toArray();
+			$this->applyBucket($applyData);
 		}
-
-		if (is_array($applyData)) {
+		elseif (is_array($applyData)) {
 			$this->applyArray($applyData);
 		}
 		elseif ($applyData instanceof File) {
@@ -48,15 +49,11 @@ class Bucket {
 	}
 
 	/**
-	 * @throws InvalidValueException
+	 * @throws InvalidDataException
 	 */
 	final public function set(string $group, string $key, $value, bool $mergeArrays = false):Bucket {
-		if (!preg_match(self::PATTERN_GROUP, $group)) {
-			throw new InvalidValueException(self::PATTERN_GROUP, $group);
-		}
-		if (!preg_match(self::PATTERN_KEY, $key)) {
-			throw new InvalidValueException(self::PATTERN_KEY, $key);
-		}
+		$this->assertIsGroupName($group);
+		$this->assertIsKeyName($key);
 
 		if ($mergeArrays && is_array($value) && $this->isArray($group, $key)) {
 			$value = array_merge($this->get($group, $key), $value);
@@ -121,7 +118,7 @@ class Bucket {
 		foreach ($key as $k) {
 			unset($this->data[$group][$k]);
 		}
-		
+
 		if ($this->getKeyCount($group) === 0) {
 			$this->removeGroup($group);
 		}
@@ -138,8 +135,7 @@ class Bucket {
 	/**
 	 * ignores keys without group
 	 *
-	 * @see    Bucket::$data
-	 * @throws InvalidValueException
+	 * @throws InvalidDataException
 	 */
 	final public function applyArray(array $data):Bucket {
 		foreach ($data as $group => $keyList) {
@@ -153,20 +149,20 @@ class Bucket {
 	}
 
 	/**
-	 * @see    Bucket::applyArray
-	 * @throws FileNotFoundException
-	 * @throws InvalidValueException
+	 * @throws NotFoundException
+	 * @throws UnexpectedTypeException
 	 */
 	final public function applyIni(File $iniFile):Bucket {
-		if ($iniFile === null || !$iniFile->isFile()) {
-			throw new FileNotFoundException($iniFile);
-		}
+		$iniFile->assertExists();
+		$iniFile->assertIsFile();
+
 		return $this->applyArray(parse_ini_file($iniFile->getRealPath(), true, INI_SCANNER_TYPED));
 	}
 
-	/**
-	 * @see Bucket::$data
-	 */
+	final public function applyBucket(Bucket $bucket):Bucket {
+		return $this->applyArray($bucket->toArray());
+	}
+
 	final public function toArray():array {
 		return $this->data;
 	}
@@ -190,9 +186,32 @@ class Bucket {
 	final public function toJson():string {
 		$json = json_encode($this->toArray());
 		if ($json === false) {
-			throw new MAPException('failed to encode to json');
+			throw (new MAPException('Failed to encode JSON.'))
+					->setData('value', $this->toArray());
 		}
 		return $json;
+	}
+
+	final public static function isGroupName(string $groupName):bool {
+		return AbstractData::isMatching($groupName);
+	}
+
+	final public static function isKeyName(string $keyName):bool {
+		return AbstractData::isMatching($keyName);
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public static function assertIsGroupName(string $groupName) {
+		AbstractData::assertIsMatching(self::PATTERN_GROUP, $groupName);
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public static function assertIsKeyName(string $keyName) {
+		AbstractData::assertIsMatching(self::PATTERN_KEY, $keyName);
 	}
 
 }

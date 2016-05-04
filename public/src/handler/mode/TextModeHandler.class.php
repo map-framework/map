@@ -1,7 +1,7 @@
 <?php
 namespace handler\mode;
 
-use exception\file\FileNotFoundException;
+use data\file\NotFoundException;
 use exception\InvalidValueException;
 
 /**
@@ -21,7 +21,7 @@ class TextModeHandler extends AbstractModeHandler {
 		try {
 			$file = $this->getFile();
 		}
-		catch (FileNotFoundException $e) {
+		catch (NotFoundException $e) {
 			return $this->error(404);
 		}
 

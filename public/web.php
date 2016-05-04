@@ -1,10 +1,10 @@
 <?php
 
-use store\Logger;
+use util\Logger;
 use handler\mode\AbstractModeHandler;
-use store\Bucket;
-use store\data\File;
-use store\data\net\MAPUrl;
+use util\Bucket;
+use data\file\File;
+use util\data\net\MAPUrl;
 
 /**
  * This file is part of the MAP-Framework.
@@ -124,6 +124,7 @@ final class Web {
 	}
 
 	public function callExceptionHandlers(Exception $exception) {
+		throw $exception;
 		# TODO implement method
 	}
 

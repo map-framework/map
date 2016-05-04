@@ -1,7 +1,7 @@
 <?php
 namespace extension;
 
-use store\Bucket;
+use util\Bucket;
 
 /**
  * This file is part of the MAP-Framework.

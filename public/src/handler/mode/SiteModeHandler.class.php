@@ -2,14 +2,14 @@
 namespace handler\mode;
 
 use Exception;
-use exception\file\FileNotFoundException;
+use data\file\NotFoundException;
 use exception\MAPException;
 use extension\AbstractSitePage;
 use RuntimeException;
-use store\Bucket;
-use store\data\File;
-use store\data\net\MAPUrl;
-use store\Logger;
+use util\Bucket;
+use data\file\File;
+use util\data\net\MAPUrl;
+use util\Logger;
 use xml\Node;
 use xml\XSLProcessor;
 
@@ -119,7 +119,7 @@ class SiteModeHandler extends AbstractModeHandler {
 	}
 
 	/**
-	 * @throws FileNotFoundException
+	 * @throws NotFoundException
 	 * @throws MAPException
 	 */
 	protected function getPageData():array {
@@ -135,7 +135,7 @@ class SiteModeHandler extends AbstractModeHandler {
 		}
 		if (!$styleSheet->isFile()) {
 			Logger::debug('HTTP-Status 404 because: file `'.$styleSheet.'` not found');
-			throw new FileNotFoundException($styleSheet);
+			throw new NotFoundException($styleSheet);
 		}
 
 		return array(

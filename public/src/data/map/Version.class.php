@@ -55,31 +55,46 @@ class Version extends AbstractData {
 		return $this->micro;
 	}
 
-	final public function isEqual(Version $version):bool {
+	final public function isEqual(Version $version = null):bool {
+		if ($version === null) {
+			return true;
+		}
 		return version_compare($this, $version, '==');
 	}
 
-	final public function isGreater(Version $version):bool {
+	final public function isGreater(Version $version = null):bool {
+		if ($version === null) {
+			return true;
+		}
 		return version_compare($this, $version, '>');
 	}
 
-	final public function isGreaterOrEqual(Version $version):bool {
+	final public function isGreaterOrEqual(Version $version = null):bool {
+		if ($version === null) {
+			return true;
+		}
 		return version_compare($this, $version, '>=');
 	}
 
-	final public function isLess(Version $version):bool {
+	final public function isLess(Version $version = null):bool {
+		if ($version === null) {
+			return true;
+		}
 		return version_compare($this, $version, '<');
 	}
 
-	final public function isLessOrEqual(Version $version):bool {
+	final public function isLessOrEqual(Version $version = null):bool {
+		if ($version === null) {
+			return true;
+		}
 		return version_compare($this, $version, '<=');
 	}
 
-	final public function isBetweenOrEqual(Version $min, Version $max):bool {
+	final public function isBetweenOrEqual(Version $min = null, Version $max = null):bool {
 		return $this->isGreaterOrEqual($min) && $this->isLessOrEqual($max);
 	}
 
-	final public static function isVersion(string ...$version):bool {
+	final public static function isVersion(string $version):bool {
 		return self::isMatching(self::PATTERN_VERSION, $version);
 	}
 

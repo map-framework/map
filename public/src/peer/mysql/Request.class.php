@@ -4,8 +4,8 @@ namespace peer\mysql;
 use Exception;
 use mysqli;
 use RuntimeException;
-use store\Bucket;
-use store\Logger;
+use util\Bucket;
+use util\Logger;
 
 class Request {
 

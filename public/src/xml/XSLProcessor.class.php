@@ -2,7 +2,7 @@
 namespace xml;
 
 use Exception;
-use store\data\File;
+use data\file\File;
 use XSLTProcessor;
 use DOMDocument;
 

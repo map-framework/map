@@ -1,16 +1,16 @@
 <?php
 namespace handler\mode;
 
-use exception\file\FileNotFoundException;
+use data\file\NotFoundException;
 use exception\InvalidValueException;
 use handler\AbstractHandler;
 use peer\http\HttpConst;
 use RuntimeException;
-use store\Bucket;
-use store\data\File;
-use store\data\net\MAPUrl;
-use store\data\net\Url;
-use store\Logger;
+use util\Bucket;
+use data\file\File;
+use util\data\net\MAPUrl;
+use util\data\net\Url;
+use util\Logger;
 
 /**
  * This file is part of the MAP-Framework.
@@ -75,7 +75,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	 * get existing file in app folder
 	 *
 	 * @throws InvalidValueException
-	 * @throws FileNotFoundException
+	 * @throws NotFoundException
 	 */
 	final protected function getFile():File {
 		if (!isset($this->settings['folder']) || !is_string($this->settings['folder'])) {
@@ -101,7 +101,7 @@ abstract class AbstractModeHandler extends AbstractHandler {
 		elseif ($fileInCommon->isFile()) {
 			return $fileInCommon;
 		}
-		throw new FileNotFoundException($fileInArea, $fileInCommon);
+		throw new NotFoundException($fileInArea, $fileInCommon);
 	}
 
 	final protected function translate(string $text):string {

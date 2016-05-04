@@ -1,7 +1,7 @@
 <?php
-namespace handler;
+namespace data\file;
 
-use util\Bucket;
+use exception\MAPException;
 
 /**
  * This file is part of the MAP-Framework.
@@ -10,15 +10,12 @@ use util\Bucket;
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-abstract class AbstractHandler {
+class NotFoundException extends MAPException {
 
-	/**
-	 * @var Bucket
-	 */
-	protected $config;
+	public function __construct(File ...$file) {
+		parent::__construct('Required at least one File of this list.');
 
-	public function __construct(Bucket $config) {
-		$this->config = $config;
+		$this->setData('fileList', $file);
 	}
 
 }

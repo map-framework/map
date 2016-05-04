@@ -4,7 +4,7 @@ namespace handler\mode;
 use exception\MAPException;
 use extension\AbstractRestPage;
 use peer\http\HttpConst;
-use store\Logger;
+use util\Logger;
 
 /**
  * This file is part of the MAP-Framework.
