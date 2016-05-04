@@ -8,7 +8,7 @@ use extension\AbstractSitePage;
 use RuntimeException;
 use util\Bucket;
 use data\file\File;
-use util\data\net\MAPUrl;
+use data\net\MAPUrl;
 use util\Logger;
 use xml\Node;
 use xml\XSLProcessor;

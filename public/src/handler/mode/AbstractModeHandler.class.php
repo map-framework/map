@@ -8,8 +8,8 @@ use peer\http\HttpConst;
 use RuntimeException;
 use util\Bucket;
 use data\file\File;
-use util\data\net\MAPUrl;
-use util\data\net\Url;
+use data\net\MAPUrl;
+use data\net\Url;
 use util\Logger;
 
 /**

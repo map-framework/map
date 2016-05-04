@@ -4,7 +4,7 @@ use util\Logger;
 use handler\mode\AbstractModeHandler;
 use util\Bucket;
 use data\file\File;
-use util\data\net\MAPUrl;
+use data\net\MAPUrl;
 
 /**
  * This file is part of the MAP-Framework.

@@ -3,7 +3,8 @@ namespace data\map;
 
 use data\AbstractData;
 use data\InvalidDataException;
-use store\data\File;
+use util\Bucket;
+use data\file\File;
 
 /**
  * This file is part of the MAP-Framework.
@@ -14,9 +15,10 @@ use store\data\File;
  */
 class AddOn extends AbstractData {
 
-	const PATTERN_NAME = '[A-Za-z\-_]+';
-	const DIR_ADDONS   = 'public/addons';
-	const CONFIG_FILE  = 'addon.ini';
+	const PATTERN_NAME = '[A-Za-z\-_]{1,32}';
+
+	const PATH_DIR    = 'public/addons';
+	const PATH_CONFIG = 'addon.ini';
 
 	/**
 	 * @var string
@@ -70,19 +72,28 @@ class AddOn extends AbstractData {
 	}
 
 	final public function getDir():File {
-		return (new File(self::DIR_ADDONS))
+		return (new File(self::PATH_DIR))
 				->attach($this->get());
 	}
 
 	final public function getConfigFile():File {
 		return $this->getDir()
-				->attach(self::CONFIG_FILE);
+				->attach(self::PATH_CONFIG);
 	}
 
 	final public function isInstalled():bool {
-		return $this->getDir()->isDir() && $this->getConfigFile()->isFile();
+		if (!$this->getDir()->isDir() || !$this->getConfigFile()->isFile()) {
+			return false;
+		}
+
+		$addOnConfig = new Bucket($this->getConfigFile());
+		$addOnConfig->get('addon-'.$this->getName(), 'version');
+		// TODO implement method
 	}
 
+	/**
+	 * @throws DependencyException
+	 */
 	final public function assertIsInstalled() {
 		if (!$this->isInstalled()) {
 			throw new DependencyException($this);

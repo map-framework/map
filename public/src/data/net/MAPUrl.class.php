@@ -1,98 +1,52 @@
 <?php
-namespace util\data\net;
+namespace data\net;
 
+use data\map\Area;
 use Exception;
 use RuntimeException;
 use util\Bucket;
 use data\file\File;
 
+/**
+ * TODO refactor this class
+ */
 class MAPUrl extends Url {
 
-	const PATTERN_MODE  = '^[0-9A-Za-z_\-+]{1,32}$';
-	const PATTERN_AREA  = '^[0-9A-Za-z_\-+]{1,32}$';
-	const PATTERN_PAGE  = '^[0-9A-Za-z]{1,32}$';
+	const PATTERN_MODE  = '^[0-9A-Za-z_\-+]{0,32}$';
+	const PATTERN_AREA  = '^[0-9A-Za-z_\-+]{0,32}$';
+	const PATTERN_PAGE  = '^[0-9A-Za-z]{0,32}$';
 	const PATTERN_INPUT = '^[0-9A-Za-z_\-+ÄÖÜßäöü;,]+$';
 
 	/**
-	 * @var string|null
-	 */
-	private $mode = null;
-
-	/**
-	 * @var string|null
-	 */
-	private $area = null;
-
-	/**
-	 * @var string|null
-	 */
-	private $page = null;
-
-	/**
-	 * @var array { string }
-	 */
-	private $inputList = array();
-
-	/**
-	 * @var string|null
+	 * @var Bucket
 	 */
 	private $config = null;
 
 	/**
-	 * @see    Url::set
-	 * @param  string $url
-	 * @param  Bucket $config validate
-	 * @throws Exception
+	 * @var string
 	 */
-	public function __construct($url = null, Bucket $config = null) {
-		$this->config = $config;
+	private $mode = '';
+
+	/**
+	 * @var string
+	 */
+	private $area = '';
+
+	/**
+	 * @var string
+	 */
+	private $page = '';
+
+	/**
+	 * array[] => string
+	 *
+	 * @var array (see above)
+	 */
+	private $inputList = array();
+
+	public function __construct(string $url, Bucket $config = null) {
 		parent::__construct($url);
-	}
-
-	/**
-	 * @param  string $mode
-	 * @return bool
-	 */
-	public function isMode($mode) {
-		if (!self::match(self::PATTERN_MODE, $mode)) {
-			return false;
-		}
-		if ($this->config === null) {
-			return true;
-		}
-		$modeData = $this->config->get('mode', $mode);
-		return isset($modeData, $modeData['handler']);
-	}
-
-	/**
-	 * @param  string $area
-	 * @return bool
-	 */
-	public function isArea($area) {
-		if (!self::match(self::PATTERN_AREA, $area)) {
-			return false;
-		}
-		if ($this->config === null) {
-			return true;
-		}
-		$areaDir = new File('private/src/area/'.$area.'/');
-		return $areaDir->isDir();
-	}
-
-	/**
-	 * @param  string $page
-	 * @return bool
-	 */
-	public function isPage($page) {
-		return self::match(self::PATTERN_PAGE, $page);
-	}
-
-	/**
-	 * @param  string $input
-	 * @return bool
-	 */
-	public function isInput($input) {
-		return self::match(self::PATTERN_INPUT, $input);
+		$this->config = $config;
 	}
 
 	/**
@@ -388,6 +342,25 @@ class MAPUrl extends Url {
 
 		$itemList = array_merge($itemList, $this->getInputList());
 		return '/'.implode('/', $itemList);
+	}
+
+	public function isMode(string $mode):bool {
+		if (!self::match(self::PATTERN_MODE, $mode)) {
+			return false;
+		}
+		if ($this->config === null) {
+			return true;
+		}
+		$modeData = $this->config->get('mode', $mode);
+		return isset($modeData, $modeData['handler']);
+	}
+
+	final public static function isPage(string $page):bool {
+		return self::isMatching(self::PATTERN_PAGE, $page);
+	}
+
+	final public static function isInput(string $input):bool {
+		return self::isMatching(self::PATTERN_INPUT, $input);
 	}
 
 }
