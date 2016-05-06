@@ -68,14 +68,15 @@ class ClassObject extends AbstractData {
 
 	/**
 	 * @throws ClassNotFoundException
+	 * @throws MAPException
 	 */
-	final public function isChildOf(ClassObject $classObject):bool {
-		$classObject->assertExists();
+	final public function isChildOf(ClassObject $parentClass):bool {
+		$parentClass->assertIsNotFinal();
+		$parentClass->assertIsNotInterface();
 
 		$reflection = $this->getReflection();
-
 		do {
-			if ($reflection->getName() === $classObject->get()) {
+			if ($reflection->getName() === $parentClass->get()) {
 				return true;
 			}
 
@@ -83,6 +84,16 @@ class ClassObject extends AbstractData {
 		}
 		while ($reflection !== false);
 		return false;
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @throws MAPException
+	 */
+	final public function implementsInterface(ClassObject $interface):bool {
+		$interface->assertIsInterface();
+
+		return $this->getReflection()->implementsInterface($interface->get());
 	}
 
 	/**
@@ -95,6 +106,7 @@ class ClassObject extends AbstractData {
 	}
 
 	/**
+	 * @throws ClassNotFoundException
 	 * @throws MAPException
 	 */
 	final public function assertIsInterface() {
@@ -105,6 +117,18 @@ class ClassObject extends AbstractData {
 	}
 
 	/**
+	 * @throws ClassNotFoundException
+	 * @throws MAPException
+	 */
+	final public function assertIsNotInterface() {
+		if ($this->isInterface()) {
+			throw (new MAPException('Expected no Interface.'))
+					->setData('class', $this);
+		}
+	}
+
+	/**
+	 * @throws ClassNotFoundException
 	 * @throws MAPException
 	 */
 	final public function assertIsAbstract() {
@@ -115,12 +139,45 @@ class ClassObject extends AbstractData {
 	}
 
 	/**
+	 * @throws ClassNotFoundException
 	 * @throws MAPException
 	 */
 	final public function assertIsFinal() {
 		if (!$this->isFinal()) {
 			throw (new MAPException('Expected a Final-Class.'))
 					->setData('class', $this);
+		}
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @throws MAPException
+	 */
+	final public function assertIsNotFinal() {
+		if ($this->isFinal()) {
+			throw (new MAPException('Expected a Non-Final-Class.'))
+					->setData('class', $this);
+		}
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @throws InstanceException
+	 */
+	final public function assertIsChildOf(ClassObject $parentClass) {
+		if (!$this->isChildOf($parentClass)) {
+			throw new InstanceException($this, $parentClass);
+		}
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @throws InstanceException
+	 * @throws MAPException
+	 */
+	final public function assertImplementsInterface(ClassObject $interface) {
+		if (!$this->implementsInterface($interface)) {
+			throw new InstanceException($this, $interface);
 		}
 	}
 
