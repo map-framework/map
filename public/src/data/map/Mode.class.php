@@ -85,11 +85,13 @@ class Mode extends AbstractData {
 		}
 
 		Logger::debug(
-				'Mode not exists ('
-				.'Mode: '.MAPException::export($this->get()).'; '
-				.'Reason: '.MAPException::export($reason).'; '
-				.'Type: '.MAPException::export($type).'; '
-				.'Handler: '.MAPException::export($handler).')'
+				'Mode not exists',
+				array(
+						'Mode'    => $this->get(),
+						'Reason'  => $reason,
+						'Type'    => $type,
+						'Handler' => $handler
+				)
 		);
 		return false;
 	}

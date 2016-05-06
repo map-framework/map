@@ -1,10 +1,14 @@
 <?php
 namespace xml;
 
-use RuntimeException;
+use data\AbstractData;
+use data\InvalidDataException;
 use util\Logger;
 
 class Node {
+
+	// TODO correct pattern
+	const PATTERN_NAME = '^.*$';
 
 	/**
 	 * @var string
@@ -193,6 +197,17 @@ class Node {
 	 */
 	public function __toString() {
 		return $this->getSource();
+	}
+
+	final public static function isNodeName(string $name):bool {
+		return AbstractData::isMatching(self::PATTERN_NAME, $name);
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public static function assertIsNodeName(string $name) {
+		AbstractData::assertIsMatching(self::PATTERN_NAME, $name);
 	}
 
 }
