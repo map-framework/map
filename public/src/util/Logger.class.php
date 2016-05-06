@@ -4,6 +4,7 @@ namespace util;
 use Exception;
 use data\file\File;
 use DateTime;
+use exception\MAPException;
 use xml\Tree;
 
 /**
@@ -22,26 +23,31 @@ class Logger {
 	const TYPE_INFO    = 'INFO ';
 	const TYPE_DEBUG   = 'DEBUG';
 
-	public static function error(string $message) {
-		self::log(self::TYPE_ERROR, $message);
+	public static function error(string $message, array $dataList = array()) {
+		self::log(self::TYPE_ERROR, $message, $dataList);
 	}
 
-	public static function warning(string $message) {
-		self::log(self::TYPE_WARNING, $message);
+	public static function warning(string $message, array $dataList = array()) {
+		self::log(self::TYPE_WARNING, $message, $dataList);
 	}
 
-	public static function info(string $message) {
-		self::log(self::TYPE_INFO, $message);
+	public static function info(string $message, array $dataList = array()) {
+		self::log(self::TYPE_INFO, $message, $dataList);
 	}
 
-	public static function debug(string $message) {
+	public static function debug(string $message, array $dataList = array()) {
 		if (constant('ENVIRONMENT') === 'DEV') {
-			self::log(self::TYPE_DEBUG, $message);
+			self::log(self::TYPE_DEBUG, $message, $dataList);
 		}
 	}
 
-	protected static function log(string $type, string $message) {
+	protected static function log(string $type, string $message, array $dataList = array()) {
 		$now = new DateTime();
+
+		foreach ($dataList as $name => $value) {
+			$dataStringList[] = $name.': '.MAPException::export($value);
+		}
+		$message .= isset($dataStringList) ? ' ('.implode('; ', $dataStringList).')' : '';
 
 		(new File(self::LOG_DIR))
 				->makeDir()
