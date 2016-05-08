@@ -1,9 +1,8 @@
 <?php
-namespace exception;
+namespace util;
 
 use Exception;
 use ReflectionClass;
-use Throwable;
 use xml\Node;
 
 /**
@@ -13,7 +12,7 @@ use xml\Node;
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-class MAPException extends Exception implements Throwable {
+class MAPException extends Exception {
 
 	/**
 	 * @var array

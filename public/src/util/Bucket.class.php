@@ -2,13 +2,12 @@
 namespace util;
 
 use data\AbstractData;
+use data\file\File;
 use data\file\NotFoundException;
 use data\file\UnexpectedTypeException;
 use data\InvalidDataException;
 use data\norm\DataTypeEnum;
 use data\norm\InvalidDataTypeException;
-use exception\MAPException;
-use data\file\File;
 use xml\Node;
 
 /**

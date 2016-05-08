@@ -4,6 +4,7 @@ namespace data\map;
 use data\AbstractData;
 use data\file\File;
 use data\InvalidDataException;
+use util\MAPException;
 
 /**
  * This file is part of the MAP-Framework.
@@ -49,6 +50,16 @@ class Area extends AbstractData {
 
 	final public function exists():bool {
 		return $this->getDir()->isDir();
+	}
+
+	/**
+	 * @throws MAPException
+	 */
+	final public function assertExists() {
+		if (!$this->exists()) {
+			throw (new MAPException('Area not exists.'))
+					->setData('area', $this);
+		}
 	}
 
 	final public static function isName(string $name):bool {

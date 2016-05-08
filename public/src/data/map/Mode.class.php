@@ -4,10 +4,11 @@ namespace data\map;
 use data\AbstractData;
 use data\InvalidDataException;
 use data\net\MimeType;
-use exception\MAPException;
+use data\norm\ClassObject;
 use handler\AbstractHandler;
 use util\Bucket;
 use util\Logger;
+use util\MAPException;
 
 /**
  * This file is part of the MAP-Framework.
@@ -21,19 +22,9 @@ class Mode extends AbstractData {
 	const PATTERN_NAME = '^[0-9A-Za-z_\-+]{1,32}$';
 
 	/**
-	 * @var array
-	 */
-	protected $settings;
-
-	/**
 	 * @var string
 	 */
 	private $name;
-
-	public function __construct(string $name, Bucket $config) {
-		parent::__construct($name);
-		$this->settings = $config->get('mode', $name, array());
-	}
 
 	/**
 	 * @throws InvalidDataException
@@ -48,21 +39,31 @@ class Mode extends AbstractData {
 		return $this->name;
 	}
 
-	final public function getSetting(string $key) {
-		return $this->settings[$key] ?? null;
+	final public function getSettings(Bucket $config):array {
+		return $config->get('mode', $this->get(), array());
 	}
 
-	final public function getType():MimeType {
-		return new MimeType($this->getSetting('type'));
+	final public function getSettingItem(Bucket $config, string $key) {
+		return $this->getSettings($config)[$key] ?? null;
 	}
 
-	final public function getHandler():string {
-		return (string) $this->getSetting('handler');
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public function getType(Bucket $config):MimeType {
+		return new MimeType($this->getSettingItem($config, 'type'));
 	}
 
-	final public function exists():bool {
-		$type    = $this->getSetting('type');
-		$handler = $this->getSetting('handler');
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public function getHandler(Bucket $config):ClassObject {
+		return new ClassObject($this->getSettingItem($config, 'handler'));
+	}
+
+	final public function exists(Bucket $config):bool {
+		$type    = $this->getSettingItem($config, 'type');
+		$handler = $this->getSettingItem($config, 'handler');
 
 		if ($type === null) {
 			$reason = 'missing type';
@@ -99,11 +100,11 @@ class Mode extends AbstractData {
 	/**
 	 * @throws MAPException
 	 */
-	final public function assertExists() {
-		if (!$this->exists()) {
+	final public function assertExists(Bucket $config) {
+		if (!$this->exists($config)) {
 			throw (new MAPException('Expected existing mode.'))
 					->setData('mode', $this)
-					->setData('settings', $this->settings);
+					->setData('settings', $this->getSettings($config));
 		}
 	}
 

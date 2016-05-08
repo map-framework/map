@@ -1,358 +1,349 @@
 <?php
 namespace data\net;
 
+use data\InvalidDataException;
 use data\map\Area;
-use Exception;
-use RuntimeException;
+use data\map\Mode;
+use data\norm\InvalidDataTypeException;
 use util\Bucket;
-use data\file\File;
+use util\Logger;
+use util\MAPException;
 
 /**
- * TODO refactor this class
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
 class MAPUrl extends Url {
 
-	const PATTERN_MODE  = '^[0-9A-Za-z_\-+]{0,32}$';
-	const PATTERN_AREA  = '^[0-9A-Za-z_\-+]{0,32}$';
 	const PATTERN_PAGE  = '^[0-9A-Za-z]{0,32}$';
-	const PATTERN_INPUT = '^[0-9A-Za-z_\-+ÄÖÜßäöü;,]+$';
+	const PATTERN_INPUT = '^[A-Za-z0-9\-_.!~*\'();%]+$';
 
 	/**
 	 * @var Bucket
 	 */
-	private $config = null;
+	protected $config;
+
+	/**
+	 * @var Mode
+	 */
+	private $mode;
+
+	/**
+	 * @var Area
+	 */
+	private $area;
 
 	/**
 	 * @var string
 	 */
-	private $mode = '';
+	private $page;
 
 	/**
-	 * @var string
-	 */
-	private $area = '';
-
-	/**
-	 * @var string
-	 */
-	private $page = '';
-
-	/**
-	 * array[] => string
-	 *
-	 * @var array (see above)
+	 * @var array
 	 */
 	private $inputList = array();
 
-	public function __construct(string $url, Bucket $config = null) {
-		parent::__construct($url);
+	public function __construct(string $url, Bucket $config) {
 		$this->config = $config;
+		parent::__construct($url);
 	}
 
 	/**
-	 * @param  string $mode
-	 * @return bool
+	 * @throws InvalidDataException
+	 * @throws InvalidDataTypeException
+	 * @throws MAPException
 	 */
-	public function setMode($mode) {
-		if ($mode !== null && $this->getModeAlias($mode) === null && !$this->isMode($mode)) {
-			return false;
-		}
-		$this->mode = $mode;
-		return true;
-	}
+	public function setPath(string $path):MAPUrl {
+		self::assertIsPath($path);
 
-	/**
-	 * @param  string $area
-	 * @return bool
-	 */
-	public function setArea($area) {
-		if ($area !== null && !$this->isArea($area)) {
-			if ($this->getAreaAlias($area) === null && $this->getHostAlias($this->getHost()) === null) {
-				return false;
-			}
-		}
-		$this->area = $area;
-		return true;
-	}
-
-	/**
-	 * @param  string $page
-	 * @return bool
-	 */
-	public function setPage($page) {
-		if ($page !== null && !$this->isPage($page)) {
-			return false;
-		}
-		$this->page = $page;
-		return true;
-	}
-
-	/**
-	 * @param  $inputList string[]
-	 * @return bool
-	 */
-	public function setInputList($inputList) {
-		$this->inputList = array();
-		foreach ($inputList as $input) {
-			$this->addInput($input);
-		}
-		return true;
-	}
-
-	/**
-	 * @param  $input string
-	 * @return bool
-	 */
-	public function addInput($input) {
-		if (!$this->isInput($input)) {
-			return false;
-		}
-		$this->inputList[] = $input;
-		return true;
-	}
-
-	/**
-	 * @return string|null
-	 */
-	public function getMode() {
-		if ($this->config === null) {
-			return $this->mode;
-		}
-
-		if ($this->mode !== null) {
-			$modeAlias = $this->getModeAlias($this->mode);
-			if ($modeAlias !== null) {
-				return $modeAlias;
-			}
-			return $this->mode;
-		}
-		return $this->config->get('default', 'mode');
-	}
-
-	/**
-	 * @return string|null
-	 */
-	public function getArea() {
-		if ($this->config === null) {
-			return $this->area;
-		}
-
-		if ($this->area !== null) {
-			$hostAlias = $this->getHostAlias($this->getHost());
-			if ($hostAlias !== null) {
-				return $hostAlias;
-			}
-			$areaAlias = $this->getAreaAlias($this->area);
-			if ($areaAlias !== null) {
-				return $areaAlias;
-			}
-			return $this->area;
-		}
-		return $this->config->get('default', 'area');
-	}
-
-	/**
-	 * @return string|null
-	 */
-	public function getPage() {
-		if ($this->config === null) {
-			return $this->page;
-		}
-
-		if ($this->page !== null) {
-			$pageAlias = $this->getPageAlias($this->page);
-			if ($pageAlias !== null) {
-				return $pageAlias;
-			}
-			return $this->page;
-		}
-		return $this->config->get('default', 'page');
-	}
-
-	/**
-	 * @return string[]
-	 */
-	public function getInputList() {
-		return $this->inputList;
-	}
-
-	/**
-	 * @param  string $host
-	 * @return RuntimeException
-	 * @return string|null area
-	 */
-	public function getHostAlias($host = null) {
-		if ($host === null) {
-			$host = $this->getHost();
-		}
-		if ($this->config === null || $this->config->isNull('alias', 'host')) {
-			return null;
-		}
-
-		if (!$this->config->isArray('alias', 'host')) {
-			throw new RuntimeException('config malformed: `alias` - `host` not an array');
-		}
-
-		$hostAliasList = $this->config->get('alias', 'host');
-		if (!isset($hostAliasList[$host]) || !$this->isArea($hostAliasList[$host])) {
-			return null;
-		}
-		return $hostAliasList[$host];
-	}
-
-	/**
-	 * @param  string $mode
-	 * @throws RuntimeException
-	 * @return string|null
-	 */
-	final public function getModeAlias($mode) {
-		if ($this->config === null || $this->config->isNull('alias', 'mode')) {
-			return null;
-		}
-
-		if (!$this->config->isArray('alias', 'mode')) {
-			throw new RuntimeException('config malformed: `alias` - `mode` not an array');
-		}
-
-		$modeAliasList = $this->config->get('alias', 'mode');
-		if (!isset($modeAliasList[$mode]) || !$this->isMode($modeAliasList[$mode])) {
-			return null;
-		}
-		return $modeAliasList[$mode];
-	}
-
-	/**
-	 * @param  string $area
-	 * @throws RuntimeException
-	 * @return string|null
-	 */
-	final public function getAreaAlias($area) {
-		if ($this->config === null || $this->config->isNull('alias', 'area')) {
-			return null;
-		}
-
-		if (!$this->config->isArray('alias', 'area')) {
-			throw new RuntimeException('config malformed: `alias` - `area` not an array');
-		}
-
-		$areaAliasList = $this->config->get('alias', 'area');
-		if (!isset($areaAliasList[$area]) || !$this->isArea($areaAliasList[$area])) {
-			return null;
-		}
-		return $areaAliasList[$area];
-	}
-
-	/**
-	 * @param  string $page
-	 * @throws RuntimeException
-	 * @return string|null
-	 */
-	final public function getPageAlias($page) {
-		if ($this->config === null || $this->config->isNull('alias', 'page')) {
-			return null;
-		}
-
-		if (!$this->config->isArray('alias', 'page')) {
-			throw new RuntimeException('config malformed: `alias` - `page` not an array');
-		}
-
-		$pageAliasList = $this->config->get('alias', 'page');
-		if (!isset($pageAliasList[$page]) || !$this->isPage($pageAliasList[$page])) {
-			return null;
-		}
-		return $pageAliasList[$page];
-	}
-
-	/**
-	 * @see    Url::setPath
-	 * @param  string $path
-	 * @return MAPUrl
-	 */
-	public function setPath($path) {
-		$itemList = explode('/', $path);
-
-		# reset values
 		$this->mode      = null;
 		$this->area      = null;
 		$this->page      = null;
 		$this->inputList = array();
 
-		# host alias
-		if ($this->getHostAlias() !== null) {
-			$this->area = $this->getHostAlias();
-		}
-
 		$level = 0;
-
-		# assign
-		foreach ($itemList as $item) {
-			$item = trim($item);
+		foreach (explode('/', $path) as $item) {
 			if ($item === '') {
 				continue;
 			}
 
-			# level 0 = mode
 			if ($level === 0) {
 				$level++;
-				if ($this->setMode($item)) {
+				try {
+					$this->setMode($this->getTargetMode(new Mode($item)));
 					continue;
+				}
+				catch (InvalidDataException $e) {
+					Logger::debug(
+							'The Mode-Name is invalid.',
+							array(
+									'path'    => $path,
+									'mode'    => $item,
+									'pattern' => Mode::PATTERN_NAME
+							)
+					);
+				}
+				catch (MAPException $e) {
+					if ($e instanceof InvalidDataTypeException) {
+						throw $e;
+					}
+					Logger::debug(
+							'The Mode not exists.',
+							array(
+									'path' => $path,
+									'mode' => $item
+							)
+					);
 				}
 			}
 
-			# level 1 = area
 			if ($level === 1) {
 				$level++;
-				if ($this->area === null && $this->setArea($item)) {
+				try {
+					$this->setArea($this->getTargetArea(new Area($item)));
 					continue;
+				}
+				catch (InvalidDataException $e) {
+					Logger::debug(
+							'The Area-Name is invalid.',
+							array(
+									'path'    => $path,
+									'area'    => $item,
+									'pattern' => Area::PATTERN_NAME
+							)
+					);
+				}
+				catch (MAPException $e) {
+					if ($e instanceof InvalidDataTypeException) {
+						throw $e;
+					}
+					Logger::debug(
+							'The Area not exists.',
+							array(
+									'path' => $path,
+									'area' => $item,
+							)
+					);
 				}
 			}
 
-			# level 2 = page
 			if ($level === 2) {
 				$level++;
-				if ($this->setPage($item)) {
+				try {
+					$this->setPage($this->getTargetPage($item));
 					continue;
+				}
+				catch (InvalidDataException $e) {
+					Logger::debug(
+							'The Page-Name is invalid.',
+							array(
+									'path'    => $path,
+									'area'    => $item,
+									'pattern' => self::PATTERN_PAGE
+							)
+					);
 				}
 			}
 
-			# level 3+ = input item
-			$this->addInput($item);
+			try {
+				$this->addInput($item);
+			}
+			catch (InvalidDataException $e) {
+				Logger::debug(
+						'The Input-Name is invalid (Item ignored).',
+						array(
+								'path'    => $path,
+								'input'   => $item,
+								'pattern' => self::PATTERN_INPUT
+						)
+				);
+			}
+		}
+
+		if (!$this->hasMode()) {
+			$mode = $this->getDefaultMode();
+			$mode->assertExists($this->config);
+			$this->mode = $mode;
+		}
+		if (!$this->hasArea()) {
+			$area = $this->getDefaultArea();
+			$area->assertExists();
+			$this->area = $area;
+		}
+		if (!$this->hasPage()) {
+			$this->page = $this->getDefaultPage();
+		}
+		return $this;
+	}
+
+	public function getPath(string $path):string {
+		if ($this->hasMode()) {
+			$itemList[] = $this->getMode()->get();
+		}
+		if ($this->hasArea()) {
+			$itemList[] = $this->getArea()->get();
+		}
+		if ($this->hasPage()) {
+			$itemList[] = $this->getPage();
+		}
+		return '/'.implode('/', array_merge($itemList ?? array(), $this->getInputList()));
+	}
+
+	/**
+	 * @throws MAPException
+	 */
+	public function setMode(Mode $mode):MAPUrl {
+		$mode->assertExists($this->config);
+
+		$this->mode = clone $mode;
+		return $this;
+	}
+
+	public function getMode():Mode {
+		return $this->mode;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 * @throws InvalidDataTypeException
+	 */
+	protected function getTargetMode(Mode $mode):Mode {
+		if (!$this->config->isNull('alias', 'mode')) {
+			$this->config->assertIsArray('alias', 'mode');
+
+			$aliasList = $this->config->get('alias', 'mode');
+			if (isset($aliasList[$mode->get()])) {
+				return $this->getTargetMode(new Mode($aliasList[$mode->get()]));
+			}
+		}
+		return $mode;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	public function getDefaultMode():Mode {
+		return new Mode($this->config->get('default', 'mode'));
+	}
+
+	public function hasMode():bool {
+		return $this->mode !== null;
+	}
+
+	/**
+	 * @throws MAPException
+	 */
+	public function setArea(Area $area):MAPUrl {
+		$area->assertExists();
+
+		$this->area = clone $area;
+		return $this;
+	}
+
+	public function getArea():Area {
+		return $this->area;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 * @throws InvalidDataTypeException
+	 */
+	protected function getTargetArea(Area $area):Area {
+		if (!$this->config->isNull('alias', 'area')) {
+			$this->config->assertIsArray('alias', 'area');
+
+			$aliasList = $this->config->get('alias', 'area');
+			if (isset($aliasList[$area->get()])) {
+				return $this->getTargetArea(new Area($aliasList[$area->get()]));
+			}
+		}
+		return $area;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	public function getDefaultArea():Area {
+		return new Area($this->config->get('default', 'area'));
+	}
+
+	public function hasArea():bool {
+		return $this->area !== null;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	public function setPage(string $page):MAPUrl {
+		self::assertIsPage($page);
+
+		$this->page = $page;
+		return $this;
+	}
+
+	public function getPage():string {
+		return $this->page;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 * @throws InvalidDataTypeException
+	 */
+	protected function getTargetPage(string $page):string {
+		self::assertIsPage($page);
+
+		if (!$this->config->isNull('alias', 'page')) {
+			$this->config->assertIsArray('alias', 'page');
+
+			$aliasList = $this->config->get('alias', 'page');
+			if (isset($aliasList[$page])) {
+				return $this->getTargetPage($aliasList[$page]);
+			}
+		}
+		return $page;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	public function getDefaultPage():string {
+		self::assertIsPage($this->config->get('default', 'page'));
+		return $this->config->get('default', 'page');
+	}
+
+	public function hasPage():bool {
+		return $this->page !== null;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	public function setInputList(array $inputList):MAPUrl {
+		$this->inputList = array();
+
+		foreach ($inputList as $input) {
+			$this->addInput($input);
 		}
 		return $this;
 	}
 
 	/**
-	 * @see    Url::getPath
-	 * @return string
+	 * @throws InvalidDataException
 	 */
-	public function getPath() {
-		$itemList = array();
+	public function addInput(string ...$input):MAPUrl {
+		foreach ($input as $i) {
+			self::assertIsInput($i);
 
-		if ($this->mode !== null) {
-			$itemList[] = $this->mode;
+			$this->inputList[] = $i;
 		}
-
-		if ($this->area !== null) {
-			$itemList[] = $this->area;
-		}
-
-		if ($this->page !== null) {
-			$itemList[] = $this->page;
-		}
-
-		$itemList = array_merge($itemList, $this->getInputList());
-		return '/'.implode('/', $itemList);
+		return $this;
 	}
 
-	public function isMode(string $mode):bool {
-		if (!self::match(self::PATTERN_MODE, $mode)) {
-			return false;
-		}
-		if ($this->config === null) {
-			return true;
-		}
-		$modeData = $this->config->get('mode', $mode);
-		return isset($modeData, $modeData['handler']);
+	public function getInputList():array {
+		return $this->inputList;
 	}
 
 	final public static function isPage(string $page):bool {
@@ -361,6 +352,20 @@ class MAPUrl extends Url {
 
 	final public static function isInput(string $input):bool {
 		return self::isMatching(self::PATTERN_INPUT, $input);
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public static function assertIsPage(string $page) {
+		self::assertIsMatching(self::PATTERN_PAGE, $page);
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public static function assertIsInput(string $input) {
+		self::assertIsMatching(self::PATTERN_INPUT, $input);
 	}
 
 }

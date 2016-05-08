@@ -3,8 +3,8 @@ namespace data\norm;
 
 use data\AbstractData;
 use data\InvalidDataException;
-use exception\MAPException;
 use ReflectionClass;
+use util\MAPException;
 
 /**
  * This file is part of the MAP-Framework.
@@ -22,6 +22,9 @@ class ClassObject extends AbstractData {
 	 */
 	private $nameSpace;
 
+	/**
+	 * @throws InvalidDataException
+	 */
 	public function set(string $nameSpace) {
 		self::assertIsNameSpace($nameSpace);
 

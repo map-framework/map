@@ -1,7 +1,7 @@
 <?php
 namespace data\file;
 
-use exception\MAPException;
+use util\MAPException;
 
 class UnexpectedTypeException extends MAPException {
 

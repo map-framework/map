@@ -3,7 +3,7 @@ namespace data\file;
 
 use data\AbstractData;
 use Exception;
-use exception\MAPException;
+use util\MAPException;
 use RuntimeException;
 use util\data\math\number\OctalNumber;
 
