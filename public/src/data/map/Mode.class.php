@@ -45,22 +45,26 @@ class Mode extends AbstractData {
 		return $config->get('mode', $this->get(), array());
 	}
 
-	final public function getSettingItem(Bucket $config, string $key):string {
+	final public function getSetting(Bucket $config, string $key):string {
 		return $this->getSettings($config)[$key] ?? '';
+	}
+
+	final public function hasSetting(Bucket $config, string $key):bool {
+		return $this->getSetting($config, $key) !== null;
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function getType(Bucket $config):MimeType {
-		return new MimeType($this->getSettingItem($config, 'type'));
+		return new MimeType($this->getSetting($config, 'type'));
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function getHandler(Bucket $config):ClassObject {
-		return new ClassObject($this->getSettingItem($config, 'handler'));
+		return new ClassObject($this->getSetting($config, 'handler'));
 	}
 
 	final public function exists(Bucket $config):bool {
@@ -104,6 +108,18 @@ class Mode extends AbstractData {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * @throws MAPException
+	 */
+	final public function assertHasSetting(Bucket $config, string $name) {
+		if (!$this->hasSetting($config, $name)) {
+			throw (new MAPException('Required Setting-Item.'))
+					->setData('mode', $this)
+					->setData('settings', $this->getSettings($config))
+					->setData('settingItem', $name);
+		}
 	}
 
 	/**
