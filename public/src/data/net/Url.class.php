@@ -3,8 +3,6 @@ namespace data\net;
 
 use data\AbstractData;
 use data\InvalidDataException;
-use Exception;
-use exception\MAPException;
 use util\Logger;
 
 /**
@@ -82,10 +80,12 @@ class Url extends AbstractData {
 			}
 			else {
 				Logger::error(
-						'Unknown URL-Component ('
-						.'Component-Name: '.MAPException::export($name).'; '
-						.'Component-Value: '.MAPException::export($value).'; '
-						.'URL: '.MAPException::export($url).')'
+						'Unknown URL-Component',
+						array(
+								'Name:'  => $name,
+								'Value:' => $value,
+								'URL:'   => $url
+						)
 				);
 			}
 		}

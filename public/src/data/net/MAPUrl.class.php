@@ -56,7 +56,7 @@ class MAPUrl extends Url {
 	 * @throws InvalidDataTypeException
 	 * @throws MAPException
 	 */
-	public function setPath(string $path):MAPUrl {
+	public function setPath(string $path):Url {
 		self::assertIsPath($path);
 
 		$this->mode      = null;
@@ -179,7 +179,7 @@ class MAPUrl extends Url {
 		return $this;
 	}
 
-	public function getPath(string $path):string {
+	public function getPath():string {
 		if ($this->hasMode()) {
 			$itemList[] = $this->getMode()->get();
 		}
@@ -216,7 +216,7 @@ class MAPUrl extends Url {
 
 			$aliasList = $this->config->get('alias', 'mode');
 			if (isset($aliasList[$mode->get()])) {
-				return $this->getTargetMode(new Mode($aliasList[$mode->get()]));
+				return new Mode($aliasList[$mode->get()]);
 			}
 		}
 		return $mode;
@@ -252,12 +252,21 @@ class MAPUrl extends Url {
 	 * @throws InvalidDataTypeException
 	 */
 	protected function getTargetArea(Area $area):Area {
+		if (!$this->config->isNull('alias', 'host')) {
+			$this->config->assertIsArray('alias', 'host');
+
+			$aliasList = $this->config->get('alias', 'host');
+			if (isset($aliasList[$this->getHost()])) {
+				return new Area($aliasList[$this->getHost()]);
+			}
+		}
+
 		if (!$this->config->isNull('alias', 'area')) {
 			$this->config->assertIsArray('alias', 'area');
 
 			$aliasList = $this->config->get('alias', 'area');
 			if (isset($aliasList[$area->get()])) {
-				return $this->getTargetArea(new Area($aliasList[$area->get()]));
+				return new Area($aliasList[$area->get()]);
 			}
 		}
 		return $area;
@@ -300,7 +309,7 @@ class MAPUrl extends Url {
 
 			$aliasList = $this->config->get('alias', 'page');
 			if (isset($aliasList[$page])) {
-				return $this->getTargetPage($aliasList[$page]);
+				return $aliasList[$page];
 			}
 		}
 		return $page;

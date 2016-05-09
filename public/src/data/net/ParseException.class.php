@@ -1,7 +1,7 @@
 <?php
 namespace data\net;
 
-use exception\MAPException;
+use util\MAPException;
 
 /**
  * This file is part of the MAP-Framework.
