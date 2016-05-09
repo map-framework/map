@@ -1,7 +1,7 @@
 <?php
 namespace handler\exception;
 
-use exception\MAPException;
+use util\MAPException;
 use data\file\File;
 use util\Logger;
 use Throwable;
@@ -16,7 +16,7 @@ use Web;
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-final class MAPExceptionHandler implements ExceptionHandler {
+final class MAPExceptionHandler implements ExceptionHandlerInterface {
 
 	const PATH_STYLESHEET = 'public/src/misc/xsl/mapException.xsl';
 

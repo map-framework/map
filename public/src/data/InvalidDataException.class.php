@@ -24,7 +24,7 @@ class InvalidDataException extends MAPException {
 		parent::__construct('Expected that each item of data list '.$this->expect.' the pattern.');
 
 		$this->setData('pattern', $pattern);
-		$this->setData('dataL', $data);
+		$this->setData('dataList', $data);
 	}
 
 	public function setExpect(string $expect):InvalidDataException {

@@ -145,6 +145,17 @@ class ClassObject extends AbstractData {
 	 * @throws ClassNotFoundException
 	 * @throws MAPException
 	 */
+	final public function assertIsNotAbstract() {
+		if ($this->isAbstract()) {
+			throw (new MAPException('Expected a Non-Abstract-Class.'))
+					->setData('class', $this);
+		}
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @throws MAPException
+	 */
 	final public function assertIsFinal() {
 		if (!$this->isFinal()) {
 			throw (new MAPException('Expected a Final-Class.'))

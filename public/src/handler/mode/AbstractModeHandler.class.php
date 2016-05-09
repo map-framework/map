@@ -3,7 +3,6 @@ namespace handler\mode;
 
 use data\file\NotFoundException;
 use exception\InvalidValueException;
-use handler\AbstractHandler;
 use peer\http\HttpConst;
 use RuntimeException;
 use util\Bucket;
@@ -19,7 +18,7 @@ use util\Logger;
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
-abstract class AbstractModeHandler extends AbstractHandler {
+abstract class AbstractModeHandler {
 
 	const PATTERN_MIME_TYPE = '^(text|image|video|audio|application|multipart|message|model|x\-[A-Za-z0-9\-])\/[A-Za-z0-9\-]+$';
 
@@ -27,6 +26,11 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	const TEXT_SPLITTER = '#';
 	const TEXT_SUFFIX   = '}';
 	const LANG_VAR      = '%(lang)';
+
+	/**
+	 * @var Bucket
+	 */
+	protected $config;
 
 	/**
 	 * @var MAPUrl
@@ -49,9 +53,9 @@ abstract class AbstractModeHandler extends AbstractHandler {
 	public function __construct(Bucket $config, MAPUrl $request, array $settings) {
 		$this->setContentType($settings['type']);
 
+		$this->config = $config;
 		$this->request  = $request;
 		$this->settings = $settings;
-		parent::__construct($config);
 	}
 
 	/**
