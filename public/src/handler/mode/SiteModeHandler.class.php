@@ -14,11 +14,9 @@ use xml\Node;
 use xml\XSLProcessor;
 
 /**
- * This file is part of the MAP-Framework.
- *
- * @author    Michael Piontkowski <mail@mpiontkowski.de>
- * @copyright Copyright 2016 Michael Piontkowski
- * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ * TODO migrate to new AbstractModeHandler
+ * TODO outsource into Plug-In
+ * TODO implement Annotations (#35)
  */
 class SiteModeHandler extends AbstractModeHandler {
 
