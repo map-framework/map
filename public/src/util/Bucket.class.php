@@ -210,7 +210,7 @@ class Bucket {
 	 * @throws InvalidDataException
 	 */
 	final public function isOfDataType(string $group, string $key, DataTypeEnum $dataType):bool {
-		return $this->getDataType($group, $key)->isEqual($dataType);
+		return $this->getDataType($group, $key) == $dataType;
 	}
 
 	/**

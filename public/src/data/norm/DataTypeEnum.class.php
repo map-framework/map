@@ -45,9 +45,9 @@ class DataTypeEnum extends AbstractEnum {
 		}
 	}
 
-	final public function isEqual(...$data):bool {
+	final public function isOfType(...$data):bool {
 		foreach ($data as $d) {
-			if ($this->get() != self::getInstance($d)) {
+			if ($this != self::getInstance($d)) {
 				return false;
 			}
 		}
@@ -57,9 +57,9 @@ class DataTypeEnum extends AbstractEnum {
 	/**
 	 * @throws InvalidDataTypeException
 	 */
-	final public function assertIsEqual(...$data) {
+	final public function assertIsOfType(...$data) {
 		foreach ($data as $d) {
-			if (!$this->isEqual($d)) {
+			if (!$this->isOfType($d)) {
 				throw new InvalidDataTypeException($this, $data);
 			}
 		}

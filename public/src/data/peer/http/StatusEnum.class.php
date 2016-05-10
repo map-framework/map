@@ -159,6 +159,10 @@ final class StatusEnum extends AbstractEnum {
 		return $codeList[$this->get()];
 	}
 
+	public function getMessage():string {
+		return str_replace('_', ' ', strtolower($this->get()));
+	}
+
 	public function isInformational():bool {
 		return isset(self::$informationalList[$this->get()]);
 	}
