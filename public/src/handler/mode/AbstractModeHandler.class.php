@@ -1,15 +1,12 @@
 <?php
 namespace handler\mode;
 
-use data\file\NotFoundException;
-use exception\InvalidValueException;
-use peer\http\HttpConst;
-use RuntimeException;
+use data\net\MimeType;
+use data\net\ParseException;
+use data\peer\http\StatusEnum;
 use util\Bucket;
-use data\file\File;
 use data\net\MAPUrl;
 use data\net\Url;
-use util\Logger;
 
 /**
  * This file is part of the MAP-Framework.
@@ -19,13 +16,6 @@ use util\Logger;
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
 abstract class AbstractModeHandler {
-
-	const PATTERN_MIME_TYPE = '^(text|image|video|audio|application|multipart|message|model|x\-[A-Za-z0-9\-])\/[A-Za-z0-9\-]+$';
-
-	const TEXT_PREFIX   = '{';
-	const TEXT_SPLITTER = '#';
-	const TEXT_SUFFIX   = '}';
-	const LANG_VAR      = '%(lang)';
 
 	/**
 	 * @var Bucket
@@ -37,176 +27,54 @@ abstract class AbstractModeHandler {
 	 */
 	protected $request;
 
-	/**
-	 * array[key:string] => value:mixed
-	 *
-	 * @var array (see above)
-	 */
-	protected $settings;
-
 	abstract public function handle();
 
-	/**
-	 * @see    AbstractModeHandler::$settings
-	 * @throws InvalidValueException
-	 */
-	public function __construct(Bucket $config, MAPUrl $request, array $settings) {
-		$this->setContentType($settings['type']);
-
-		$this->config = $config;
-		$this->request  = $request;
-		$this->settings = $settings;
+	public function __construct(Bucket $config, MAPUrl $request) {
+		$this->config  = $config;
+		$this->request = $request;
 	}
 
 	/**
-	 * @throws InvalidValueException
+	 * @throws ParseException
 	 */
-	final protected function setContentType(string $mimeType):AbstractModeHandler {
-		if (!preg_match('/'.self::PATTERN_MIME_TYPE.'/', $mimeType)) {
-			throw new InvalidValueException('MIME-Type', $mimeType);
+	final public function outputFailurePage(StatusEnum $responseStatus) {
+		self::setResponseStatus($responseStatus);
+		$mode = $this->request->getMode();
+
+		# pipe to url
+		$pipePath = $mode->getSetting($this->config, 'fail'.$responseStatus->getCode().'-pipe');
+		if ($pipePath != null) {
+			$pipeUrl = new Url($pipePath);
+
+			# endless loop protection
+			if ($pipeUrl->get() === $this->request->get()) {
+				$this->outputFailurePage(new StatusEnum(StatusEnum::LOOP_DETECTED));
+				return;
+			}
+
+			$this->setLocation($pipeUrl);
+			return;
 		}
 
-		header('Content-Type: '.$mimeType);
-		return $this;
+		# default failure output
+		$this->setContentType(new MimeType('text/plain'));
+		printf(
+				'[%d] %s',
+				$responseStatus->getCode(),
+				$responseStatus->getMessage()
+		);
 	}
 
-	final protected function setLocation(Url $address):AbstractModeHandler {
+	final public static function setContentType(MimeType $type) {
+		header('Content-Type: '.$type);
+	}
+
+	final public static function setLocation(Url $address) {
 		header('Location: '.$address);
-		return $this;
 	}
 
-	/**
-	 * get existing file in app folder
-	 *
-	 * @throws InvalidValueException
-	 * @throws NotFoundException
-	 */
-	final protected function getFile():File {
-		if (!isset($this->settings['folder']) || !is_string($this->settings['folder'])) {
-			throw new InvalidValueException('folder', $this->settings['folder'] ?? null);
-		}
-		if (!isset($this->settings['extension']) || !is_string($this->settings['extension'])) {
-			throw new InvalidValueException('extension', $this->settings['extension'] ?? null);
-		}
-
-		$page = implode('/', array_merge(array($this->request->getPage()), $this->request->getInputList()))
-				.$this->settings['extension'];
-
-		$fileInArea   = (new File('private/src/area/'.$this->request->getArea().'/app'))
-				->attach($this->settings['folder'])
-				->attach($page);
-		$fileInCommon = (new File('private/src/common/app'))
-				->attach($this->settings['folder'])
-				->attach($page);
-
-		if ($fileInArea->isFile()) {
-			return $fileInArea;
-		}
-		elseif ($fileInCommon->isFile()) {
-			return $fileInCommon;
-		}
-		throw new NotFoundException($fileInArea, $fileInCommon);
-	}
-
-	final protected function translate(string $text):string {
-		$locateTexts = array();
-
-		$suffixPosition = -1;
-		while (true) {
-			$prefixPosition   = strpos($text, self::TEXT_PREFIX, $suffixPosition + 1);
-			$splitterPosition = strpos($text, self::TEXT_SPLITTER, $prefixPosition + 2);
-			$suffixPosition   = strpos($text, self::TEXT_SUFFIX, $splitterPosition + 2);
-
-			if ($prefixPosition === false || $splitterPosition === false || $suffixPosition === false) {
-				break;
-			}
-
-			$group = substr($text, $prefixPosition + 1, $splitterPosition - $prefixPosition - 1);
-			$key   = substr($text, $splitterPosition + 1, $suffixPosition - $splitterPosition - 1);
-
-			$locateTexts[$group] = $locateTexts[$group] ?? array();
-			if (!in_array($key, $locateTexts[$group])) {
-				$locateTexts[$group][] = $key;
-			}
-		}
-
-		$textBucket = $this->getTextBucket();
-		foreach ($locateTexts as $group => $keyList) {
-			foreach ($keyList as $key) {
-				if ($textBucket->isString($group, $key)) {
-					$pattern = self::TEXT_PREFIX.$group.self::TEXT_SPLITTER.$key.self::TEXT_SUFFIX;
-					$text    = str_replace($pattern, $textBucket->get($group, $key), $text);
-				}
-			}
-		}
-		return $text;
-	}
-
-	final protected function getTextBucket():Bucket {
-		$texts = new Bucket();
-
-		if (isset($this->settings['multiLang']) && $this->settings['multiLang'] === true) {
-			# additional lang-files
-			if ($this->config->isArray('multiLang', 'loadList')) {
-				$loadPathList = $this->config->get('multiLang', 'loadList');
-			}
-			else {
-				$loadPathList = array();
-			}
-
-			# auto-loading lang-file
-			if ($this->config->isTrue('multiLang', 'autoLoading')) {
-				$loadPathList[] = sprintf(
-						'private/src/area/%s/text/%s/page/%s.ini',
-						$this->request->getArea(),
-						$this->config->get('multiLang', 'language'),
-						$this->request->getPage()
-				);
-			}
-
-			foreach ($loadPathList as $loadPath) {
-				$loadFile = new File(str_replace(self::LANG_VAR, $this->config->get('multiLang', 'language'), $loadPath));
-
-				if ($loadFile->isFile()) {
-					$texts->applyIni($loadFile);
-				}
-				else {
-					Logger::warning('Lang-File `'.$loadFile.'` not found');
-				}
-			}
-		}
-		return $texts;
-	}
-
-	protected function error(int $code):AbstractModeHandler {
-		if (!HttpConst::isStatus($code)) {
-			throw new RuntimeException('unknown HTTP-Status Code `'.$code.'`');
-		}
-		http_response_code($code);
-
-		# pipe to URL
-		if (isset($this->settings['err'.$code.'-pipe'])) {
-			$target = new MAPUrl($this->settings['err'.$code.'-pipe'], $this->config);
-
-			if ($target->get() === $this->request->get()) {
-				Logger::error('endless pipe-loop (status: `'.$code.'`) - interrupted with HTTP-Status `508`');
-				return $this->error(508);
-			}
-
-			$this->setLocation(new Url($this->settings['err'.$code.'-pipe']));
-			return $this;
-		}
-
-		# default error output
-		if (defined('peer\http\HttpConst::STATUS_'.$code)) {
-			$message = constant('peer\http\HttpConst::STATUS_'.$code);
-		}
-		else {
-			$message = 'N/A';
-		}
-
-		printf('[%d] %s', $code, $message);
-		return $this->setContentType('text/plain');
+	final public static function setResponseStatus(StatusEnum $responseStatus) {
+		http_response_code($responseStatus->getCode());
 	}
 
 }
