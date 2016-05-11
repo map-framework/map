@@ -103,6 +103,20 @@ class Bucket {
 	/**
 	 * @throws InvalidDataException
 	 */
+	final public function getKeyList(string ...$group):array {
+		foreach ($group as $g) {
+			self::assertIsGroupName($g);
+
+			foreach ($this->data[$g] as $key => $value) {
+				$keyList[] = $key;
+			}
+		}
+		return $keyList ?? array();
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
 	final public function getDataType(string $group, string $key):DataTypeEnum {
 		return DataTypeEnum::getInstance($this->get($group, $key));
 	}
