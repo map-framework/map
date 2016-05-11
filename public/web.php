@@ -62,6 +62,7 @@ final class Web {
 					$addOn->assertIsInstalled();
 
 					$this->config->applyIni($addOn->getConfigFile());
+					Logger::debug('ADD-ON', ['addOn' => $addOn]);
 				}
 			}
 
