@@ -36,7 +36,7 @@ class ClassObject extends AbstractData {
 	}
 
 	final public function exists():bool {
-		return class_exists($this->nameSpace);
+		return class_exists($this->nameSpace) || interface_exists($this->nameSpace);
 	}
 
 	/**
