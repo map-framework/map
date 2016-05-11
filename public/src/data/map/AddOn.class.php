@@ -2,7 +2,9 @@
 namespace data\map;
 
 use data\AbstractData;
+use data\file\TypeEnum;
 use data\InvalidDataException;
+use MAPAutoloader;
 use util\Bucket;
 use data\file\File;
 
@@ -17,7 +19,6 @@ class AddOn extends AbstractData {
 
 	const PATTERN_NAME = '[A-Za-z\-_]{1,32}';
 
-	const PATH_DIR    = 'public/addons';
 	const PATH_CONFIG = 'addon.ini';
 
 	/**
@@ -39,6 +40,9 @@ class AddOn extends AbstractData {
 		parent::__construct($name);
 	}
 
+	/**
+	 * @throws InvalidDataException
+	 */
 	public function set(string $name) {
 		self::assertIsName($name);
 
@@ -58,7 +62,7 @@ class AddOn extends AbstractData {
 		return $this;
 	}
 
-	final public function getMinVersion() {
+	final public function getMinVersion():Version {
 		return is_object($this->minVersion) ? clone $this->minVersion : null;
 	}
 
@@ -67,12 +71,12 @@ class AddOn extends AbstractData {
 		return $this;
 	}
 
-	final public function getMaxVersion() {
+	final public function getMaxVersion():Version {
 		return is_object($this->maxVersion) ? clone $this->maxVersion : null;
 	}
 
 	final public function getDir():File {
-		return (new File(self::PATH_DIR))
+		return (new File(MAPAutoloader::PATH_ADDONS))
 				->attach($this->get());
 	}
 
@@ -81,14 +85,66 @@ class AddOn extends AbstractData {
 				->attach(self::PATH_CONFIG);
 	}
 
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public static function getList():array {
+		$addOnRootDir = new File(MAPAutoloader::PATH_ADDONS);
+		if ($addOnRootDir->isDir()) {
+			foreach ($addOnRootDir->scanDir(new TypeEnum(TypeEnum::DIR)) as $addOnDir) {
+				if ($addOnDir instanceof File) {
+					$addonList[] = new AddOn($addOnDir->getShortName());
+				}
+			}
+		}
+		return $addonList ?? array();
+	}
+
+	final public function hasMinVersion():bool {
+		return $this->minVersion !== null;
+	}
+
+	final public function hasMaxVersion():bool {
+		return $this->maxVersion !== null;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 * @throws DependencyException
+	 */
 	final public function isInstalled():bool {
 		if (!$this->getDir()->isDir() || !$this->getConfigFile()->isFile()) {
 			return false;
 		}
+		$group = 'addon-'.$this->getName();
 
-		$addOnConfig = new Bucket($this->getConfigFile());
-		$addOnConfig->get('addon-'.$this->getName(), 'version');
-		// TODO implement method
+		$config = new Bucket($this->getConfigFile());
+		$config->assertIsString($group, 'version');
+
+		$version = new Version($config->get($group, 'version'));
+		if ($this->hasMinVersion() && $this->getMinVersion()->isGreater($version)) {
+			return false;
+		}
+		if ($this->hasMaxVersion() && $this->getMaxVersion()->isLess($version)) {
+			return false;
+		}
+
+		# Dependencies
+		foreach ($config->getKeyList($group) as $key) {
+			if (AbstractData::isMatching('dep\-'.self::PATTERN_NAME, $key)) {
+				$config->assertIsArray($group, $key);
+				$min        = $config->get($group, $key)['min'] ?? null;
+				$max        = $config->get($group, $key)['max'] ?? null;
+				$dependency = new AddOn(
+						substr($key, 4),
+						$min !== null ? new Version($min) : null,
+						$max !== null ? new Version($max) : null
+				);
+
+				$dependency->assertIsInstalled();
+			}
+		}
+		return true;
 	}
 
 	/**

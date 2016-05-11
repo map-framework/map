@@ -2,6 +2,7 @@
 namespace data\file;
 
 use data\AbstractData;
+use data\map\AddOn;
 use Exception;
 use util\MAPException;
 use RuntimeException;
@@ -63,8 +64,14 @@ class File extends AbstractData {
 	 */
 	final public function getSize():int {
 		$this->assertExists();
+		$this->assertIsFile();
 
 		return filesize($this->getRealPath());
+	}
+
+	final public function getShortName():string {
+		$pathItemList = explode('/', $this->get());
+		return end($pathItemList) ?: '';
 	}
 
 	final public function attach(string $path):File {
@@ -80,8 +87,8 @@ class File extends AbstractData {
 	 * @throws MAPException
 	 */
 	final public function changeMode(OctalNumber $user, OctalNumber $group, OctalNumber $other):File {
-		// TODO assert that math plugin is installed (#33)
 		$this->assertExists();
+		(new AddOn('math'))->assertIsInstalled();
 
 		if (!chmod($this->getRealPath(), $user.$group.$other)) {
 			throw (new MAPException('Failed to change mode.'))

@@ -30,6 +30,9 @@ class Version extends AbstractData {
 	 */
 	private $micro;
 
+	/**
+	 * @throws InvalidDataException
+	 */
 	public function set(string $version) {
 		self::assertIsVersion($version);
 
