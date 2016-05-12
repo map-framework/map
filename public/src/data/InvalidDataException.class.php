@@ -12,24 +12,21 @@ use util\MAPException;
  */
 class InvalidDataException extends MAPException {
 
-	const EXPECT_MATCHING     = 'is matching';
-	const EXPECT_NOT_MATCHING = 'isn\'t matching';
+	public function __construct(string $pattern, string ...$subject) {
+		parent::__construct('Expected that each subject is matching at least one pattern.');
 
-	/**
-	 * @var string
-	 */
-	protected $expect = self::EXPECT_MATCHING;
-
-	public function __construct(string $pattern, string ...$data) {
-		parent::__construct('Expected that each item of data list '.$this->expect.' the pattern.');
-
-		$this->setData('pattern', $pattern);
-		$this->setData('dataList', $data);
+		$this->addPattern($pattern);
+		foreach ($subject as $s) {
+			$this->addSubject($s);
+		}
 	}
 
-	public function setExpect(string $expect):InvalidDataException {
-		$this->expect = $expect;
-		return $this;
+	public function addPattern(string $pattern):InvalidDataException {
+		return $this->addData('patternList', $pattern);
+	}
+
+	public function addSubject(string $subject):InvalidDataException {
+		return $this->addData('subjectList', $subject);
 	}
 
 }

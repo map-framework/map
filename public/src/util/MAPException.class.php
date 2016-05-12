@@ -23,8 +23,19 @@ class MAPException extends Exception {
 		parent::__construct($message);
 	}
 
+	/**
+	 * set & overwrite
+	 */
 	final public function setData(string $name, $value):MAPException {
 		$this->data[$name] = is_object($value) ? clone $value : $value;
+		return $this;
+	}
+
+	/**
+	 * add to array
+	 */
+	final public function addData(string $name, $value):MAPException {
+		$this->data[$name][] = $value;
 		return $this;
 	}
 
