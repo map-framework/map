@@ -4,6 +4,7 @@ namespace data\norm;
 use data\AbstractData;
 use data\InvalidDataException;
 use ReflectionClass;
+use TypeError;
 use util\MAPException;
 
 /**
@@ -46,6 +47,36 @@ class ClassObject extends AbstractData {
 		$this->assertExists();
 
 		return new ReflectionClass($this->get());
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 */
+	final public function getAnnotationList():array {
+		$docComment = $this->getReflection()->getDocComment();
+		if ($docComment !== false) {
+			foreach (explode(PHP_EOL, $docComment) as $docCommentLine) {
+				try {
+					$annotationList[] = Annotation::instanceByDocLine($docCommentLine);
+				}
+				catch (MAPException $e) {
+				}
+			}
+		}
+		return $annotationList ?? array();
+	}
+
+	/**
+	 * @throws TypeError
+	 * @throws ClassNotFoundException
+	 */
+	final public function getAnnotation(string $name):Annotation {
+		foreach ($this->getAnnotationList() as $annotation) {
+			/** @noinspection PhpUndefinedMethodInspection */
+			if ($annotation->getName() === $name) {
+				return $annotation;
+			}
+		}
 	}
 
 	/**
@@ -97,6 +128,19 @@ class ClassObject extends AbstractData {
 		$interface->assertIsInterface();
 
 		return $this->getReflection()->implementsInterface($interface->get());
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 */
+	final public function hasAnnotation(string $name):bool {
+		try {
+			$this->getAnnotation($name);
+		}
+		catch (TypeError $e) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -192,6 +236,19 @@ class ClassObject extends AbstractData {
 	final public function assertImplementsInterface(ClassObject $interface) {
 		if (!$this->implementsInterface($interface)) {
 			throw new InstanceException($this, $interface);
+		}
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @throws MAPException
+	 */
+	final public function assertHasAnnotation(string $name) {
+		if (!$this->hasAnnotation($name)) {
+			throw new MAPException(
+					'Expected Class-Annotation.',
+					array('class' => $this, 'Annotation-Name' => $name)
+			);
 		}
 	}
 

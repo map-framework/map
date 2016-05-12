@@ -3,7 +3,6 @@ namespace data\norm;
 
 use data\AbstractData;
 use data\InvalidDataException;
-use data\net\ParseException;
 use util\MAPException;
 
 /**
@@ -12,7 +11,6 @@ use util\MAPException;
  * @author    Michael Piontkowski <mail@mpiontkowski.de>
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
- * @Aa0
  */
 class Annotation extends AbstractData {
 
