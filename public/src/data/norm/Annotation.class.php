@@ -112,6 +112,17 @@ class Annotation extends AbstractData {
 		return $this->paramList[$paramName] ?? '';
 	}
 
+	public static function instanceListByDoc(string $doc):array {
+		foreach (explode(PHP_EOL, $doc) as $docLine) {
+			try {
+				$annotationList[] = Annotation::instanceByDocLine($docLine);
+			}
+			catch (MAPException $e) {
+			}
+		}
+		return $annotationList ?? array();
+	}
+
 	/**
 	 * @throws InvalidDataException
 	 * @throws MAPException

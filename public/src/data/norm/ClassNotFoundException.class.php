@@ -12,10 +12,16 @@ use util\MAPException;
  */
 class ClassNotFoundException extends MAPException {
 
-	public function __construct(ClassObject $classObject) {
-		parent::__construct('Class not found.');
+	public function __construct(ClassObject ...$classObject) {
+		parent::__construct('Classes not found');
 
-		$this->setData('class', $classObject);
+		foreach ($classObject as $c) {
+			$this->addClassObject($c);
+		}
+	}
+
+	public function addClassObject(ClassObject $classObject):ClassNotFoundException {
+		return $this->addData('classObjectList', $classObject);
 	}
 
 }

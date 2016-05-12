@@ -53,17 +53,8 @@ class ClassObject extends AbstractData {
 	 * @throws ClassNotFoundException
 	 */
 	final public function getAnnotationList():array {
-		$docComment = $this->getReflection()->getDocComment();
-		if ($docComment !== false) {
-			foreach (explode(PHP_EOL, $docComment) as $docCommentLine) {
-				try {
-					$annotationList[] = Annotation::instanceByDocLine($docCommentLine);
-				}
-				catch (MAPException $e) {
-				}
-			}
-		}
-		return $annotationList ?? array();
+		$doc = $this->getReflection()->getDocComment();
+		return $doc !== false ? Annotation::instanceListByDoc($doc) : array();
 	}
 
 	/**
