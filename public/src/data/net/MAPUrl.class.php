@@ -4,7 +4,7 @@ namespace data\net;
 use data\InvalidDataException;
 use data\map\Area;
 use data\map\Mode;
-use data\norm\InvalidDataTypeException;
+use data\common\InvalidDataTypeException;
 use util\Bucket;
 use util\Logger;
 use util\MAPException;

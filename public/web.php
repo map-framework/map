@@ -2,9 +2,9 @@
 
 use data\InvalidDataException;
 use data\map\AddOn;
-use data\norm\ClassNotFoundException;
-use data\norm\ClassObject;
-use data\norm\InstanceException;
+use data\oop\ClassNotFoundException;
+use data\oop\ClassObject;
+use data\oop\InstanceException;
 use handler\exception\ExceptionHandlerInterface;
 use util\Logger;
 use util\Bucket;

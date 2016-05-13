@@ -6,8 +6,8 @@ use data\file\File;
 use data\file\NotFoundException;
 use data\file\UnexpectedTypeException;
 use data\InvalidDataException;
-use data\norm\DataTypeEnum;
-use data\norm\InvalidDataTypeException;
+use data\common\DataTypeEnum;
+use data\common\InvalidDataTypeException;
 use xml\Node;
 
 /**

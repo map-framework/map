@@ -1,5 +1,5 @@
 <?php
-namespace data\norm;
+namespace data\oop;
 
 use data\AbstractData;
 use data\InvalidDataException;

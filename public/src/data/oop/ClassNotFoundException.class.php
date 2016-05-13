@@ -1,5 +1,5 @@
 <?php
-namespace data\norm;
+namespace data\oop;
 
 use util\MAPException;
 
