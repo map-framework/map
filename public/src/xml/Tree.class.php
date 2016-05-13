@@ -3,6 +3,9 @@ namespace xml;
 
 use DOMDocument;
 
+/**
+ * @TODO migrate to PHP 7 (#32)
+ */
 class Tree {
 
 	/**
@@ -80,11 +83,12 @@ class Tree {
 	/**
 	 * @param  bool $indent
 	 * @return string
+	 * @TODO rename to 'toSource' (+ change in Add-Ons)
 	 */
 	public function getSource($indent = true) {
 		return
 				$this->getProlog()
-				.$this->rootNode->getSource($indent);
+				.$this->rootNode->toSource($indent);
 	}
 
 	/**

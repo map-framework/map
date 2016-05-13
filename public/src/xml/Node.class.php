@@ -1,213 +1,167 @@
 <?php
 namespace xml;
 
-use data\AbstractData;
-use data\InvalidDataException;
-use util\Logger;
+use util\MAPException;
 
+/**
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ */
 class Node {
-
-	// TODO correct pattern
-	const PATTERN_NAME = '^.*$';
 
 	/**
 	 * @var string
 	 */
-	protected $name = null;
+	protected $name;
 
 	/**
-	 * @var array { string => string }
+	 * @var array
 	 */
-	protected $attributes = array();
+	protected $attributeList = array();
 
 	/**
-	 * @var null|string
+	 * @var string
 	 */
-	protected $content = null;
+	protected $content;
 
 	/**
-	 * @var array { Node }
+	 * @var array
 	 */
-	protected $children = array();
+	protected $childList = array();
 
-	/**
-	 * @param string $name
-	 */
-	public function __construct($name) {
+	public function __construct(string $name) {
 		$this->setName($name);
 	}
 
-	/**
-	 * @param  string $name
-	 * @return Node this
-	 */
-	final public function setName($name) {
+	public function setName(string $name):Node {
 		$this->name = $name;
 		return $this;
 	}
 
-	/**
-	 * @param  string $name
-	 * @param  string $value
-	 * @return Node this
-	 */
-	final public function setAttribute($name, $value) {
-		$this->attributes[$name] = $value;
-		return $this;
-	}
-
-	/**
-	 * @param  string $name
-	 * @return null|string
-	 */
-	final public function getAttribute($name) {
-		if (!isset($this->attributes[$name])) {
-			return null;
-		}
-		return $this->attributes[$name];
-	}
-
-	/**
-	 * @param  string $name
-	 * @return bool
-	 */
-	final public function hasAttribute($name) {
-		return $this->getAttribute($name) !== null;
-	}
-
-	/**
-	 * @return array { name => value }
-	 */
-	final public function getAttributes() {
-		return $this->attributes;
-	}
-
-	/**
-	 * @return string
-	 */
-	final public function getName() {
+	public function getName():string {
 		return $this->name;
 	}
 
-	/**
-	 * @param  null|string $content
-	 * @return Node this
-	 */
-	final public function setContent($content) {
-		if (is_object($content) && method_exists($content, '__toString')) {
-			$content = (string) $content;
-		}
-		if ($content === null || is_string($content) || is_int($content)) {
-			$this->content = $content;
-		}
-		else {
-			Logger::warning('ignored node content of type `'.gettype($content).'`');
+	public function setAttribute(string $name, string $value):Node {
+		$this->attributeList[$name] = $value;
+		return $this;
+	}
+
+	public function getAttributeList():array {
+		return $this->attributeList;
+	}
+
+	public function getAttribute(string $name, string $default = ''):string {
+		return $this->attributeList[$name] ?? $default;
+	}
+
+	public function removeAttribute(string ...$name):Node {
+		foreach ($name as $n) {
+			unset($this->attributeList[$n]);
 		}
 		return $this;
 	}
 
-	/**
-	 * @return null|string
-	 */
-	final public function getContent() {
+	public function setContent(string $content):Node {
+		$this->content = $content;
+		return $this;
+	}
+
+	public function getContent():string {
 		return $this->content;
 	}
 
 	/**
-	 * @param  Node $child
-	 * @return Node child
+	 * @return Node child-node
 	 */
-	final public function addChild(Node $child) {
-		$this->children[] = $child;
+	public function addChild(Node $child):Node {
+		$this->childList[] = $child;
 		return $child;
 	}
 
 	/**
-	 * @param  Node $child
-	 * @return Node this
+	 * @return Node this-node
 	 */
-	final public function withChild(Node $child) {
-		$this->addChild($child);
+	public function withChild(Node ...$child):Node {
+		foreach ($child as $c) {
+			$this->addChild($c);
+		}
 		return $this;
 	}
 
-	/**
-	 * @return array { Node }
-	 */
-	final public function getChildren() {
-		return $this->children;
+	public function getChildList():array {
+		return $this->childList;
 	}
 
-	/**
-	 * @return int
-	 */
-	final public function countChildren() {
-		return count($this->getChildren());
+	public function countOfChildren():int {
+		return count($this->getChildList());
 	}
 
-	/**
-	 * @return bool
-	 */
-	final public function hasChildren() {
-		return (bool) $this->countChildren();
-	}
-
-	/**
-	 * @param  bool   $indent
-	 * @param  string $prefix
-	 * @param  string $prefixChar
-	 * @return string
-	 */
-	public function getSource($indent = true, $prefix = '', $prefixChar = "\t") {
-		$prefixThis  = $prefix;
-		$prefixChild = $prefix;
-
-		if ($indent === true) {
-			$prefixThis  = $prefix;
-			$prefixChild = $prefix.$prefixChar;
-		}
-
-		$xml = $prefixThis.'<'.$this->getName();
-		foreach ($this->getAttributes() as $name => $value) {
-			$xml .= ' '.$name.'="'.$value.'"';
-		}
-
-		$closing = '</'.$this->getName().'>';
-
-		if ($this->getContent() !== null) {
-			return $xml.'>'.$this->getContent().$closing;
-		}
-		elseif ($this->hasChildren()) {
-			$xml .= '>'.PHP_EOL;
-			foreach ($this->getChildren() as $child) {
-				if ($child instanceof Node) {
-					$xml .= $child->getSource($indent, $prefixChild, $prefixChar).PHP_EOL;
-				}
+	final public function hasAttribute(string ...$name):bool {
+		foreach ($name as $n) {
+			if (!isset($this->attributeList[$n])) {
+				return false;
 			}
-			$xml .= $prefixThis.$closing;
-			return $xml;
+		}
+		return true;
+	}
+
+	public function toSource(bool $indent = true, string $prefix = '', string $prefixChar = "\t"):string {
+		$source = $prefix.'<'.$this->getName();
+		foreach ($this->getAttributeList() as $name => $value) {
+			$source .= ' '.$name.'="'.$value.'"';
+		}
+
+		if (!$this->hasContent() && !$this->hasChildren()) {
+			return $source.' />';
+		}
+
+		if ($this->hasContent()) {
+			$source .= $this->getContent();
 		}
 		else {
-			return $xml.'/>';
+			$source .= '>'.PHP_EOL;
+			foreach ($this->getChildList() as $child) {
+				/** @noinspection PhpUndefinedMethodInspection */
+				$source .= $child->toSource($indent, $indent === true ? $prefix.$prefixChar : '', $prefixChar).PHP_EOL;
+			}
+		}
+		return $source.'</'.$this->getName().'>';
+	}
+
+	public function __toString():string {
+		return $this->toSource();
+	}
+
+	final public function hasContent():bool {
+		return $this->content !== null;
+	}
+
+	final public function hasChildren():bool {
+		return $this->countOfChildren() !== 0;
+	}
+
+	/**
+	 * @throws MAPException
+	 */
+	final public function assertHasContent() {
+		if (!$this->hasContent()) {
+			throw (new MAPException('Expected content'))
+					->setData('node', $this);
 		}
 	}
 
 	/**
-	 * @return string
+	 * @throws MAPException
 	 */
-	public function __toString() {
-		return $this->getSource();
-	}
-
-	final public static function isNodeName(string $name):bool {
-		return AbstractData::isMatching(self::PATTERN_NAME, $name);
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public static function assertIsNodeName(string $name) {
-		AbstractData::assertIsMatching(self::PATTERN_NAME, $name);
+	final public function assertHasChildren() {
+		if (!$this->hasChildren()) {
+			throw (new MAPException('Expected children'))
+					->setData('node', $this);
+		}
 	}
 
 }

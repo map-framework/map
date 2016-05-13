@@ -7,6 +7,10 @@ use RuntimeException;
 use util\Bucket;
 use util\Logger;
 
+/**
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
+ */
 class Request {
 
 	const DEFAULT_ACCESS_POINT = 'local';

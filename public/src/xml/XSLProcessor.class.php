@@ -6,6 +6,9 @@ use data\file\File;
 use XSLTProcessor;
 use DOMDocument;
 
+/**
+ * @TODO migrate to PHP 7 (#32)
+ */
 class XSLProcessor {
 
 	/**

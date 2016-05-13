@@ -7,6 +7,8 @@ use peer\mysql\Query;
  * simple MySQL insert statement
  *
  * @link http://dev.mysql.com/doc/refman/5.7/en/insert.html
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
  */
 final class Insert extends AbstractStatement {
 

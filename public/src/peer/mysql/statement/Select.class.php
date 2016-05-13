@@ -7,6 +7,8 @@ use peer\mysql\Query;
  * simple mysql select statement
  *
  * @link http://dev.mysql.com/doc/refman/5.7/en/select.html
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
  */
 final class Select extends AbstractStatement {
 

@@ -3,6 +3,10 @@ namespace peer\mysql\statement;
 
 use peer\mysql\Query;
 
+/**
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
+ */
 abstract class AbstractStatement {
 
 	const OPERATOR_EQUAL         = '=';

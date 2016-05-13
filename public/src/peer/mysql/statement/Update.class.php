@@ -8,6 +8,8 @@ use RuntimeException;
  * simple mysql update statement
  *
  * @link http://dev.mysql.com/doc/refman/5.7/en/update.html
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
  */
 final class Update extends AbstractStatement {
 

@@ -1,6 +1,10 @@
 <?php
 namespace peer\mysql;
 
+/**
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
+ */
 use DateTime;
 use Exception;
 use peer\mysql\statement\Delete;

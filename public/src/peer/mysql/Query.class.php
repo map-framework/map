@@ -5,6 +5,10 @@ use DateTime;
 use MySQLi;
 use RuntimeException;
 
+/**
+ * @TODO migrate to PHP 7 (#32)
+ * @TODO outsource into Add-On (#33)
+ */
 final class Query {
 
 	# Integer
