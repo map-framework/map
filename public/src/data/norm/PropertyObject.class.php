@@ -98,7 +98,7 @@ class PropertyObject extends AbstractData {
 	 * @throws TypeError
 	 * @throws PropertyNotFoundException
 	 */
-	final public function getAnnotation(string $name):Annotation {
+	public function getAnnotation(string $name):Annotation {
 		foreach ($this->getAnnotationList() as $annotation) {
 			/** @noinspection PhpUndefinedMethodInspection */
 			if ($annotation->getName() === $name) {
@@ -176,7 +176,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsPublic() {
 		if (!$this->isPublic()) {
 			throw (new MAPException('Expected public property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -187,7 +187,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsNotPublic() {
 		if ($this->isPublic()) {
 			throw (new MAPException('Expected non-public property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -198,7 +198,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsProtected() {
 		if (!$this->isProtected()) {
 			throw (new MAPException('Expected protected property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -209,7 +209,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsNotProtected() {
 		if ($this->isProtected()) {
 			throw (new MAPException('Expected non-protected property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -220,7 +220,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsPrivate() {
 		if (!$this->isPrivate()) {
 			throw (new MAPException('Expected private property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -231,7 +231,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsNotPrivate() {
 		if ($this->isPrivate()) {
 			throw (new MAPException('Expected non-private property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -242,7 +242,7 @@ class PropertyObject extends AbstractData {
 	final public function assertIsStatic() {
 		if (!$this->isStatic()) {
 			throw (new MAPException('Expected static property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
 		}
 	}
 
@@ -253,14 +253,29 @@ class PropertyObject extends AbstractData {
 	final public function assertIsNotStatic() {
 		if ($this->isStatic()) {
 			throw (new MAPException('Expected non-static property'))
-					->setData('property', $this);
+					->setData('propertyObject', $this);
+		}
+	}
+
+	/**
+	 * @throws PropertyNotFoundException
+	 * @throws MAPException
+	 */
+	final public function assertHasAnnotation(string $name) {
+		if (!$this->hasAnnotation($name)) {
+			throw (new MAPException('Expected annotated property'))
+					->setData('propertyObject', $this)
+					->setData('annotationName', $name);
 		}
 	}
 
 	final public static function isName(string ...$name):bool {
 		foreach ($name as $n) {
-			return self::isMatching(self::PATTERN_NAME, $n);
+			if (!self::isMatching(self::PATTERN_NAME, $n)) {
+				return false;
+			}
 		}
+		return true;
 	}
 
 	/**

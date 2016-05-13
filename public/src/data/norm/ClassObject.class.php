@@ -150,7 +150,7 @@ class ClassObject extends AbstractData {
 	final public function assertIsInterface() {
 		if (!$this->isInterface()) {
 			throw (new MAPException('Expected an Interface.'))
-					->setData('class', $this);
+					->setData('classObject', $this);
 		}
 	}
 
@@ -161,7 +161,7 @@ class ClassObject extends AbstractData {
 	final public function assertIsNotInterface() {
 		if ($this->isInterface()) {
 			throw (new MAPException('Expected no Interface.'))
-					->setData('class', $this);
+					->setData('classObject', $this);
 		}
 	}
 
@@ -172,7 +172,7 @@ class ClassObject extends AbstractData {
 	final public function assertIsAbstract() {
 		if (!$this->isAbstract()) {
 			throw (new MAPException('Expected an Abstract-Class.'))
-					->setData('class', $this);
+					->setData('classObject', $this);
 		}
 	}
 
@@ -183,7 +183,7 @@ class ClassObject extends AbstractData {
 	final public function assertIsNotAbstract() {
 		if ($this->isAbstract()) {
 			throw (new MAPException('Expected a Non-Abstract-Class.'))
-					->setData('class', $this);
+					->setData('classObject', $this);
 		}
 	}
 
@@ -194,7 +194,7 @@ class ClassObject extends AbstractData {
 	final public function assertIsFinal() {
 		if (!$this->isFinal()) {
 			throw (new MAPException('Expected a Final-Class.'))
-					->setData('class', $this);
+					->setData('classObject', $this);
 		}
 	}
 
@@ -205,7 +205,7 @@ class ClassObject extends AbstractData {
 	final public function assertIsNotFinal() {
 		if ($this->isFinal()) {
 			throw (new MAPException('Expected a Non-Final-Class.'))
-					->setData('class', $this);
+					->setData('classObject', $this);
 		}
 	}
 
@@ -236,10 +236,9 @@ class ClassObject extends AbstractData {
 	 */
 	final public function assertHasAnnotation(string $name) {
 		if (!$this->hasAnnotation($name)) {
-			throw new MAPException(
-					'Expected Class-Annotation.',
-					array('class' => $this, 'Annotation-Name' => $name)
-			);
+			throw (new MAPException('Expected annotated class'))
+					->setData('classObject', $this)
+					->setData('annotationName', $name);
 		}
 	}
 
