@@ -16,6 +16,8 @@ use util\Bucket;
  *
  * @example   Implement methods like examples. Return HTTP-Status Codes. (see above)
  * @see       HttpConst
+ *
+ * TODO outsource into map-framework/addon-mode-rest (#33)
  */
 abstract class AbstractRestPage {
 

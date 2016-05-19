@@ -12,6 +12,8 @@ use xml\Tree;
  * @author    Michael Piontkowski <mail@mpiontkowski.de>
  * @copyright Copyright 2016 Michael Piontkowski
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
+ *
+ * TODO outsource into map-framework/addon-mode-site (#33)
  */
 abstract class AbstractSitePage {
 
