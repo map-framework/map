@@ -72,6 +72,20 @@ class ClassObject extends AbstractData {
 
 	/**
 	 * @throws ClassNotFoundException
+	 * @throws MAPException
+	 */
+	final public function getPropertyList():array {
+		$this->assertExists();
+		$this->assertIsNotInterface();
+
+		foreach ($this->getReflection()->getProperties() as $property) {
+			$propertyList[] = new PropertyObject($this, $property->getName());
+		}
+		return $propertyList ?? array();
+	}
+
+	/**
+	 * @throws ClassNotFoundException
 	 */
 	final public function isInterface():bool {
 		return $this->getReflection()->isInterface();

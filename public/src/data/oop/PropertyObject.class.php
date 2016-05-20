@@ -107,6 +107,25 @@ class PropertyObject extends AbstractData {
 		}
 	}
 
+	/**
+	 * @throws PropertyNotFoundException
+	 */
+	final public function setValue($object, $value):PropertyObject {
+		$this->assertExists();
+
+		$this->getReflection()->setValue($object, $value);
+		return $this;
+	}
+
+	/**
+	 * @throws PropertyNotFoundException
+	 */
+	final public function getValue($object) {
+		$this->assertExists();
+
+		return $this->getReflection()->getValue($object);
+	}
+
 	final public function exists():bool {
 		return property_exists($this->getClassObject()->get(), $this->getName());
 	}
