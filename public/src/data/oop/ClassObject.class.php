@@ -4,7 +4,6 @@ namespace data\oop;
 use data\AbstractData;
 use data\InvalidDataException;
 use ReflectionClass;
-use TypeError;
 use util\MAPException;
 
 /**
@@ -51,6 +50,7 @@ class ClassObject extends AbstractData {
 
 	/**
 	 * @throws ClassNotFoundException
+	 * @return Annotation[]
 	 */
 	final public function getAnnotationList():array {
 		$doc = $this->getReflection()->getDocComment();
@@ -58,16 +58,16 @@ class ClassObject extends AbstractData {
 	}
 
 	/**
-	 * @throws TypeError
+	 * @throws AnnotationNotFoundException
 	 * @throws ClassNotFoundException
 	 */
 	final public function getAnnotation(string $name):Annotation {
 		foreach ($this->getAnnotationList() as $annotation) {
-			/** @noinspection PhpUndefinedMethodInspection */
 			if ($annotation->getName() === $name) {
 				return $annotation;
 			}
 		}
+		throw new AnnotationNotFoundException(new Annotation($name));
 	}
 
 	/**
@@ -142,7 +142,7 @@ class ClassObject extends AbstractData {
 		try {
 			$this->getAnnotation($name);
 		}
-		catch (TypeError $e) {
+		catch (AnnotationNotFoundException $e) {
 			return false;
 		}
 		return true;
@@ -246,14 +246,10 @@ class ClassObject extends AbstractData {
 
 	/**
 	 * @throws ClassNotFoundException
-	 * @throws MAPException
+	 * @throws AnnotationNotFoundException
 	 */
 	final public function assertHasAnnotation(string $name) {
-		if (!$this->hasAnnotation($name)) {
-			throw (new MAPException('Expected annotated class'))
-					->setData('classObject', $this)
-					->setData('annotationName', $name);
-		}
+		$this->getAnnotation($name);
 	}
 
 	final public static function isNameSpace(string $nameSpace) {

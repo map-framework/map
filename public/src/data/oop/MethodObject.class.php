@@ -4,7 +4,6 @@ namespace data\oop;
 use data\AbstractData;
 use data\InvalidDataException;
 use ReflectionMethod;
-use TypeError;
 use util\MAPException;
 
 /**
@@ -88,6 +87,7 @@ class MethodObject extends AbstractData {
 
 	/**
 	 * @throws MethodNotFoundException
+	 * @return Annotation[]
 	 */
 	public function getAnnotationList():array {
 		$doc = $this->getReflection()->getDocComment();
@@ -95,16 +95,16 @@ class MethodObject extends AbstractData {
 	}
 
 	/**
-	 * @throws TypeError
+	 * @throws AnnotationNotFoundException
 	 * @throws MethodNotFoundException
 	 */
 	public function getAnnotation(string $name):Annotation {
 		foreach ($this->getAnnotationList() as $annotation) {
-			/** @noinspection PhpUndefinedMethodInspection */
 			if ($annotation->getName() === $name) {
 				return $annotation;
 			}
 		}
+		throw new AnnotationNotFoundException(new Annotation($name));
 	}
 
 	final public function exists():bool {
@@ -192,7 +192,7 @@ class MethodObject extends AbstractData {
 		try {
 			$this->getAnnotation($name);
 		}
-		catch (TypeError $e) {
+		catch (AnnotationNotFoundException $e) {
 			return false;
 		}
 		return true;
@@ -385,14 +385,10 @@ class MethodObject extends AbstractData {
 
 	/**
 	 * @throws MethodNotFoundException
-	 * @throws MAPException
+	 * @throws AnnotationNotFoundException
 	 */
 	final public function assertHasAnnotation(string $name) {
-		if (!$this->hasAnnotation($name)) {
-			throw (new MAPException('Expected annotated method'))
-					->setData('methodObject', $this)
-					->setData('annotationName', $name);
-		}
+		$this->getAnnotation($name);
 	}
 
 	final public static function isName(string ...$name):bool {
