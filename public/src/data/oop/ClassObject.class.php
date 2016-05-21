@@ -73,6 +73,7 @@ class ClassObject extends AbstractData {
 	/**
 	 * @throws ClassNotFoundException
 	 * @throws MAPException
+	 * @return PropertyObject[]
 	 */
 	final public function getPropertyList():array {
 		$this->assertExists();
@@ -82,6 +83,19 @@ class ClassObject extends AbstractData {
 			$propertyList[] = new PropertyObject($this, $property->getName());
 		}
 		return $propertyList ?? array();
+	}
+
+	/**
+	 * @throws ClassNotFoundException
+	 * @return MethodObject[]
+	 */
+	final public function getMethodList():array {
+		$this->assertExists();
+
+		foreach ($this->getReflection()->getMethods() as $method) {
+			$methodList[] = new MethodObject($this, $method->getName());
+		}
+		return $methodList ?? array();
 	}
 
 	/**
