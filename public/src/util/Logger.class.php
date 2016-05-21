@@ -1,7 +1,6 @@
 <?php
 namespace util;
 
-use Exception;
 use data\file\File;
 use DateTime;
 use xml\Tree;
@@ -65,7 +64,7 @@ class Logger {
 	}
 
 	public static function storeTree(Tree $tree, string $extension = ''):File {
-		return self::storeText($tree->getSource(true), $extension);
+		return self::storeText($tree->toSource(), $extension);
 	}
 
 	public static function storeText(string $text, string $extension = ''):File {
