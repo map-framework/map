@@ -45,8 +45,8 @@ class Mode extends AbstractData {
 		return $config->get('mode', $this->get(), array());
 	}
 
-	final public function getSetting(Bucket $config, string $key):string {
-		return $this->getSettings($config)[$key] ?? '';
+	final public function getSetting(Bucket $config, string $key, $default = null) {
+		return $this->getSettings($config)[$key] ?? $default;
 	}
 
 	final public function hasSetting(Bucket $config, string $key):bool {
