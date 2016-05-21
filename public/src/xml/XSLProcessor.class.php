@@ -1,104 +1,115 @@
 <?php
 namespace xml;
 
-use Exception;
 use data\file\File;
-use XSLTProcessor;
+use data\file\ForbiddenException;
+use data\file\NotFoundException;
+use data\file\UnexpectedTypeException;
 use DOMDocument;
+use util\Logger;
+use util\MAPException;
+use XSLTProcessor;
 
 /**
- * @TODO migrate to PHP 7 (#32)
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
 class XSLProcessor {
 
 	/**
-	 * @var array { string => string }
+	 * @var string[]
 	 */
-	protected $params = array();
+	protected $parameterList = array();
 
 	/**
 	 * @var DOMDocument
 	 */
-	protected $styleSheet = null;
+	protected $stylesheet;
 
 	/**
 	 * @var DOMDocument
 	 */
-	protected $document = null;
+	protected $document;
 
-	/**
-	 * @param  string $name
-	 * @param  string $value
-	 * @return XSLProcessor this
-	 */
-	final public function setParam($name, $value) {
-		$this->params[$name] = $value;
+	public function setParameter(string $name, string $value):XSLProcessor {
+		$this->parameterList[$name] = $value;
+		return $this;
+	}
+
+	public function setStylesheet(DOMDocument $stylesheet):XSLProcessor {
+		$this->stylesheet = $stylesheet;
 		return $this;
 	}
 
 	/**
-	 * @param  DOMDocument $styleSheet
-	 * @return XSLProcessor this
+	 * @throws ForbiddenException
+	 * @throws NotFoundException
+	 * @throws UnexpectedTypeException
 	 */
-	final public function setStyleSheetDoc(DOMDocument $styleSheet) {
-		$this->styleSheet = $styleSheet;
-		return $this;
+	public function setStylesheetFile(File $file):XSLProcessor {
+		$file->assertExists();
+		$file->assertIsFile();
+		$file->assertIsReadable();
+
+		$stylesheet = new DOMDocument();
+		$stylesheet->load($file->getRealPath());
+		return $this->setStylesheet($stylesheet);
 	}
 
-	/**
-	 * @param  File $styleSheetFile
-	 * @throws Exception
-	 * @return XSLProcessor this
-	 */
-	final public function setStyleSheetFile(File $styleSheetFile) {
-		if (!$styleSheetFile->isFile()) {
-			throw new Exception('file `'.$styleSheetFile.'` not found');
-		}
-		$styleSheet = new DOMDocument();
-		$styleSheet->load($styleSheetFile->getRealPath());
-		$this->styleSheet = $styleSheet;
-		return $this;
-	}
-
-	/**
-	 * @param  DOMDocument $document
-	 * @return XSLProcessor this
-	 */
-	final public function setDocumentDoc(DOMDocument $document) {
+	public function setDocument(DOMDocument $document):XSLProcessor {
 		$this->document = $document;
 		return $this;
 	}
 
 	/**
-	 * @param  File $document
-	 * @throws Exception
-	 * @return XSLProcessor this
+	 * @throws ForbiddenException
+	 * @throws NotFoundException
+	 * @throws UnexpectedTypeException
 	 */
-	final public function setDocumentFile(File $document) {
-		if (!$document->isFile()) {
-			throw new Exception('file `'.$document.'` not found');
-		}
-		$this->document = new DOMDocument();
-		$this->document->load($document);
-		return $this;
+	final public function setDocumentFile(File $file):XSLProcessor {
+		$file->assertExists();
+		$file->assertIsFile();
+		$file->assertIsReadable();
+
+		$document = new DOMDocument();
+		$document->load($file->getRealPath());
+		return $this->setDocument($document);
 	}
 
 	/**
-	 * run the xsl transformation
+	 * Start the XSL-Transformation.
 	 *
-	 * @throws Exception
-	 * @return string
+	 * @throws MAPException
 	 */
-	public function transform() {
+	public function transform():string {
 		$processor = new XSLTProcessor();
-		$processor->importStylesheet($this->styleSheet);
-		foreach ($this->params as $name => $value) {
-			$processor->setParameter('', $name, $value);
+		$processor->importStylesheet($this->stylesheet);
+
+		foreach ($this->parameterList as $parameterName => $parameterValue) {
+			if (!$processor->setParameter('', $parameterName, $parameterValue)) {
+				throw new MAPException(
+						'Failed to set parameter',
+						array(
+								'parameterName'  => $parameterName,
+								'parameterValue' => $parameterValue
+						)
+				);
+			}
 		}
 
 		$result = $processor->transformToXml($this->document);
 		if ($result === false) {
-			throw new Exception('XSL transformation error');
+			throw new MAPException(
+					'XSL-Transformation failed',
+					array(
+							'stylesheetFile' => Logger::storeText($this->stylesheet->saveXML()),
+							'documentFile'   => Logger::storeText($this->document->saveXML()),
+							'parameterList'  => $this->parameterList
+					)
+			);
 		}
 		return $result;
 	}

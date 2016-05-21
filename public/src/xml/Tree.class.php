@@ -4,109 +4,84 @@ namespace xml;
 use DOMDocument;
 
 /**
- * @TODO migrate to PHP 7 (#32)
+ * This file is part of the MAP-Framework.
+ *
+ * @author    Michael Piontkowski <mail@mpiontkowski.de>
+ * @copyright Copyright 2016 Michael Piontkowski
+ * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
 class Tree {
 
 	/**
 	 * @var Node
 	 */
-	protected $rootNode = null;
+	protected $rootNode;
 
 	/**
-	 * xml version
+	 * XML-Version
 	 *
 	 * @var string
 	 */
 	protected $version = '1.0';
 
 	/**
-	 * xml encoding
+	 * XML-Encoding
 	 *
-	 * @var null|string
+	 * @var string
 	 */
-	protected $encoding = null;
+	protected $encoding;
 
 	/**
-	 * @var null|string('yes'|'no')
+	 * XML-StandAlone
+	 *
+	 * @var bool
 	 */
-	protected $standAlone = null;
+	protected $standAlone;
 
-	/**
-	 * @param string $rootName
-	 */
-	public function __construct($rootName) {
+	public function __construct(string $rootName) {
 		$this->rootNode = new Node($rootName);
 	}
 
-	/**
-	 * @return Node
-	 */
-	final public function getRootNode() {
+	public function getRootNode():Node {
 		return $this->rootNode;
 	}
 
-	/**
-	 * @param  string $encoding
-	 * @return $this
-	 */
-	final public function setEncoding($encoding) {
+	public function setEncoding(string $encoding):Tree {
 		$this->encoding = $encoding;
 		return $this;
 	}
 
-	/**
-	 * @param  $standAlone
-	 * @return $this
-	 */
-	final public function setStandAlone($standAlone) {
+	public function setStandAlone(bool $standAlone):Tree {
 		$this->standAlone = $standAlone;
 		return $this;
 	}
 
-	/**
-	 * get XML prolog
-	 *
-	 * @return string
-	 */
-	final public function getProlog() {
+	public function getProlog():string {
 		$prolog = '<?xml version="'.$this->version.'"';
+
 		if ($this->encoding !== null) {
 			$prolog .= ' encoding="'.$this->encoding.'"';
 		}
+
 		if ($this->standAlone !== null) {
-			$prolog .= ' standalone="'.$this->standAlone.'"';
+			$prolog .= ' standalone="'.($this->standAlone ? 'yes' : 'no').'"';
 		}
-		return $prolog.'?>'.PHP_EOL;
+
+		return $prolog.'?>';
 	}
 
-	/**
-	 * @param  bool $indent
-	 * @return string
-	 * @TODO rename to 'toSource' (+ change in Add-Ons)
-	 */
-	public function getSource($indent = true) {
-		return
-				$this->getProlog()
-				.$this->rootNode->toSource($indent);
+	public function toSource(bool $indent = true):string {
+		return $this->getProlog().PHP_EOL.$this->rootNode->toSource($indent);
 	}
 
-	/**
-	 * convert to DOMDocument
-	 *
-	 * @return DOMDocument
-	 */
-	final public function toDomDoc() {
+	public function toDomDoc():DOMDocument {
 		$doc = new DOMDocument();
-		$doc->loadXML($this->getSource());
+		$doc->loadXML($this->toSource());
 		return $doc;
 	}
 
-	/**
-	 * @return string
-	 */
-	final public function __toString() {
-		return $this->getSource();
+	final public function __toString():string {
+		return $this->toSource();
 	}
 
 }

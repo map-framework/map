@@ -28,7 +28,7 @@ class Node {
 	protected $content;
 
 	/**
-	 * @var array
+	 * @var Node[]
 	 */
 	protected $childList = array();
 
@@ -92,21 +92,20 @@ class Node {
 		return $this;
 	}
 
-	public function getChildList():array {
-		return $this->childList;
-	}
-
-	public function countOfChildren():int {
-		return count($this->getChildList());
-	}
-
-	final public function hasAttribute(string ...$name):bool {
-		foreach ($name as $n) {
-			if (!isset($this->attributeList[$n])) {
-				return false;
+	/**
+	 * @return Node[]
+	 */
+	public function getChildList(string $nameFilter = null):array {
+		foreach ($this->childList as $child) {
+			if ($nameFilter === null || $child->getName() === $nameFilter) {
+				$filteredChildList[] = $child;
 			}
 		}
-		return true;
+		return $filteredChildList ?? array();
+	}
+
+	public function childrenCount():int {
+		return count($this->getChildList());
 	}
 
 	public function toSource(bool $indent = true, string $prefix = '', string $prefixChar = "\t"):string {
@@ -125,7 +124,6 @@ class Node {
 		else {
 			$source .= '>'.PHP_EOL;
 			foreach ($this->getChildList() as $child) {
-				/** @noinspection PhpUndefinedMethodInspection */
 				$source .= $child->toSource($indent, $indent === true ? $prefix.$prefixChar : '', $prefixChar).PHP_EOL;
 			}
 		}
@@ -136,12 +134,21 @@ class Node {
 		return $this->toSource();
 	}
 
+	final public function hasAttribute(string ...$name):bool {
+		foreach ($name as $n) {
+			if (!isset($this->attributeList[$n])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	final public function hasContent():bool {
 		return $this->content !== null;
 	}
 
 	final public function hasChildren():bool {
-		return $this->countOfChildren() !== 0;
+		return $this->childrenCount() !== 0;
 	}
 
 	/**
