@@ -69,20 +69,6 @@ class Bucket {
 		return $this;
 	}
 
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function groupExists(string ...$group):bool {
-		foreach ($group as $g) {
-			self::assertIsGroupName($g);
-
-			if (!isset($this->data[$g])) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	final public function getGroupCount():int {
 		return count($this->data);
 	}
@@ -218,6 +204,20 @@ class Bucket {
 					->setData('value', $this->toArray());
 		}
 		return $json;
+	}
+
+	/**
+	 * @throws InvalidDataException
+	 */
+	final public function groupExists(string ...$group):bool {
+		foreach ($group as $g) {
+			self::assertIsGroupName($g);
+
+			if (!isset($this->data[$g])) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -381,6 +381,18 @@ class Bucket {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * @throws MAPException
+	 */
+	final public function assertGroupExists(string ...$group) {
+		foreach ($group as $g) {
+			if (!$this->groupExists($g)) {
+				throw (new MAPException('group not exists'))
+						->setData('group', $g);
+			}
+		}
 	}
 
 	/**

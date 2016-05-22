@@ -7,6 +7,7 @@ use data\InvalidDataException;
 use MAPAutoloader;
 use util\Bucket;
 use data\file\File;
+use util\Logger;
 
 /**
  * This file is part of the MAP-Framework.
@@ -87,6 +88,7 @@ class AddOn extends AbstractData {
 
 	/**
 	 * @throws InvalidDataException
+	 * @return AddOn[]
 	 */
 	final public static function getList():array {
 		$addOnRootDir = new File(MAPAutoloader::PATH_ADDONS);
@@ -113,19 +115,34 @@ class AddOn extends AbstractData {
 	 * @throws DependencyException
 	 */
 	final public function isInstalled():bool {
-		if (!$this->getDir()->isDir() || !$this->getConfigFile()->isFile()) {
+		if (!$this->getDir()->isDir()) {
+			Logger::debug('Add-On not installed: dir not found', ['addOn' => $this, 'dir' => $this->getDir()]);
 			return false;
 		}
-		$group = 'addon-'.$this->getName();
 
+		if (!$this->getConfigFile()->isFile()) {
+			Logger::debug('Add-On not installed: file not found', ['addOn' => $this, 'file' => $this->getConfigFile()]);
+			return false;
+		}
+
+		$group  = 'addon-'.$this->getName();
 		$config = new Bucket($this->getConfigFile());
 		$config->assertIsString($group, 'version');
 
 		$version = new Version($config->get($group, 'version'));
-		if ($this->hasMinVersion() && $this->getMinVersion()->isGreater($version)) {
-			return false;
-		}
-		if ($this->hasMaxVersion() && $this->getMaxVersion()->isLess($version)) {
+
+		if (($this->hasMinVersion() && $this->getMinVersion()->isGreater($version))
+				|| ($this->hasMaxVersion() && $this->getMaxVersion()->isLess($version))
+		) {
+			Logger::debug(
+					'Add-On not installed because: version not supported',
+					array(
+							'addOn'       => $this,
+							'realVersion' => $version,
+							'minVersion'  => $this->getMinVersion(),
+							'maxVersion'  => $this->getMaxVersion()
+					)
+			);
 			return false;
 		}
 

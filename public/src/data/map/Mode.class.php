@@ -8,6 +8,7 @@ use data\oop\ClassNotFoundException;
 use data\oop\ClassObject;
 use data\oop\InstanceException;
 use handler\mode\AbstractModeHandler;
+use TypeError;
 use util\Bucket;
 use util\Logger;
 use util\MAPException;
@@ -70,6 +71,9 @@ class Mode extends AbstractData {
 	final public function exists(Bucket $config):bool {
 		try {
 			$type = $this->getType($config);
+		}
+		catch (TypeError $e) {
+			$reason = 'type is not defined';
 		}
 		catch (InvalidDataException $e) {
 			$reason = 'content type is invalid';

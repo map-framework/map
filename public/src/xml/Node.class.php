@@ -119,13 +119,14 @@ class Node {
 		}
 
 		if ($this->hasContent()) {
-			$source .= $this->getContent();
+			$source .= '>'.$this->getContent();
 		}
 		else {
 			$source .= '>'.PHP_EOL;
 			foreach ($this->getChildList() as $child) {
 				$source .= $child->toSource($indent, $indent === true ? $prefix.$prefixChar : '', $prefixChar).PHP_EOL;
 			}
+			$source .= $prefix;
 		}
 		return $source.'</'.$this->getName().'>';
 	}

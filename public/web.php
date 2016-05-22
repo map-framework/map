@@ -58,12 +58,9 @@ final class Web {
 
 			# Config: Add-Ons
 			foreach (AddOn::getList() as $addOn) {
-				if ($addOn instanceof AddOn) {
-					$addOn->assertIsInstalled();
-
-					$this->config->applyIni($addOn->getConfigFile());
-					Logger::debug('ADD-ON', ['addOn' => $addOn]);
-				}
+				$addOn->assertIsInstalled();
+				$this->config->applyIni($addOn->getConfigFile());
+				Logger::debug('ADD-ON', ['addOn' => $addOn]);
 			}
 
 			# Config: Private
