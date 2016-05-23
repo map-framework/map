@@ -42,7 +42,7 @@ abstract class AbstractModeHandler {
 		$mode  = $this->request->getMode();
 		$group = $mode->getConfigGroup();
 
-		if ($this->config->isNull($group, 'error')) {
+		if (!$this->config->isNull($group, 'error')) {
 			$this->config->assertIsArray($group, 'error');
 
 			$errorList = $this->config->get($group, 'error');
