@@ -2,13 +2,13 @@
 namespace data\map;
 
 use data\AbstractData;
+use data\common\InvalidDataTypeException;
 use data\InvalidDataException;
 use data\net\MimeType;
 use data\oop\ClassNotFoundException;
 use data\oop\ClassObject;
 use data\oop\InstanceException;
 use handler\mode\AbstractModeHandler;
-use TypeError;
 use util\Bucket;
 use util\Logger;
 use util\MAPException;
@@ -21,6 +21,8 @@ use util\MAPException;
  * @license   https://raw.githubusercontent.com/map-framework/map/master/LICENSE.txt Apache License 2.0
  */
 class Mode extends AbstractData {
+
+	const FORMAT_CONFIG_GROUP = 'mode-%s';
 
 	const PATTERN_NAME = '^[0-9A-Za-z_\-+]{1,32}$';
 
@@ -42,48 +44,53 @@ class Mode extends AbstractData {
 		return $this->name;
 	}
 
-	final public function getSettings(Bucket $config):array {
-		return $config->get('mode', $this->get(), array());
-	}
-
-	final public function getSetting(Bucket $config, string $key, $default = null) {
-		return $this->getSettings($config)[$key] ?? $default;
-	}
-
-	final public function hasSetting(Bucket $config, string $key):bool {
-		return $this->getSetting($config, $key) !== null;
+	public function getConfigGroup():string {
+		return sprintf(
+				self::FORMAT_CONFIG_GROUP,
+				$this->get()
+		);
 	}
 
 	/**
 	 * @throws InvalidDataException
+	 * @throws InvalidDataTypeException
 	 */
 	final public function getType(Bucket $config):MimeType {
-		return new MimeType($this->getSetting($config, 'type'));
+		$group = $this->getConfigGroup();
+		$config->assertIsString($group, 'type');
+		return new MimeType($config->get($group, 'type'));
 	}
 
 	/**
 	 * @throws InvalidDataException
+	 * @throws InvalidDataTypeException
 	 */
 	final public function getHandler(Bucket $config):ClassObject {
-		return new ClassObject($this->getSetting($config, 'handler'));
+		$group = $this->getConfigGroup();
+		$config->assertIsString($group, 'handler');
+		return new ClassObject($config->get($group, 'handler'));
 	}
 
 	final public function exists(Bucket $config):bool {
 		try {
 			$type = $this->getType($config);
 		}
-		catch (TypeError $e) {
+		catch (InvalidDataTypeException $e) {
 			$reason = 'type is not defined';
 		}
 		catch (InvalidDataException $e) {
-			$reason = 'content type is invalid';
+			$reason = 'type is not a valid mime type';
 		}
 
 		if (!isset($reason)) {
 			try {
 				$handler = $this->getHandler($config);
+				$handler->assertExists();
 				$handler->assertIsChildOf(new ClassObject(AbstractModeHandler::class));
 				$handler->assertIsNotAbstract();
+			}
+			catch (InvalidDataTypeException $e) {
+				$reason = 'handler is not defined';
 			}
 			catch (InvalidDataException $e) {
 				$reason = 'handler namespace is invalid';
@@ -103,10 +110,10 @@ class Mode extends AbstractData {
 			Logger::debug(
 					'Mode not exists',
 					array(
-							'Mode'    => $this->get(),
-							'Reason'  => $reason,
-							'Type'    => $type ?? 'unknown',
-							'Handler' => $handler ?? 'unknown'
+							'mode'    => $this->get(),
+							'reason'  => $reason,
+							'type'    => $type ?? null,
+							'handler' => $handler ?? null
 					)
 			);
 			return false;
@@ -117,23 +124,10 @@ class Mode extends AbstractData {
 	/**
 	 * @throws MAPException
 	 */
-	final public function assertHasSetting(Bucket $config, string $name) {
-		if (!$this->hasSetting($config, $name)) {
-			throw (new MAPException('Required Setting-Item.'))
-					->setData('mode', $this)
-					->setData('settings', $this->getSettings($config))
-					->setData('settingItem', $name);
-		}
-	}
-
-	/**
-	 * @throws MAPException
-	 */
 	final public function assertExists(Bucket $config) {
 		if (!$this->exists($config)) {
 			throw (new MAPException('Expected existing mode.'))
-					->setData('mode', $this)
-					->setData('settings', $this->getSettings($config));
+					->setData('mode', $this);
 		}
 	}
 

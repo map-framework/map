@@ -15,9 +15,10 @@ use util\Logger;
 class FileModeHandler extends AbstractModeHandler {
 
 	public function handle() {
-		$mode = $this->request->getMode();
-		$mode->assertHasSetting($this->config, 'folder');
-		$mode->assertHasSetting($this->config, 'extension');
+		$mode  = $this->request->getMode();
+		$group = $mode->getConfigGroup();
+		$this->config->assertIsString($group, 'folder');
+		$this->config->assertIsString($group, 'extension');
 
 		$areaFile = $this->getTargetFile($this->request->getArea()->getDir());
 		if ($areaFile->isFile()) {
@@ -25,8 +26,7 @@ class FileModeHandler extends AbstractModeHandler {
 			return;
 		}
 
-		$considerCommon = $mode->getSetting($this->config, 'considerCommon');
-		if ($considerCommon === true) {
+		if ($this->config->isTrue($group, 'considerCommon')) {
 			$commonFile = $this->getTargetFile(new File('private/src/common/app'));
 
 			if ($commonFile->exists()) {
@@ -39,7 +39,7 @@ class FileModeHandler extends AbstractModeHandler {
 				'HTTP-Status Code 404 (File not found)',
 				array(
 						'areaFile'       => $areaFile,
-						'considerCommon' => $considerCommon === true,
+						'considerCommon' => $this->config->isTrue($group, 'considerCommon'),
 						'commonFile'     => $commonFile ?? null
 				)
 		);
@@ -47,16 +47,16 @@ class FileModeHandler extends AbstractModeHandler {
 	}
 
 	protected function getTargetFile(File $file):File {
-		$mode         = $this->request->getMode();
+		$group        = $this->request->getMode()->getConfigGroup();
 		$pathItemList = array_merge(
 				array($this->request->getPage()),
 				$this->request->getInputList()
 		);
 
-		$pathItemList[count($pathItemList) - 1] .= $mode->getSetting($this->config, 'extension');
+		$pathItemList[count($pathItemList) - 1] .= $this->config->get($group, 'extension');
 
 		$file->attach('app');
-		$file->attach($mode->getSetting($this->config, 'folder'));
+		$file->attach($this->config->get($group, 'folder'));
 
 		foreach ($pathItemList as $pathItem) {
 			$file->attach($pathItem);

@@ -39,21 +39,25 @@ abstract class AbstractModeHandler {
 	 */
 	final public function outputFailurePage(StatusEnum $responseStatus) {
 		self::setResponseStatus($responseStatus);
-		$mode = $this->request->getMode();
+		$mode  = $this->request->getMode();
+		$group = $mode->getConfigGroup();
 
-		# pipe to url
-		$pipePath = $mode->getSetting($this->config, 'fail'.$responseStatus->getCode().'-pipe');
-		if ($pipePath != null) {
-			$pipeUrl = new Url($pipePath);
+		if ($this->config->isNull($group, 'error')) {
+			$this->config->assertIsArray($group, 'error');
 
-			# endless loop protection
-			if ($pipeUrl->get() === $this->request->get()) {
-				$this->outputFailurePage(new StatusEnum(StatusEnum::LOOP_DETECTED));
+			$errorList = $this->config->get($group, 'error');
+			if (isset($errorList[$responseStatus->getCode().'-pipe'])) {
+				$pipeUrl = new Url($errorList[$responseStatus->getCode().'-pipe']);
+
+				# endless loop protection
+				if ($pipeUrl->get() === $this->request->get()) {
+					$this->outputFailurePage(new StatusEnum(StatusEnum::LOOP_DETECTED));
+					return;
+				}
+
+				$this->setLocation($pipeUrl);
 				return;
 			}
-
-			$this->setLocation($pipeUrl);
-			return;
 		}
 
 		# default failure output
