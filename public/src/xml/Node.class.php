@@ -111,7 +111,7 @@ class Node {
 	public function toSource(bool $indent = true, string $prefix = '', string $prefixChar = "\t"):string {
 		$source = $prefix.'<'.$this->getName();
 		foreach ($this->getAttributeList() as $name => $value) {
-			$source .= ' '.$name.'="'.$value.'"';
+			$source .= ' '.$name.'="'.htmlspecialchars($value).'"';
 		}
 
 		if (!$this->hasContent() && !$this->hasChildren()) {
@@ -119,7 +119,7 @@ class Node {
 		}
 
 		if ($this->hasContent()) {
-			$source .= '>'.$this->getContent();
+			$source .= '>'.htmlspecialchars($this->getContent());
 		}
 		else {
 			$source .= '>'.PHP_EOL;
