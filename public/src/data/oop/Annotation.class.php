@@ -91,7 +91,7 @@ class Annotation extends AbstractData {
 		self::assertIsParamName($paramName);
 
 		if ($this->isBool($paramName)) {
-			return (bool) $this->getRawParam($paramName);
+			return strtoupper($this->getRawParam($paramName)) === "TRUE";
 		}
 		elseif ($this->isFloat($paramName)) {
 			return (float) $this->getRawParam($paramName);
