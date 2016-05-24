@@ -99,7 +99,9 @@ class Node {
 				$child->fromArray($value);
 			}
 			else {
-				$child->setContent($value);
+				if (is_string($value) || is_int($value) || is_bool($value) || is_float($value)) {
+					$child->setContent($value);
+				}
 			}
 		}
 		return $this;
