@@ -103,8 +103,13 @@ class MAPUrl extends Url {
 			if ($level === 1) {
 				$level++;
 				try {
-					$this->setArea($this->getTargetArea(new Area($item)));
-					continue;
+					if ($this->getTargetAreaByHost() !== null) {
+						$this->setArea($this->getTargetAreaByHost());
+					}
+					else {
+						$this->setArea($this->getTargetArea(new Area($item)));
+						continue;
+					}
 				}
 				catch (InvalidDataException $e) {
 					Logger::debug(
@@ -169,7 +174,7 @@ class MAPUrl extends Url {
 			$this->mode = $mode;
 		}
 		if (!$this->hasArea()) {
-			$area = $this->getDefaultArea();
+			$area = $this->getTargetAreaByHost() ?? $this->getDefaultArea();
 			$area->assertExists();
 			$this->area = $area;
 		}
@@ -252,15 +257,6 @@ class MAPUrl extends Url {
 	 * @throws InvalidDataTypeException
 	 */
 	protected function getTargetArea(Area $area):Area {
-		if (!$this->config->isNull('alias', 'host')) {
-			$this->config->assertIsArray('alias', 'host');
-
-			$aliasList = $this->config->get('alias', 'host');
-			if (isset($aliasList[$this->getHost()])) {
-				return new Area($aliasList[$this->getHost()]);
-			}
-		}
-
 		if (!$this->config->isNull('alias', 'area')) {
 			$this->config->assertIsArray('alias', 'area');
 
@@ -270,6 +266,21 @@ class MAPUrl extends Url {
 			}
 		}
 		return $area;
+	}
+
+	/**
+	 * @return Area|null
+	 */
+	protected function getTargetAreaByHost() {
+		if (!$this->config->isNull('alias', 'host')) {
+			$this->config->assertIsArray('alias', 'host');
+
+			$aliasList = $this->config->get('alias', 'host');
+			if (isset($aliasList[$this->getHost()])) {
+				return new Area($aliasList[$this->getHost()]);
+			}
+		}
+		return null;
 	}
 
 	/**
