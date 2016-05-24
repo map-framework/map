@@ -92,6 +92,19 @@ class Node {
 		return $this;
 	}
 
+	public function fromArray(array $array):Node {
+		foreach ($array as $key => $value) {
+			$child = $this->addChild(new Node($key));
+			if (is_array($value)) {
+				$child->fromArray($value);
+			}
+			else {
+				$child->setContent($value);
+			}
+		}
+		return $this;
+	}
+
 	/**
 	 * @return Node[]
 	 */
