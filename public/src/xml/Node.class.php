@@ -92,11 +92,11 @@ class Node {
 		return $this;
 	}
 
-	public function fromArray(array $array):Node {
+	public function fromArray(array $array, string $altName = 'item'):Node {
 		foreach ($array as $key => $value) {
-			$child = $this->addChild(new Node($key));
+			$child = $this->addChild(new Node(is_string($key) ? $key : $altName));
 			if (is_array($value)) {
-				$child->fromArray($value);
+				$child->fromArray($value, self::altName($key));
 			}
 			else {
 				if (is_string($value) || is_int($value) || is_bool($value) || is_float($value)) {
@@ -105,6 +105,13 @@ class Node {
 			}
 		}
 		return $this;
+	}
+
+	protected static function altName(string $parentName):string {
+		if (substr($parentName, -1) === 's') {
+			return substr($parentName, 0, -1);
+		}
+		return $parentName;
 	}
 
 	/**
