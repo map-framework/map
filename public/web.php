@@ -174,7 +174,7 @@ final class Web {
 	}
 
 	private function getEnvironment():string {
-		return strtolower(ini_get('display_errors')) !== 'off' ? self::ENVIRONMENT_DEV : self::ENVIRONMENT_PROD;
+		return ini_get('display_errors') ? self::ENVIRONMENT_DEV : self::ENVIRONMENT_PROD;
 	}
 
 }

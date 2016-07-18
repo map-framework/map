@@ -3,6 +3,7 @@ namespace util;
 
 use data\file\File;
 use DateTime;
+use Web;
 use xml\Tree;
 
 /**
@@ -34,7 +35,7 @@ class Logger {
 	}
 
 	public static function debug(string $message, array $dataList = array()) {
-		if (constant('ENVIRONMENT') === 'DEV') {
+		if (Web::isDev()) {
 			self::log(self::TYPE_DEBUG, $message, $dataList);
 		}
 	}
