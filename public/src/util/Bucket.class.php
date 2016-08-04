@@ -3,6 +3,7 @@ namespace util;
 
 use data\AbstractData;
 use data\file\File;
+use data\file\ForbiddenException;
 use data\file\NotFoundException;
 use data\file\UnexpectedTypeException;
 use data\InvalidDataException;
@@ -156,11 +157,13 @@ class Bucket {
 	/**
 	 * @throws NotFoundException
 	 * @throws UnexpectedTypeException
+	 * @throws ForbiddenException
 	 * @throws InvalidDataException
 	 */
 	final public function applyIni(File $iniFile):Bucket {
 		$iniFile->assertExists();
 		$iniFile->assertIsFile();
+		$iniFile->assertIsReadable();
 
 		return $this->applyArray(parse_ini_file($iniFile->getRealPath(), true, INI_SCANNER_TYPED));
 	}
@@ -223,32 +226,20 @@ class Bucket {
 	/**
 	 * @throws InvalidDataException
 	 */
-	final public function isOfDataType(string $group, string $key, DataTypeEnum $dataType):bool {
-		return $this->getDataType($group, $key) == $dataType;
+	final public function isOfDataType(DataTypeEnum $dataType, string $group, string ...$key):bool {
+		foreach ($key as $k) {
+			if ($this->getDataType($group, $k) != $dataType) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isBoolean(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::BOOLEAN))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function isBool(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isBoolean($group, $k)) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::BOOLEAN), $group, ...$key);
 	}
 
 	/**
@@ -279,108 +270,49 @@ class Bucket {
 	 * @throws InvalidDataException
 	 */
 	final public function isInteger(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::INTEGER))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function isInt(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isInteger($group, $k)) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::INTEGER), $group, ...$key);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isFloat(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::FLOAT))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function isDouble(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isFloat($group, $k)) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::FLOAT), $group, ...$key);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isString(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::STRING))) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::STRING), $group, ...$key);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isArray(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::ARRAY))) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::ARRAY), $group, ...$key);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isObject(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::OBJECT))) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::OBJECT), $group, ...$key);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isResource(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::RESOURCE))) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::RESOURCE), $group, ...$key);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	final public function isNull(string $group, string ...$key):bool {
-		foreach ($key as $k) {
-			if (!$this->isOfDataType($group, $k, new DataTypeEnum(DataTypeEnum::NULL))) {
-				return false;
-			}
-		}
-		return true;
+		return $this->isOfDataType(new DataTypeEnum(DataTypeEnum::NULL), $group, ...$key);
 	}
 
 	/**
@@ -400,7 +332,7 @@ class Bucket {
 	 * @throws InvalidDataTypeException
 	 */
 	final public function assertIsOfDataType(string $group, string $key, DataTypeEnum $dataType) {
-		if (!$this->isOfDataType($group, $key, $dataType)) {
+		if (!$this->isOfDataType($dataType, $group, $key)) {
 			throw new InvalidDataTypeException($dataType, $this->get($group, $key));
 		}
 	}
@@ -496,29 +428,29 @@ class Bucket {
 	/**
 	 * @throws InvalidDataException
 	 */
-	final public static function isGroupName(string $groupName):bool {
-		return AbstractData::isMatching($groupName);
+	final public static function isGroupName(string ...$groupName):bool {
+		return AbstractData::isMatching(...$groupName);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
-	final public static function isKeyName(string $keyName):bool {
-		return AbstractData::isMatching($keyName);
+	final public static function isKeyName(string ...$keyName):bool {
+		return AbstractData::isMatching(...$keyName);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
-	final public static function assertIsGroupName(string $groupName) {
-		AbstractData::assertIsMatching(self::PATTERN_GROUP, $groupName);
+	final public static function assertIsGroupName(string ...$groupName) {
+		AbstractData::assertIsMatching(self::PATTERN_GROUP, ...$groupName);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
-	final public static function assertIsKeyName(string $keyName) {
-		AbstractData::assertIsMatching(self::PATTERN_KEY, $keyName);
+	final public static function assertIsKeyName(string ...$keyName) {
+		AbstractData::assertIsMatching(self::PATTERN_KEY, ...$keyName);
 	}
 
 }

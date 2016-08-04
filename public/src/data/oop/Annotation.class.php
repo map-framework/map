@@ -14,13 +14,7 @@ use util\MAPException;
  */
 class Annotation extends AbstractData {
 
-	const PATTERN_NAME           = '^[A-Za-z_][A-Za-z0-9_\-]*$';
-	const PATTERN_PARAM_NAME     = '^[A-Za-z0-9]+$';
-	const PATTERN_CONTENT_BOOL   = '^([Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee])$';
-	const PATTERN_CONTENT_FLOAT  = '^-?[0-9]+\.[0-9]+$';
-	const PATTERN_CONTENT_INT    = '^-?[0-9]+$';
-	const PATTERN_CONTENT_NULL   = '^[Nn][Uu][Ll][Ll]$';
-	const PATTERN_CONTENT_STRING = '^["\'][^"\'\s=]*["\']$';
+	const PATTERN_NAME = '^[A-Za-z_][A-Za-z0-9_\-]*$';
 
 	/**
 	 * @var string
@@ -28,90 +22,60 @@ class Annotation extends AbstractData {
 	private $name;
 
 	/**
-	 * @var array
+	 * @var mixed[]
 	 */
-	private $paramList;
+	private $paramList = array();
 
-	public function __construct(string $name, array $paramList = array()) {
+	/**
+	 * @throws InvalidDataException
+	 */
+	public function __construct(string $name, string ...$param) {
 		parent::__construct($name);
 
-		$this->setParamList($paramList);
+		$this->addParam(...$param);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
 	public function set(string $name) {
-		$this->setName($name);
+		self::assertIsValidName($name);
+
+		$this->name = $name;
 	}
 
 	public function get():string {
-		return $this->getName();
-	}
-
-	public function getName():string {
 		return $this->name;
 	}
 
-	/**
-	 * @throws InvalidDataException
-	 */
-	public function setName(string $name):Annotation {
-		self::assertIsName($name);
-
-		$this->name = $name;
-		return $this;
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	public function setParamList(array $paramList):Annotation {
-		foreach ($paramList as $paramName => $rawParamValue) {
-			$this->setParam($paramName, $rawParamValue);
+	public function addParamList(array $paramList):Annotation {
+		foreach ($paramList as $param) {
+			$this->addParam($param);
 		}
 		return $this;
 	}
 
-	/**
-	 * @throws InvalidDataException
-	 */
-	public function setParam(string $paramName, string $rawParamValue):Annotation {
-		self::assertIsParamName($paramName);
-		self::assertIsRawParamValue($rawParamValue);
-
-		$this->paramList[$paramName] = $rawParamValue;
+	public function addParam(string ...$param):Annotation {
+		foreach ($param as $p) {
+			$p = trim($p);
+			if (strlen($p)) {
+				$this->paramList[] = $p;
+			}
+		}
 		return $this;
 	}
 
+	public function getParam(int $index, string $default = null) {
+		return $this->paramList[$index] ?? $default;
+	}
+
+	public function paramCount():int {
+		return count($this->paramList);
+	}
+
 	/**
-	 * @throws InvalidDataException
+	 * @return Annotation[]
 	 */
-	public function getParam(string $paramName, $default = null) {
-		self::assertIsParamName($paramName);
-
-		if ($this->isBool($paramName)) {
-			return strtoupper($this->getRawParam($paramName)) === "TRUE";
-		}
-		elseif ($this->isFloat($paramName)) {
-			return (float) $this->getRawParam($paramName);
-		}
-		elseif ($this->isInt($paramName)) {
-			return (int) $this->getRawParam($paramName);
-		}
-		elseif ($this->isNull($paramName)) {
-			return null;
-		}
-		elseif ($this->isString($paramName)) {
-			return substr($this->getRawParam($paramName), 1, -1);
-		}
-		return $default;
-	}
-
-	public function getRawParam(string $paramName):string {
-		return $this->paramList[$paramName] ?? '';
-	}
-
 	public static function instanceListByDoc(string $doc):array {
 		foreach (explode(PHP_EOL, $doc) as $docLine) {
 			try {
@@ -127,140 +91,30 @@ class Annotation extends AbstractData {
 	 * @throws InvalidDataException
 	 * @throws MAPException
 	 */
-	public static function instanceByDocLine(string $originalDocLine):Annotation {
-		$docLine = trim($originalDocLine, "* \t\n\r\0\x0B");
-		if (strlen($docLine) < 3 || $docLine[0] !== '@') {
-			throw (new MAPException('The docLine is not valid.'))
-					->setData('docLine', $originalDocLine);
+	public static function instanceByDocLine(string $docLine):Annotation {
+		$docLineBody = trim($docLine, "* \t\n\r\0\x0B");
+
+		if (strlen($docLineBody) < 3 || $docLineBody[0] !== '@') {
+			throw (new MAPException('Invalid docLine'))
+					->setData('docLine', $docLine);
 		}
 
-		$name      = null;
-		$paramList = array();
-		foreach (explode(' ', substr($docLine, 1)) as $item) {
-			if ($item === '') {
-				continue;
-			}
+		$itemList   = explode(' ', substr($docLineBody, 1));
+		$annotation = new Annotation($itemList[0]);
+		unset($itemList[0]);
 
-			if (!isset($name)) {
-				$name = $item;
-				continue;
-			}
-
-			$paramItemList = explode('=', $item);
-			if (count($paramItemList) !== 2) {
-				throw (new MAPException('The docLine is not valid (param invalid).'))
-						->setData('docLine', $originalDocLine)
-						->setData('paramItemList', $paramItemList);
-			}
-			$paramList[$paramItemList[0]] = $paramItemList[1];
-		}
-		return new Annotation($name, $paramList);
+		return $annotation->addParamList($itemList);
 	}
 
-	final public function hasParam(string $paramName):bool {
-		return isset($this->paramList[$paramName]);
-	}
-
-	final public function isBool(string $paramName):bool {
-		return $this->hasParam($paramName) && self::isMatching(self::PATTERN_CONTENT_BOOL, $this->getRawParam($paramName));
-	}
-
-	final public function isFloat(string $paramName):bool {
-		return $this->hasParam($paramName) && self::isMatching(self::PATTERN_CONTENT_FLOAT, $this->getRawParam($paramName));
-	}
-
-	final public function isInt(string $paramName):bool {
-		return $this->hasParam($paramName) && self::isMatching(self::PATTERN_CONTENT_INT, $this->getRawParam($paramName));
-	}
-
-	final public function isNull(string $paramName):bool {
-		return $this->hasParam($paramName) && self::isMatching(self::PATTERN_CONTENT_NULL, $this->getRawParam($paramName));
-	}
-
-	final public function isString(string $paramName):bool {
-		return $this->hasParam($paramName)
-		&& self::isMatching(
-				self::PATTERN_CONTENT_STRING,
-				$this->getRawParam($paramName)
-		);
+	final public static function isValidName(string ...$name):bool {
+		return self::isMatching(self::PATTERN_NAME, ...$name);
 	}
 
 	/**
 	 * @throws InvalidDataException
 	 */
-	final public function assertIsBool(string $paramName) {
-		self::assertIsMatching(self::PATTERN_CONTENT_BOOL, $this->getRawParam($paramName));
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function assertIsFloat(string $paramName) {
-		self::assertIsMatching(self::PATTERN_CONTENT_FLOAT, $this->getRawParam($paramName));
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function assertIsInt(string $paramName) {
-		self::assertIsMatching(self::PATTERN_CONTENT_INT, $this->getRawParam($paramName));
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function assertIsNull(string $paramName) {
-		self::assertIsMatching(self::PATTERN_CONTENT_NULL, $this->getRawParam($paramName));
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public function assertIsString(string $paramName) {
-		self::assertIsMatching(self::PATTERN_CONTENT_STRING, $this->getRawParam($paramName));
-	}
-
-	final public static function isName(string $name):bool {
-		return self::isMatching(self::PATTERN_NAME, $name);
-	}
-
-	final public static function isParamName(string $paramName):bool {
-		return self::isMatching(self::PATTERN_PARAM_NAME, $paramName);
-	}
-
-	final public static function isRawParamValue(string $rawParamValue):bool {
-		return self::isMatching(self::PATTERN_CONTENT_BOOL, $rawParamValue)
-		|| self::isMatching(self::PATTERN_CONTENT_FLOAT, $rawParamValue)
-		|| self::isMatching(self::PATTERN_CONTENT_INT, $rawParamValue)
-		|| self::isMatching(self::PATTERN_CONTENT_NULL, $rawParamValue)
-		|| self::isMatching(self::PATTERN_CONTENT_STRING, $rawParamValue);
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public static function assertIsName(string $name) {
-		self::assertIsMatching(self::PATTERN_NAME, $name);
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public static function assertIsParamName(string $paramName) {
-		self::assertIsMatching(self::PATTERN_PARAM_NAME, $paramName);
-	}
-
-	/**
-	 * @throws InvalidDataException
-	 */
-	final public static function assertIsRawParamValue(string $rawParamValue) {
-		if (!self::isRawParamValue($rawParamValue)) {
-			throw (new InvalidDataException(self::PATTERN_CONTENT_BOOL, $rawParamValue))
-					->addPattern(self::PATTERN_CONTENT_FLOAT)
-					->addPattern(self::PATTERN_CONTENT_INT)
-					->addPattern(self::PATTERN_CONTENT_NULL)
-					->addPattern(self::PATTERN_CONTENT_STRING);
-		}
+	final public static function assertIsValidName(string ...$name) {
+		self::assertIsMatching(self::PATTERN_NAME, ...$name);
 	}
 
 }

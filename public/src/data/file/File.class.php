@@ -172,6 +172,7 @@ class File extends AbstractData {
 	 * @throws NotFoundException
 	 * @throws UnexpectedTypeException
 	 * @throws MAPException
+	 * @return File[]
 	 */
 	final public function scanDir(TypeEnum $filter = null):array {
 		$this->assertExists();

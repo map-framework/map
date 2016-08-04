@@ -35,10 +35,8 @@ abstract class AbstractData {
 	 * @throws InvalidDataException
 	 */
 	final public static function assertIsMatching(string $pattern, string ...$data) {
-		foreach ($data as $d) {
-			if (!self::isMatching($pattern, $d)) {
-				throw new InvalidDataException($pattern, $d);
-			}
+		if (!self::isMatching($pattern, ...$data)) {
+			throw new InvalidDataException($pattern, ...$data);
 		}
 	}
 

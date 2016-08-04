@@ -9,7 +9,6 @@
  */
 final class MAPAutoloader {
 
-	const PATH_ROOT   = '../';
 	const PATH_SOURCE = 'src/';
 
 	const PATH_PUBLIC  = 'public/';
@@ -18,14 +17,29 @@ final class MAPAutoloader {
 
 	const FILE_EXTENSION = '.class.php';
 
+	const PATTER_ROOT_DIR = '/^([\/A-Za-z0-9]*)\/(public|private)\/[\/A-Za-z0-9]*$/';
+
+	/**
+	 * @var string
+	 */
+	private static $rootDir;
+
 	/**
 	 * @var array
 	 */
 	private static $pathList = array();
 
+	public static function getRootDir():string {
+		if (self::$rootDir === null) {
+			preg_match(self::PATTER_ROOT_DIR, getcwd(), $matches);
+			self::$rootDir = $matches[1].'/';
+		}
+		return self::$rootDir;
+	}
+
 	public static function addPath(string $path):bool {
-		if (is_dir(self::PATH_ROOT.$path)) {
-			self::$pathList[] = self::PATH_ROOT.$path;
+		if (is_dir(self::getRootDir().$path)) {
+			self::$pathList[] = self::getRootDir().$path;
 			return true;
 		}
 		return false;
@@ -42,13 +56,13 @@ final class MAPAutoloader {
 		self::addPath(self::PATH_PUBLIC.self::PATH_SOURCE);
 
 		# Add-Ons
-		if (is_dir(self::PATH_ROOT.self::PATH_ADDONS)) {
-			$addOnNameList = scandir(self::PATH_ROOT.self::PATH_ADDONS);
+		if (is_dir(self::getRootDir().self::PATH_ADDONS)) {
+			$addOnNameList = scandir(self::getRootDir().self::PATH_ADDONS);
 			foreach ($addOnNameList as $addOnName) {
 				if ($addOnName === '.' || $addOnName === '..') {
 					continue;
 				}
-				if (!is_dir(self::PATH_ROOT.self::PATH_ADDONS.$addOnName)) {
+				if (!is_dir(self::getRootDir().self::PATH_ADDONS.$addOnName)) {
 					continue;
 				}
 				self::addPath(self::PATH_ADDONS.$addOnName.'/'.self::PATH_SOURCE);
