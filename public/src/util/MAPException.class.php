@@ -92,32 +92,28 @@ class MAPException extends Exception {
 	}
 
 	final public static function export($data):string {
-		if (is_null($data)) {
-			return 'NULL';
+		switch (gettype($data)) {
+			case 'boolean':
+				return $data === true ? 'TRUE' : 'FALSE';
+			case 'NULL':
+				return 'NULL';
+			case 'string':
+				return '"'.$data.'"';
+			case 'array':
+				foreach ($data as $key => $value) {
+					$formattedDataList[] = $key.' => '.self::export($value);
+				}
+				return 'ARRAY['.(isset($formattedDataList) ? implode(', ', $formattedDataList) : '').']';
+			case 'object':
+				return get_class($data).'('.(method_exists($data, '__toString') ? (string) $data : null).')';
+			case 'resource':
+				return 'RESOURCE(type: '.get_resource_type($data).'; id: '.intval($data).')';
+			case 'integer':
+			case 'double':
+				return $data;
+			default:
+				return var_export($data, true);
 		}
-		if (is_bool($data)) {
-			return $data === true ? 'TRUE' : 'FALSE';
-		}
-		if (is_integer($data) || is_float($data)) {
-			return $data;
-		}
-		if (is_string($data)) {
-			return '"'.$data.'"';
-		}
-		if (is_array($data)) {
-			$itemList = array();
-			foreach ($data as $key => $value) {
-				$itemList[] = $key.' => '.self::export($value);
-			}
-			return 'ARRAY['.implode(', ', $itemList).']';
-		}
-		if (is_resource($data)) {
-			return 'RESOURCE';
-		}
-		if (is_object($data)) {
-			return get_class($data).(method_exists($data, '__toString') ? '("'.$data.'")' : '');
-		}
-		return 'UNKNOWN';
 	}
 
 }
