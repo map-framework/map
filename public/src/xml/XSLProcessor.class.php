@@ -87,6 +87,7 @@ class XSLProcessor {
 	public function transform():string {
 		$processor = new XSLTProcessor();
 		$processor->importStylesheet($this->stylesheet);
+		$processor->registerPHPFunctions();
 
 		foreach ($this->parameterList as $parameterName => $parameterValue) {
 			if (!$processor->setParameter('', $parameterName, $parameterValue)) {
