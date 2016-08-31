@@ -57,7 +57,8 @@ class MAPUrl extends Url {
 	 * @throws MAPException
 	 */
 	public function setPath(string $path):Url {
-		self::assertIsPath($path);
+		// FIXME: throw StatusException BAD_REQUEST
+		// self::assertIsPath($path);
 
 		$this->mode      = null;
 		$this->area      = null;
