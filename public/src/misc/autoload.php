@@ -17,7 +17,7 @@ final class MAPAutoloader {
 
 	const FILE_EXTENSION = '.class.php';
 
-	const PATTER_ROOT_DIR = '/^([\/A-Za-z0-9]*)\/(public|private)\/[\/A-Za-z0-9]*$/';
+	const PATTER_ROOT_DIR = '/^([\/A-Za-z0-9]*)\/(public|private)[\/A-Za-z0-9]*$/';
 
 	/**
 	 * @var string
