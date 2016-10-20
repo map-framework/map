@@ -100,7 +100,7 @@ class PropertyObject extends AbstractData {
 	 */
 	public function getAnnotation(string $name):Annotation {
 		foreach ($this->getAnnotationList() as $annotation) {
-			if ($annotation->getName() === $name) {
+			if ($annotation->get() === $name) {
 				return $annotation;
 			}
 		}
