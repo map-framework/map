@@ -1,6 +1,8 @@
 <?php
 namespace data;
 
+use util\MAPException;
+
 /**
  * This file is part of the MAP-Framework.
  *
@@ -22,9 +24,18 @@ abstract class AbstractData {
 		return $this->get();
 	}
 
+	/**
+	 * @throws MAPException
+	 */
 	final public static function isMatching(string $pattern, string ...$data):bool {
 		foreach ($data as $d) {
-			if (!preg_match('/'.$pattern.'/', $d)) {
+			$isMatching = preg_match('/'.$pattern.'/', $d);
+
+			if ($isMatching === false) {
+				throw (new MAPException('invalid pattern'))
+						->setData('pattern', $pattern);
+			}
+			if (!$isMatching) {
 				return false;
 			}
 		}
@@ -32,6 +43,7 @@ abstract class AbstractData {
 	}
 
 	/**
+	 * @throws MAPException
 	 * @throws InvalidDataException
 	 */
 	final public static function assertIsMatching(string $pattern, string ...$data) {
