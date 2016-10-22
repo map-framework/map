@@ -77,7 +77,7 @@ class AddOn extends AbstractData {
 	}
 
 	final public function getDir():File {
-		return (new File(MAPAutoloader::PATH_ADDONS))
+		return (new File(MAPAutoloader::PATH_ADD_ONS))
 				->attach($this->get());
 	}
 
@@ -91,7 +91,7 @@ class AddOn extends AbstractData {
 	 * @return AddOn[]
 	 */
 	final public static function getList():array {
-		$addOnRootDir = new File(MAPAutoloader::PATH_ADDONS);
+		$addOnRootDir = new File(MAPAutoloader::PATH_ADD_ONS);
 		if ($addOnRootDir->isDir()) {
 			foreach ($addOnRootDir->scanDir(new TypeEnum(TypeEnum::DIR)) as $addOnDir) {
 				if ($addOnDir instanceof File) {
@@ -185,3 +185,4 @@ class AddOn extends AbstractData {
 	}
 
 }
+

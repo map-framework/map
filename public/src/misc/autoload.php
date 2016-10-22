@@ -9,72 +9,50 @@
  */
 final class MAPAutoloader {
 
-	const PATH_SOURCE = 'src/';
+	const PATH_ROOT           = '../';
+	const PATH_SOURCE         = 'src/';
+	const PATH_PUBLIC         = 'public/';
+	const PATH_PUBLIC_SOURCE  = self::PATH_PUBLIC.self::PATH_SOURCE;
+	const PATH_PRIVATE        = 'private/';
+	const PATH_PRIVATE_SOURCE = self::PATH_PRIVATE.self::PATH_SOURCE;
+	const PATH_ADD_ONS        = self::PATH_PUBLIC.'addon/';
 
-	const PATH_PUBLIC  = 'public/';
-	const PATH_ADDONS  = 'public/addon/';
-	const PATH_PRIVATE = 'private/';
-
-	const FILE_EXTENSION = '.class.php';
-
-	const PATTER_ROOT_DIR = '/^([\/A-Za-z0-9]*)\/(public|private)[\/A-Za-z0-9]*$/';
-
-	/**
-	 * @var string
-	 */
-	private static $rootDir;
+	const FILE_PHP_EXTENSION = '.class.php';
 
 	/**
-	 * @var array
+	 * @var string[]
 	 */
 	private static $pathList = array();
 
-	public static function getRootDir():string {
-		if (self::$rootDir === null) {
-			preg_match(self::PATTER_ROOT_DIR, getcwd(), $matches);
-			self::$rootDir = $matches[1].'/';
-		}
-		return self::$rootDir;
-	}
-
 	public static function addPath(string $path):bool {
-		if (is_dir(self::getRootDir().$path)) {
-			self::$pathList[] = self::getRootDir().$path;
+		if (is_dir(self::PATH_ROOT.$path)) {
+			self::$pathList[] = self::PATH_ROOT.(substr($path, -1) !== '/' ? $path.'/' : $path);
 			return true;
 		}
 		return false;
 	}
 
-	public static function clearPathList() {
-		self::$pathList = array();
-	}
-
 	public static function refreshPathList() {
-		self::clearPathList();
+		self::$pathList = array();
 
 		# Public
-		self::addPath(self::PATH_PUBLIC.self::PATH_SOURCE);
+		self::addPath(self::PATH_PUBLIC_SOURCE);
 
 		# Add-Ons
-		if (is_dir(self::getRootDir().self::PATH_ADDONS)) {
-			$addOnNameList = scandir(self::getRootDir().self::PATH_ADDONS);
-			foreach ($addOnNameList as $addOnName) {
-				if ($addOnName === '.' || $addOnName === '..') {
-					continue;
+		if (is_dir(self::PATH_ROOT.self::PATH_ADD_ONS)) {
+			foreach (scandir(self::PATH_ROOT.self::PATH_ADD_ONS) as $addOnName) {
+				if ($addOnName[0] !== '.') {
+					self::addPath(self::PATH_ADD_ONS.$addOnName.'/'.self::PATH_SOURCE);
 				}
-				if (!is_dir(self::getRootDir().self::PATH_ADDONS.$addOnName)) {
-					continue;
-				}
-				self::addPath(self::PATH_ADDONS.$addOnName.'/'.self::PATH_SOURCE);
 			}
 		}
 
 		# Private
-		self::addPath(self::PATH_PRIVATE.self::PATH_SOURCE);
+		self::addPath(self::PATH_PRIVATE_SOURCE);
 	}
 
 	public static function load(string $nameSpace):bool {
-		$filePath = str_replace('\\', '/', $nameSpace).self::FILE_EXTENSION;
+		$filePath = str_replace('\\', '/', $nameSpace).self::FILE_PHP_EXTENSION;
 
 		foreach (array_reverse(self::$pathList) as $path) {
 			if (is_file($path.$filePath)) {
@@ -90,3 +68,4 @@ final class MAPAutoloader {
 
 MAPAutoloader::refreshPathList();
 spl_autoload_register('MAPAutoloader::load', true);
+
